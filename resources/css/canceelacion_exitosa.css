@@ -1,0 +1,110 @@
+/* ── Icono de estado cancelado ── */
+        .icono-cancelado {
+            width: 68px;
+            height: 68px;
+            background: #fef2f2;
+            border: 2px solid #fecaca;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            margin: 1.5rem auto 1rem;
+        }
+
+        /* ── Detalle de cancelación ── */
+        .cancelacion-card {
+            background: #fff;
+            border-radius: 14px;
+            padding: 1.3rem 1.2rem;
+            margin-bottom: 1rem;
+            border: 1px solid #e8e6e1;
+            box-shadow: 0 1px 4px rgba(0, 0, 0, .04);
+        }
+
+        .cancelacion-header {
+            font-size: .7rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: .07em;
+            color: #a8a49e;
+            margin-bottom: .75rem;
+        }
+
+        .cancelacion-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            padding: .5rem 0;
+            font-size: .875rem;
+            border-bottom: 1px solid #f3f4f6;
+            gap: 1rem;
+        }
+
+        .cancelacion-row:last-of-type {
+            border-bottom: none;
+        }
+
+        .cancelacion-row .label {
+            color: #6b7280;
+            flex-shrink: 0;
+        }
+
+        .cancelacion-row .valor {
+            text-align: right;
+            font-weight: 500;
+        }
+
+        /* ── Motivo ── */
+        .motivo-badge {
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            border-radius: 0 8px 8px 0;
+            padding: .65rem .85rem;
+            font-size: .83rem;
+            color: #92400e;
+            margin-top: .75rem;
+            line-height: 1.45;
+        }
+
+        /* ── Aviso reembolso ── */
+        .aviso-reembolso {
+            background: #f0f9ff;
+            border-left: 3px solid #0ea5e9;
+            border-radius: 0 8px 8px 0;
+            padding: .75rem .85rem;
+            font-size: .82rem;
+            color: #0c4a6e;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        .aviso-ok {
+            background: #f0fdf4;
+            border-left: 3px solid #22c55e;
+            border-radius: 0 8px 8px 0;
+            padding: .75rem .85rem;
+            font-size: .82rem;
+            color: #14532d;
+            margin-bottom: 1rem;
+            line-height: 1.5;
+        }
+
+        /* ── Botón nuevo pedido ── */
+        .btn-nuevo-pedido {
+            display: block;
+            background: #4f46e5;
+            color: #fff;
+            text-align: center;
+            padding: .92rem;
+            border-radius: 11px;
+            font-weight: 600;
+            font-size: .97rem;
+            text-decoration: none;
+            margin-top: .5rem;
+            transition: opacity .18s;
+        }
+
+        .btn-nuevo-pedido:hover {
+            opacity: .86;
+        }

@@ -1,0 +1,189 @@
+*,
+*::before,
+*::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
+:root {
+    --bosque: #F9F7F3;   /* Fue #1b3a2d */
+    --ambar: #C48B57;    /* Fue #c97b22 */
+    --papel: #FFFFFF;    /* Fue #f5f0e8 */
+    --papel-2: #F9F7F3;  /* Fue #ede7d9 */
+    --tinta: #2C2621;    /* Fue #1a1612 */
+    --tinta-3: #7A7067;  /* Fue #9a8e82 */
+    --borde: rgba(0,0,0,0.12); /* Fue #d0c8bc */
+    --rojo: #EF4444;     /* Fue #a83020 */
+}
+
+body {
+    background: var(--bosque);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 1.5rem;
+    font-family: "Outfit", sans-serif;
+}
+
+.tarjeta {
+    background: var(--papel);
+    max-width: 380px;
+    width: 100%;
+    animation: aparecer 0.5s ease both;
+}
+
+@keyframes aparecer {
+    from {
+        opacity: 0;
+        transform: translateY(20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.tarjeta-franja {
+    height: 3px;
+    background: {{ $tienePendientes ? 'var(--ambar)' : 'var(--rojo)' }};
+}
+
+.tarjeta-cuerpo {
+    padding: 2rem;
+}
+
+.icono {
+    font-size: 2rem;
+    display: block;
+    margin-bottom: 1rem;
+}
+
+.titulo {
+    font-family: "Cormorant Garamond", serif;
+    font-size: 1.8rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+    color: var(--tinta);
+    margin-bottom: 0.5rem;
+}
+
+.subtitulo {
+    font-size: 0.83rem;
+    color: var(--tinta-3);
+    line-height: 1.5;
+    margin-bottom: 1.5rem;
+}
+
+/* Advertencia de pendientes */
+.advertencia {
+    background: #fbf3e8;
+    border: 1px solid #e8c88a;
+    border-left: 3px solid var(--ambar);
+    padding: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.advertencia-titulo {
+    font-family: "DM Mono", monospace;
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #6b3e0a;
+    margin-bottom: 0.6rem;
+}
+
+.advertencia-item {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    font-size: 0.82rem;
+    color: #7a4a10;
+    margin-bottom: 0.3rem;
+}
+
+.advertencia-item:last-child {
+    margin-bottom: 0;
+}
+
+.advertencia-dot {
+    width: 5px;
+    height: 5px;
+    background: var(--ambar);
+    border-radius: 50%;
+    flex-shrink: 0;
+}
+
+/* Alerta de error */
+.alerta-error {
+    background: #f9edea;
+    border-left: 3px solid var(--rojo);
+    padding: 0.7rem 1rem;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    color: #6b1e12;
+    margin-bottom: 1.2rem;
+    letter-spacing: 0.02em;
+}
+
+/* Botones */
+.botones {
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+
+.btn {
+    width: 100%;
+    padding: 0.8rem 1rem;
+    font-family: "DM Mono", monospace;
+    font-size: 0.68rem;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+    border: 1px solid;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    transition: all 0.15s;
+    text-decoration: none;
+}
+
+.btn-cerrar {
+    background: var(--rojo);
+    border-color: var(--rojo);
+    color: white;
+}
+
+.btn-cerrar:hover {
+    opacity: 0.85;
+}
+
+.btn-cerrar:disabled {
+    background: var(--borde);
+    border-color: var(--borde);
+    color: var(--tinta-3);
+    cursor: not-allowed;
+}
+
+.btn-volver {
+    background: transparent;
+    border-color: var(--borde);
+    color: var(--tinta-3);
+}
+
+.btn-volver:hover {
+    border-color: var(--tinta-3);
+    color: var(--tinta);
+}
+
+.pie {
+    padding: 1rem 2rem;
+    border-top: 1px solid var(--borde);
+    font-family: "DM Mono", monospace;
+    font-size: 0.58rem;
+    letter-spacing: 0.1em;
+    color: var(--tinta-3);
+    text-align: center;
+}

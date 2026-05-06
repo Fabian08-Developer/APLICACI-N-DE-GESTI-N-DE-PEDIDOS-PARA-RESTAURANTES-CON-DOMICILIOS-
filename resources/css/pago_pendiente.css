@@ -1,0 +1,166 @@
+/* ── Header ── */
+.header {
+    text-align: center;
+    padding-top: 1.5rem;
+    padding-bottom: 0.5rem;
+}
+
+.header h1 {
+    font-family: "DM Serif Display", serif;
+    font-weight: 400;
+    color: #1a1815;
+    margin: 0;
+    font-size: 2rem;
+}
+
+/* ── Spinner ── */
+        .spinner {
+            width: 44px;
+            height: 44px;
+            border: 3px solid #e5e7eb;
+            border-top-color: #4f46e5;
+            border-radius: 50%;
+            animation: spin .85s linear infinite;
+            margin: 1.2rem auto;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* ── Layout de pantallas ── */
+        .pantalla {
+            text-align: center;
+            padding: 1.8rem 1.2rem 1rem;
+        }
+
+        .pantalla .icono {
+            font-size: 2.5rem;
+            margin-bottom: .9rem;
+            display: block;
+        }
+
+        .pantalla h2 {
+            font-family: "DM Serif Display", serif;
+            font-size: 1.35rem;
+            font-weight: 400;
+            margin-bottom: .45rem;
+            color: #1a1815;
+        }
+
+        .pantalla p {
+            font-size: .85rem;
+            color: #6b7280;
+            margin: .25rem 0;
+            line-height: 1.55;
+        }
+
+        /* ── Referencia ── */
+        .ref-badge {
+            display: inline-block;
+            background: #f3f4f6;
+            color: #374151;
+            font-size: .73rem;
+            font-family: monospace;
+            padding: .28rem .7rem;
+            border-radius: 999px;
+            margin-top: .75rem;
+        }
+
+        /* ── Barra de tiempo ── */
+        .barra-tiempo-wrap {
+            padding: 0 1.2rem 1rem;
+        }
+
+        .barra-tiempo-bg {
+            background: #e5e7eb;
+            border-radius: 999px;
+            height: 4px;
+            overflow: hidden;
+        }
+
+        .barra-tiempo-fill {
+            height: 100%;
+            background: #4f46e5;
+            border-radius: 999px;
+            transition: width 1s linear;
+        }
+
+        .barra-tiempo-label {
+            font-size: .73rem;
+            color: #9ca3af;
+            text-align: right;
+            margin-top: .3rem;
+        }
+
+        /* ── Aviso conexión ── */
+        .aviso-conexion {
+            margin: 0 1.2rem .8rem;
+            padding: .75rem .95rem;
+            background: #fffbeb;
+            border-left: 3px solid #f59e0b;
+            border-radius: 0 8px 8px 0;
+            font-size: .83rem;
+            color: #92400e;
+            display: none;
+            line-height: 1.45;
+        }
+
+        /* ── Botón reintentar ── */
+        .btn-reintentar {
+            display: block;
+            margin: 0 1.2rem 1.2rem;
+            padding: .88rem;
+            background: #4f46e5;
+            color: #fff;
+            border: none;
+            border-radius: 11px;
+            font-size: .97rem;
+            font-weight: 600;
+            text-align: center;
+            text-decoration: none;
+            cursor: pointer;
+            transition: opacity .18s;
+        }
+
+        .btn-reintentar:hover {
+            opacity: .86;
+        }
+
+        /* ── Dev tools ── */
+        .dev-tools {
+            margin: 1.4rem 1rem 0;
+            padding: .9rem 1rem;
+            border: 1px dashed #d1d5db;
+            border-radius: 12px;
+            background: #fffbeb;
+        }
+
+        .dev-tools p {
+            font-size: .73rem;
+            color: #92400e;
+            margin-bottom: .5rem;
+        }
+
+        .dev-tools button {
+            padding: .45rem .9rem;
+            border: none;
+            border-radius: 7px;
+            font-size: .82rem;
+            font-weight: 600;
+            cursor: pointer;
+            margin-right: .4rem;
+            margin-bottom: .3rem;
+        }
+
+        .btn-sim-ok {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .btn-sim-fail {
+            background: #fee2e2;
+            color: #991b1b;
+        }

@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="es" style="background-color: #0F172A;">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="csrf-token" content="{{ csrf_token() }}">
+    <title>@yield('titulo') — Admin</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    @vite(['resources/css/admin.css', 'resources/js/admin.js'])
+</head>
+<body>
+
+    {{-- TOPBAR --}}
+    <header class="topbar">
+        <button class="btn-hamburger" onclick="toggleSidebar()" id="btnHamburger">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+        <div class="topbar-logo">
+            Mi Restaurante
+            <small>Panel administrador</small>
+        </div>
+        <div class="topbar-spacer"></div>
+        <div class="topbar-usuario">
+            <strong>{{ auth()->user()?->nombre ?? 'Administrador' }}</strong>
+            Administrador
+        </div>
+    </header>
+
+    {{-- OVERLAY --}}
+    <div class="overlay" onclick="toggleSidebar()"></div>
+
+    {{-- DRAWER SIDEBAR --}}
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-marca">
+                Mi Restaurante
+                <small>Panel administrador</small>
+            </div>
+            <button class="btn-cerrar" onclick="toggleSidebar()">✕</button>
+        </div>
+
+        <nav class="sidebar-nav">
+            <div class="nav-label">General</div>
+            <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->is('admin/dashboard') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span> Dashboard
+            </a>
+
+            <div class="nav-label">Gestión</div>
+            <a href="{{ route('admin.categorias.index') }}" class="nav-item {{ request()->is('admin/categorias*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></span> Categorías
+            </a>
+            <a href="{{ route('admin.productos.index') }}" class="nav-item {{ request()->is('admin/productos*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></span> Productos
+            </a>
+            <a href="{{ route('admin.mesas.index') }}" class="nav-item {{ request()->is('admin/mesas*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 14a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"/></svg></span> Mesas
+            </a>
+            <a href="{{ route('admin.pedidos.index') }}" class="nav-item {{ request()->is('admin/pedidos*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span> Pedidos
+            </a>
+            <a href="{{ route('admin.domiciliarios.index') }}" class="nav-item {{ request()->is('admin/domiciliarios*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10M13 16h3.25L19 13.5V16h1a1 1 0 001-1v-4.5l-2.5-3H13"/></svg></span> Domiciliarios
+            </a>
+            <a href="{{ route('admin.zonas.index') }}" class="nav-item {{ request()->is('admin/zonas*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span> Zonas
+            </a>
+            <a href="{{ route('admin.reportes.ventas') }}" class="nav-item {{ request()->is('admin/reportes*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span> Reportes
+            </a>
+            <a href="{{ route('admin.usuarios.index') }}" class="nav-item {{ request()->is('admin/usuarios*') ? 'activo' : '' }}" onclick="toggleSidebar()">
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span> Usuarios
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <strong>{{ auth()->user()?->nombre ?? 'Administrador' }}</strong>
+            Administrador
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn-logout">Cerrar sesión</button>
+            </form>
+        </div>
+    </aside>
+
+    {{-- CONTENIDO --}}
+    <main class="contenido">
+        @if(session('exito'))
+            <div class="alerta alerta-exito">{{ session('exito') }}</div>
+        @endif
+        @if(session('error'))
+            <div class="alerta alerta-error">{{ session('error') }}</div>
+        @endif
+
+        @yield('contenido')
+    </main>
+
+    @include('partials.staff-token')
+</body>
+</html>

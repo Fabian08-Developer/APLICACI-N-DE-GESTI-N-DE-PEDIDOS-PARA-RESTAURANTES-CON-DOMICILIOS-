@@ -1,0 +1,316 @@
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        /* ── Paleta café artesanal ───────────────────────────────── */
+        :root {
+            --espresso:   #130a05;
+            --tostado:    #1f1008;
+            --roasted:    #2c1a0e;
+            --madera:     #3e2512;
+            --caramelo:   #c17f3e;
+            --latte:      #e8b87a;
+            --dorado:     #f5d49a;
+            --crema:      #f2e8d9;
+            --pergamino:  #ede0ca;
+            --humo:       rgba(242,232,217,0.5);
+            --sombra:     rgba(242,232,217,0.25);
+            --tenue:      rgba(242,232,217,0.35);
+        }
+
+        /* ── Base ────────────────────────────────────────────────── */
+        html, body {
+            min-height: 100vh;
+            background: var(--espresso);
+            font-family: 'Lato', sans-serif;
+            color: var(--crema);
+            overflow-x: hidden;
+        }
+
+        /* ── Fondo con textura de grano ──────────────────────────── */
+        .fondo-grano {
+            position: fixed;
+            inset: 0;
+            z-index: 0;
+            pointer-events: none;
+            background:
+                /* Gradiente cálido base */
+                radial-gradient(ellipse 80% 80% at 50% 60%, #2c1a0e 0%, #1a0a04 55%, #0d0502 100%);
+            opacity: 1;
+        }
+
+        /* Textura de grano simulada con múltiples sombras */
+        .fondo-grano::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background-image:
+                url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+            background-size: 256px 256px;
+            opacity: 0.6;
+            mix-blend-mode: overlay;
+        }
+
+        /* ── Glow central cálido ─────────────────────────────────── */
+        .fondo-glow {
+            position: fixed;
+            top: -20%;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 600px;
+            height: 600px;
+            z-index: 0;
+            pointer-events: none;
+            background: radial-gradient(
+                ellipse at center,
+                rgba(193, 127, 62, 0.18) 0%,
+                rgba(193, 127, 62, 0.07) 40%,
+                transparent 70%
+            );
+            animation: glow-pulso 6s ease-in-out infinite;
+        }
+
+        @keyframes glow-pulso {
+            0%, 100% { opacity: 0.8; transform: translateX(-50%) scale(1); }
+            50%       { opacity: 1;   transform: translateX(-50%) scale(1.06); }
+        }
+
+        /* ── Contenedor ──────────────────────────────────────────── */
+        .contenedor {
+            position: relative;
+            z-index: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 2.5rem 1.5rem;
+            gap: 1.5rem;
+            max-width: 400px;
+            margin: 0 auto;
+        }
+
+        /* Animación de entrada escalonada */
+        .contenedor > * {
+            opacity: 0;
+            transform: translateY(14px);
+            animation: aparece 0.6s ease forwards;
+        }
+
+        @keyframes aparece {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* ── Logo ────────────────────────────────────────────────── */
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .logo-icono {
+            width: 42px;
+            height: 42px;
+            background: rgba(193, 127, 62, 0.15);
+            border: 1px solid rgba(193, 127, 62, 0.3);
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--latte);
+        }
+
+        .logo-icono svg { width: 22px; height: 22px; }
+
+        .logo-nombre {
+            font-family: 'Cormorant Garant', serif;
+            font-size: 1.6rem;
+            font-weight: 500;
+            color: var(--crema);
+            letter-spacing: 0.04em;
+        }
+
+        /* ── Línea decorativa ────────────────────────────────────── */
+        .linea-deco {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            width: 100%;
+            max-width: 200px;
+        }
+
+        .linea-deco span {
+            flex: 1;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(193,127,62,0.4), transparent);
+        }
+
+        .punto {
+            flex: 0 !important;
+            width: 4px !important;
+            height: 4px !important;
+            background: rgba(193, 127, 62, 0.6) !important;
+            border-radius: 50%;
+        }
+
+        /* ── Bienvenida ──────────────────────────────────────────── */
+        .bienvenida {
+            text-align: center;
+        }
+
+        .saludo {
+            font-family: 'Lato', sans-serif;
+            font-size: 0.82rem;
+            font-weight: 300;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: var(--caramelo);
+            margin-bottom: 0.5rem;
+        }
+
+        .mesa-num {
+            font-family: 'Cormorant Garant', serif;
+            font-size: 4.5rem;
+            font-weight: 300;
+            line-height: 1;
+            color: var(--crema);
+            letter-spacing: -0.02em;
+            /* Sombra cálida bajo el número */
+            text-shadow: 0 2px 40px rgba(193, 127, 62, 0.25);
+        }
+
+        .capacidad {
+            font-size: 0.78rem;
+            color: var(--tenue);
+            margin-top: 0.4rem;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── Descripción ─────────────────────────────────────────── */
+        .descripcion {
+            font-family: 'Cormorant Garant', serif;
+            font-style: italic;
+            font-size: 1.05rem;
+            font-weight: 300;
+            color: var(--sombra);
+            text-align: center;
+            line-height: 1.65;
+        }
+
+        /* ── Alerta de error ─────────────────────────────────────── */
+        .alerta-error {
+            width: 100%;
+            background: rgba(160, 40, 40, 0.18);
+            border: 1px solid rgba(180, 60, 60, 0.3);
+            color: #f5a0a0;
+            padding: 0.8rem 1rem;
+            border-radius: 10px;
+            font-size: 0.875rem;
+            text-align: center;
+            opacity: 0;
+            transform: translateY(8px);
+            animation: aparece 0.5s 0.35s ease forwards;
+        }
+
+        /* ── Botón principal ─────────────────────────────────────── */
+        .btn-menu {
+            width: 100%;
+            padding: 1.1rem 1.4rem;
+            background: rgba(193, 127, 62, 0.1);
+            border: 1px solid rgba(193, 127, 62, 0.35);
+            border-radius: 18px;
+            cursor: pointer;
+            font-family: inherit;
+            color: var(--crema);
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            transition: background 0.25s, border-color 0.25s, transform 0.15s, box-shadow 0.25s;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Reflejo interno */
+        .btn-menu::before {
+            content: '';
+            position: absolute;
+            top: 0; left: 0; right: 0;
+            height: 1px;
+            background: linear-gradient(to right, transparent, rgba(255,255,255,0.12), transparent);
+        }
+
+        .btn-menu:hover {
+            background: rgba(193, 127, 62, 0.18);
+            border-color: rgba(193, 127, 62, 0.6);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 32px rgba(193, 127, 62, 0.15);
+        }
+
+        .btn-menu:active { transform: translateY(0); }
+
+        .btn-menu-icono {
+            width: 48px;
+            height: 48px;
+            background: rgba(193, 127, 62, 0.15);
+            border: 1px solid rgba(193, 127, 62, 0.25);
+            border-radius: 13px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: var(--latte);
+            flex-shrink: 0;
+            transition: background 0.2s;
+        }
+
+        .btn-menu:hover .btn-menu-icono {
+            background: rgba(193, 127, 62, 0.25);
+        }
+
+        .btn-menu-icono svg { width: 22px; height: 22px; }
+
+        .btn-menu-texto {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .btn-menu-texto strong {
+            font-family: 'Cormorant Garant', serif;
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: var(--crema);
+            letter-spacing: 0.01em;
+        }
+
+        .btn-menu-texto small {
+            font-size: 0.78rem;
+            color: var(--tenue);
+            font-weight: 300;
+            letter-spacing: 0.04em;
+        }
+
+        .btn-menu-flecha {
+            color: var(--caramelo);
+            opacity: 0.5;
+            transition: opacity 0.2s, transform 0.2s;
+        }
+
+        .btn-menu:hover .btn-menu-flecha {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+
+        .btn-menu-flecha svg { width: 18px; height: 18px; }
+
+        /* ── Pie ─────────────────────────────────────────────────── */
+        .pie {
+            text-align: center;
+        }
+
+        .pie p {
+            font-family: 'Cormorant Garant', serif;
+            font-style: italic;
+            font-size: 0.82rem;
+            color: rgba(193, 127, 62, 0.4);
+            letter-spacing: 0.06em;
+        }
