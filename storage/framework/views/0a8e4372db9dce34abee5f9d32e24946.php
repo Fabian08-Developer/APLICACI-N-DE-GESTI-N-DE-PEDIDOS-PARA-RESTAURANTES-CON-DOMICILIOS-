@@ -1,1 +1,0 @@
-error.blade.php<?php /**PATH C:\laragon\www\Cafeteria\cafeteria-web\resources\views/cliente/error.blade.php ENDPATH**/ ?>

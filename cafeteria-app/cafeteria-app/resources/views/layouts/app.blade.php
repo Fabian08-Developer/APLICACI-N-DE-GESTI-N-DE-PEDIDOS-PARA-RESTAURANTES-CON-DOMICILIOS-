@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{{ $title ?? config('app.name') }}</title>
+
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+    @livewireStyles
+    <style>
+        [x-cloak] { display: none !important; }
+        body { background-color: #0F172A !important; color: #F8FAFC; overflow-x: hidden; }
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: #0F172A; }
+        ::-webkit-scrollbar-thumb { background: #1E293B; border-radius: 10px; }
+        ::-webkit-scrollbar-thumb:hover { background: #94A3B8; }
+        .sidebar-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
+        .livewire-progress-bar { background-color: #CBD5E1 !important; }
+    </style>
+</head>
+
+<body class="antialiased font-sans" x-data="{ sidebarOpen: false }">
+    @php
+        $globalSettings = @json_decode(@file_get_contents(storage_path('app/global_settings.json')), true) ?: [];
+        $hasActiveNotice = ($globalSettings['aviso_activo'] ?? false) && ($globalSettings['aviso_mostrar_banner'] ?? false) && !empty($globalSettings['aviso_titulo']);
+    @endphp
+
+    @if($hasActiveNotice)
+        <div id="system-notice-banner" style="background: linear-gradient(135deg, #7f1d1d, #78350f); border-bottom: 1px solid rgba(244, 63, 94, 0.3); color: #FFFFFF; padding: 12px 24px; font-family: 'DM Sans', sans-serif; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+            <div style="display: flex; align-items: center; gap: 12px; margin: 0 auto; text-align: center;">
+                <span style="display: inline-flex; position: relative; width: 10px; height: 10px; flex-shrink: 0;">
+                    <span style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background-color: #fb7185; opacity: 0.75; animation: notice-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
+                    <span style="position: relative; width: 10px; height: 10px; border-radius: 50%; background-color: #f43f5e;"></span>
+                </span>
+                <div style="font-weight: 700; line-height: 1.4;">
+                    <span style="text-transform: uppercase; letter-spacing: 0.05em; font-size: 10px; background: rgba(244, 63, 94, 0.2); padding: 2px 8px; border-radius: 6px; border: 1px solid rgba(244, 63, 94, 0.3); margin-right: 8px; color: #fecdd3; font-weight: 800;">AVISO DEL SISTEMA</span>
+                    <strong style="color: #F8FAFC; text-transform: uppercase; font-weight: 800;">{{ $globalSettings['aviso_titulo'] }}</strong>
+                    <span style="color: #E2E8F0; margin-left: 8px; font-weight: 500;">{{ $globalSettings['aviso_mensaje'] }}</span>
+                </div>
+            </div>
+            <button onclick="document.getElementById('system-notice-banner').style.display='none'" style="background: none; border: none; color: #94A3B8; cursor: pointer; padding: 4px; border-radius: 8px; display: flex; align-items: center; justify-content: center; transition: all 0.2s;" onmouseover="this.style.color='#FFFFFF'; this.style.background='rgba(255,255,255,0.05)'" onmouseout="this.style.color='#94A3B8'; this.style.background='none'">
+                <svg style="width: 20px; height: 20px;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12"/></svg>
+            </button>
+        </div>
+        <style>
+            @keyframes notice-ping {
+                75%, 100% { transform: scale(2.5); opacity: 0; }
+            }
+        </style>
+    @endif
+
+    @php
+    $userObj = auth()->user();
+    $isSuperAdmin = $userObj && $userObj->hasRole('super-admin');
+    $isGerente = $userObj && $userObj->hasRole('gerente');
+    $userName = $userObj ? $userObj->nombre : 'Usuario';
+
+    $userRole = 'Usuario';
+    if ($isSuperAdmin) $userRole = 'Super Admin';
+    elseif ($isGerente) $userRole = 'Gerente';
+    elseif ($userObj && $userObj->rol) $userRole = $userObj->rol->nombre;
+
+    $platformName = $isSuperAdmin ? 'BUILDER PLATFORM' : 'Mi Restaurante';
+    $platformSub = $isSuperAdmin ? 'Centro de Control Global' : 'Panel Administrador';
+    @endphp
+
+    {{-- TOPBAR --}}
+    <header class="h-20 bg-[#141210]/98 backdrop-blur-xl border-b border-[#292524] sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between">
+        <div class="flex items-center gap-3">
+            <button @click="sidebarOpen = true" class="p-2 rounded-xl text-[#F5F5F4] hover:text-[#A85507] hover:bg-[#3E3935]/50 transition-all">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
+                </svg>
+            </button>
+            <div class="flex flex-col">
+                <h1 class="text-[14px] font-black text-[#F5F5F4] uppercase tracking-widest leading-tight">{{ $platformName }}</h1>
+                <span class="text-[10px] font-bold text-[#A85507] uppercase tracking-wider">{{ $platformSub }}</span>
+            </div>
+        </div>
+
+        <div class="flex items-center gap-4">
+            <div class="hidden md:flex flex-col items-end">
+                <strong class="text-[12px] text-[#F5F5F4] uppercase tracking-tighter">{{ $userName }}</strong>
+                <span class="text-[10px] text-stone-500 uppercase tracking-wider">{{ $userRole }}</span>
+            </div>
+
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="flex items-center justify-center w-10 h-10 rounded-xl border border-[#292524] text-rose-500 hover:bg-rose-500/10 transition-all" title="Cerrar sesión">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                </button>
+            </form>
+        </div>
+    </header>
+
+    {{-- OVERLAY --}}
+    <div x-show="sidebarOpen"
+        x-transition.opacity.duration.300ms
+        class="fixed inset-0 bg-[#0C0A09]/80 backdrop-blur-sm z-40"
+        @click="sidebarOpen = false"
+        x-cloak></div>
+
+    {{-- DRAWER SIDEBAR --}}
+    <aside class="fixed inset-y-0 left-0 bg-[#141210]/98 backdrop-blur-3xl text-[#F5F5F4] w-64 z-50 border-r border-[#292524] shadow-[20px_0_50px_rgba(0,0,0,0.8)] flex flex-col transform transition-transform duration-300 ease-out"
+        :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
+
+        {{-- Sidebar Header --}}
+        <div class="h-20 flex items-center justify-between px-6 border-b border-[#292524] bg-[#1C1917]/30 shrink-0">
+            <div class="flex flex-col">
+                <span class="text-[14px] font-black text-[#F5F5F4] uppercase tracking-widest leading-tight">{{ $platformName }}</span>
+                <span class="text-[10px] font-bold text-[#A85507] uppercase tracking-wider">{{ $platformSub }}</span>
+            </div>
+            <button @click="sidebarOpen = false" class="p-2 rounded-lg text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 transition-colors">
+                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+            </button>
+        </div>
+
+        {{-- Nav Links --}}
+        <nav class="flex-1 px-3 py-6 space-y-1 overflow-y-auto">
+            <div class="px-3 mb-3 text-[10px] font-black uppercase tracking-widest text-stone-500">
+                {{ $isSuperAdmin ? 'Administración SaaS' : 'Menú Principal' }}
+            </div>
+            
+            <a href="{{ route('dashboard') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('dashboard') || request()->routeIs('super-admin.dashboard') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" />
+                    </svg></span>
+                Dashboard
+            </a>
+
+            @if($isSuperAdmin)
+                {{-- Opciones de Super Admin --}}
+                <a href="{{ route('super-admin.requests') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('super-admin.requests') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                    <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                        </svg></span>
+                    Solicitudes
+                </a>
+                <a href="{{ route('super-admin.tenants') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('super-admin.tenants') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                    <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                        </svg></span>
+                    Gestionar Tenants (Empresas)
+                </a>
+                <a href="{{ route('super-admin.users') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('super-admin.users') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                    <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                        </svg></span>
+                    Usuarios Globales
+                </a>
+                <a href="{{ route('super-admin.trash') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('super-admin.trash') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                    <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                        </svg></span>
+                    Papelera
+                </a>
+            @else
+                {{-- Opciones de Gerente / Admin --}}
+                <a href="{{ route('sucursales') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('sucursales') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                    <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 14a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z" />
+                        </svg></span>
+                    Mis Sucursales
+                </a>
+
+                @if($isGerente)
+                    <a href="{{ route('gerente.reportes-globales') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('gerente.reportes-globales') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                        <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v6m-6 0h6m2 5h2a2 2 0 002-2v-5a2 2 0 00-2-2h-2a2 2 0 00-2 2v5a2 2 0 002 2z" />
+                            </svg></span>
+                        Reportes Globales
+                    </a>
+                @endif
+            @endif
+            
+            <a href="{{ route('configuracion') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('configuracion') ? 'bg-gradient-to-r from-[#A85507]/20 to-transparent text-[#A85507] border-l-2 border-[#A85507]' : 'text-stone-400 hover:text-[#F5F5F4] hover:bg-[#292524]/50 border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg></span>
+                Configuración
+            </a>
+        </nav>
+
+        {{-- Footer Sidebar --}}
+        <div class="p-4 border-t border-[#292524] bg-[#1C1917]/20">
+            <div class="flex items-center gap-3 mb-4">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-[#A85507] to-[#78350F] text-white flex items-center justify-center font-black shadow-lg shrink-0">
+                    {{ substr($userName, 0, 1) }}
+                </div>
+                <div class="flex flex-col">
+                    <strong class="text-[12px] text-[#F5F5F4] uppercase tracking-tighter truncate">{{ $userName }}</strong>
+                    <span class="text-[10px] text-stone-500 uppercase">{{ $userRole }}</span>
+                </div>
+            </div>
+            <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="w-full py-2.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white font-black text-[11px] uppercase tracking-widest transition-all flex items-center justify-center gap-2">
+                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+                    </svg>
+                    Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    {{-- CONTENIDO MAIN --}}
+    <main class="w-full min-h-[calc(100vh-80px)]">
+        <div class="p-2 sm:p-4 lg:p-6 w-full md:pl-64 transition-all duration-300">
+            {{ $slot }}
+        </div>
+    </main>
+
+    @livewireScripts
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script>
+        window.addEventListener('swal', event => {
+            Swal.fire({
+                title: event.detail[0].title,
+                text: event.detail[0].text,
+                icon: event.detail[0].icon,
+                background: '#1E293B',
+                color: '#F8FAFC',
+                confirmButtonColor: '#475569',
+                customClass: {
+                    popup: 'rounded-[32px] border border-[#334155]',
+                }
+            });
+        });
+    </script>
+    
+    @auth
+        @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocinero') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
+            @include('partials.staff-token')
+        @endif
+    @endauth
+</body>
+</html>

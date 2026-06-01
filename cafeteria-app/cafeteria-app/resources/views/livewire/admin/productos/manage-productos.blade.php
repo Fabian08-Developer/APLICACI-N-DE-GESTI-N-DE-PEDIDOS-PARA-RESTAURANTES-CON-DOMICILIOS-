@@ -1,0 +1,616 @@
+<div wire:key="manage-productos-container"
+     x-data="{ isOpen: @entangle('showModal').live }"
+     @open-sidebar.window="isOpen = true"
+     @close-sidebar.window="isOpen = false"
+     @close-modal.window="window.dispatchEvent(new CustomEvent('close-sidebar'))">
+@vite(['resources/css/productos.css'])
+<style> [x-cloak] { display: none !important; } </style>
+
+{{-- OVERLAY PARA EL DRAWER MANUAL --}}
+<div class="drawer-overlay" id="drawerOverlay" x-cloak :class="{ 'activo': isOpen }" @click="isOpen = false"></div>
+
+{{-- DRAWER --}}
+<div class="drawer" id="drawer" x-cloak :class="{ 'activo': isOpen }">
+    <form wire:submit.prevent="save" id="drawerForm" enctype="multipart/form-data" style="display: flex; flex-direction: column; height: 100%;">
+        <div class="drawer-cabecera">
+            <span class="drawer-titulo" id="drawerTitulo">
+                {{ $isEditing ? 'Editar producto' : 'Nuevo producto' }}
+            </span>
+            <button type="button" class="btn-cerrar" @click="isOpen = false" aria-label="Cerrar">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="18" y1="6" x2="6" y2="18"/>
+                    <line x1="6" y1="6" x2="18" y2="18"/>
+                </svg>
+            </button>
+        </div>
+
+        <div class="drawer-cuerpo">
+            <div class="grupo">
+                <label for="nombre">Nombre</label>
+                <input type="text" id="nombre" wire:model="nombre"
+                       placeholder="Ej: Hamburguesa clásica" required autofocus>
+                @error('nombre')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+            
+            <div class="grupo">
+                <label for="descripcion">Descripción <small style="opacity:.5">(opcional)</small></label>
+                <textarea id="descripcion" wire:model="descripcion" rows="2"
+                          placeholder="Descripción del producto..."></textarea>
+                @error('descripcion')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+            
+            <div class="grupo">
+                <label for="precio">Precio</label>
+                <input type="number" id="precio" wire:model="precio"
+                       placeholder="0.00" step="0.01" min="0" required>
+                @error('precio')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="grupo">
+                <label for="precio_oferta">Precio de Oferta <small style="opacity:.5">(opcional)</small></label>
+                <input type="number" id="precio_oferta" wire:model="precio_oferta"
+                       placeholder="0.00" step="0.01" min="0">
+                @error('precio_oferta')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+            
+            <div class="grupo">
+                <label for="categoria_id">Categoría <small style="opacity:.5">(opcional)</small></label>
+                <select id="categoria_id" wire:model="categoria_id">
+                    <option value="">— Sin categoría —</option>
+                    @foreach($categorias as $categoria)
+                        <option value="{{ $categoria->id }}">{{ $categoria->nombre }}{{ !$categoria->activo ? ' (Inactiva)' : '' }}</option>
+                    @endforeach
+                </select>
+                @error('categoria_id')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="grupo">
+                <label for="imagen">Imagen del producto</label>
+                @if($imagenPath && !$imagen)
+                    <div class="imagen-actual-preview" style="margin-bottom: 1rem;">
+                        <img src="{{ asset('storage/' . $imagenPath) }}" alt="Vista previa" style="max-height: 100px; border-radius: 8px;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.5rem;">Imagen actual</span>
+                    </div>
+                @endif
+                @if($imagen)
+                    <div class="imagen-actual-preview" style="margin-bottom: 1rem;">
+                        <img src="{{ $imagen->temporaryUrl() }}" alt="Vista previa" style="max-height: 100px; border-radius: 8px;">
+                        <span style="font-size: 0.8rem; color: var(--text-muted); display: block; margin-top: 0.5rem;">Nueva imagen seleccionada</span>
+                    </div>
+                @endif
+
+                <div class="input-archivo-diseno">
+                    <input type="file" id="imagen" wire:model="imagen" accept="image/*">
+                    <div class="label-archivo">
+                        <span class="icono-archivo"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" /><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" /></svg></span>
+                        <span class="texto-archivo">Haz clic para subir foto</span>
+                    </div>
+                </div>
+                <div wire:loading wire:target="imagen" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">Subiendo imagen...</div>
+                @error('imagen')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+            
+            <div class="grupo">
+                <div class="toggle-grupo">
+                    <span class="toggle-label">Producto activo (Visible)</span>
+                    <label class="toggle">
+                        <input type="checkbox" wire:model="activo">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grupo">
+                <div class="toggle-grupo">
+                    <span class="toggle-label">Permitir notas/observaciones</span>
+                    <label class="toggle">
+                        <input type="checkbox" wire:model="permite_notas">
+                        <span class="toggle-slider"></span>
+                    </label>
+                </div>
+            </div>
+
+            <div class="grupo" style="display: flex; gap: 1rem;">
+                <div style="flex: 1;">
+                    <label for="limite_minimo_adiciones">Mínimo Adiciones</label>
+                    <input type="number" id="limite_minimo_adiciones" wire:model="limite_minimo_adiciones"
+                           placeholder="0" min="0" required>
+                    @error('limite_minimo_adiciones')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+                </div>
+                <div style="flex: 1;">
+                    <label for="limite_maximo_adiciones">Máximo Adiciones</label>
+                    <input type="number" id="limite_maximo_adiciones" wire:model="limite_maximo_adiciones"
+                           placeholder="Sin límite" min="0">
+                    @error('limite_maximo_adiciones')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+                </div>
+            </div>
+        </div>
+
+        <div class="drawer-footer">
+            <button type="submit" class="btn-principal" id="drawerSubmitBtn">
+                {{ $isEditing ? 'Guardar cambios' : '+ Crear producto' }}
+            </button>
+            <button type="button" class="btn-cancelar" @click="isOpen = false">Cancelar</button>
+        </div>
+    </form>
+</div>
+
+{{-- PÁGINA --}}
+<div class="pagina-header">
+    <div class="pagina-header-texto">
+        <h1>Productos</h1>
+        <p>Administra los productos del menú</p>
+    </div>
+    <div style="display:flex; gap: 0.75rem; flex-wrap: wrap;">
+        @if($tab === 'productos')
+            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="openImportModal">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                Importar Excel
+            </button>
+            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="export">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
+                Exportar Excel
+            </button>
+            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="descargarPlantilla">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                Plantilla Excel
+            </button>
+            <button class="btn-nuevo" @click="isOpen = true" wire:click="openCreateModal">
+                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                     fill="none" stroke="currentColor" stroke-width="2.5"
+                     stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"/>
+                    <line x1="5" y1="12" x2="19" y2="12"/>
+                </svg>
+                Nuevo producto
+            </button>
+        @endif
+    </div>
+</div>
+
+{{-- NAVEGACIÓN DE PESTAÑAS --}}
+<div class="tabs-container">
+    <button wire:click="setTab('productos')" class="tab-btn {{ $tab === 'productos' ? 'activo' : '' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
+        </svg>
+        Productos
+    </button>
+    <button wire:click="setTab('adiciones')" class="tab-btn {{ $tab === 'adiciones' ? 'activo' : '' }}">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
+        </svg>
+        Adiciones
+    </button>
+</div>
+
+@if($tab === 'productos')
+{{-- FILTROS --}}
+<div class="tarjeta" style="margin-bottom: 1.5rem; padding: 1.2rem; background: var(--surface);">
+    <div class="filtros-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
+        <div class="form-grupo" style="flex: 1; min-width: 200px;">
+            <label for="buscar" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; display: block;">Buscar</label>
+            <input type="text" wire:model.live.debounce.300ms="search" id="buscar" placeholder="Nombre o descripción..." style="width: 100%; padding: 0.6rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border); background: rgba(0,0,0,0.02); color: var(--text-main);">
+        </div>
+        
+        <div class="form-grupo" style="flex: 1; min-width: 150px;">
+            <label for="categoria" style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin-bottom: 0.4rem; display: block;">Categoría</label>
+            <select wire:model.live="filterCategoria" id="categoria" style="width: 100%; padding: 0.6rem 1rem; border-radius: 0.5rem; border: 1px solid var(--border); background: rgba(0,0,0,0.02); color: var(--text-main);">
+                <option value="todas">Todas las categorías</option>
+                <option value="sin_categoria">Sin categoría</option>
+                @foreach($categorias as $c)
+                    <option value="{{ $c->id }}">{{ $c->nombre }}{{ !$c->activo ? ' (Inactiva)' : '' }}</option>
+                @endforeach
+            </select>
+        </div>
+    </div>
+</div>
+
+{{-- TABLA --}}
+<div class="tarjeta">
+    <div class="tarjeta-header">{{ $total }} productos registrados</div>
+
+    @if($productos->isEmpty())
+        <div class="vacio">No hay productos todavía. ¡Crea el primero!</div>
+    @else
+        <table>
+            <thead>
+                <tr>
+                    <th style="width: 70px">Foto</th>
+                    <th>Nombre</th>
+                    <th>Categoría</th>
+                    <th>Precio</th>
+                    <th>Estado</th>
+                    <th>Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach($productos as $producto)
+                <tr wire:key="prod-{{ $producto->id }}">
+                    <td>
+                        <div class="producto-miniatura">
+                            @if($producto->imagen)
+                                <img src="{{ asset('storage/' . $producto->imagen) }}" alt="{{ $producto->nombre }}">
+                            @else
+                                <div class="producto-sin-foto" style="display: flex; align-items: center; justify-content: center;"><svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="opacity: 0.5;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V8.25zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg></div>
+                            @endif
+                        </div>
+                    </td>
+                    <td>
+                        {{ $producto->nombre }}
+                        @if($producto->descripcion)
+                            <div class="texto-gris">{{ Str::limit($producto->descripcion, 40) }}</div>
+                        @endif
+                    </td>
+                    <td>
+                        @if($producto->categoria)
+                            <span class="badge-categoria">{{ $producto->categoria->nombre }}</span>
+                        @else
+                            <span class="texto-gris">—</span>
+                        @endif
+                    </td>
+                    <td class="precio">
+                        @if($producto->precio_oferta)
+                            <span style="text-decoration: line-through; color: rgba(247, 243, 238, 0.3); font-size: 0.8rem; margin-right: 0.4rem;">
+                                ${{ number_format($producto->precio, 2) }}
+                            </span>
+                            <span>${{ number_format($producto->precio_oferta, 2) }}</span>
+                        @else
+                            <span>${{ number_format($producto->precio, 2) }}</span>
+                        @endif
+                    </td>
+                    <td>
+                        <div style="display: flex; flex-direction: column; gap: 0.25rem;">
+                            @if($producto->activo)
+                                <span class="badge-activo">Visible</span>
+                            @else
+                                <span class="badge-inactivo">Oculto</span>
+                            @endif
+                            @if($producto->disponible)
+                                <span class="badge-activo" style="background: rgba(121, 82, 179, 0.1); color: #bca0dc; border-color: rgba(121, 82, 179, 0.3);">Disponible</span>
+                            @else
+                                <span class="badge-inactivo" style="background: rgba(220, 38, 38, 0.1); color: #f87171; border-color: rgba(220, 38, 38, 0.25);">Agotado</span>
+                            @endif
+                        </div>
+                    </td>
+                    <td>
+                        <div class="acciones" style="flex-wrap: wrap; max-width: 320px;">
+                            <button type="button" class="btn-editar"
+                                wire:click="edit('{{ $producto->id }}')" @click="isOpen = true">Editar</button>
+
+                            <button type="button" class="btn-editar" style="background: rgba(79, 142, 247, 0.1); color: #90cdf4; border-color: rgba(79, 142, 247, 0.25);" wire:click="openVariantesModal('{{ $producto->id }}')">
+                                Variantes ({{ $producto->variantes->count() }})
+                            </button>
+
+                            @if($producto->activo)
+                                <button type="button" class="btn-eliminar" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.25);" wire:click="toggleActivo('{{ $producto->id }}')">
+                                    Ocultar
+                                </button>
+                            @else
+                                <button type="button" class="btn-editar" style="background: rgba(76, 175, 125, 0.12); color: #4caf7d; border-color: rgba(76, 175, 125, 0.3);" wire:click="toggleActivo('{{ $producto->id }}')">
+                                    Mostrar
+                                </button>
+                            @endif
+
+                            @if($producto->disponible)
+                                <button type="button" class="btn-eliminar" style="background: rgba(220, 38, 38, 0.1); color: #f87171; border-color: rgba(220, 38, 38, 0.25);" wire:click="toggleDisponible('{{ $producto->id }}')">
+                                    Agotar
+                                </button>
+                            @else
+                                <button type="button" class="btn-editar" style="background: rgba(76, 175, 125, 0.12); color: #4caf7d; border-color: rgba(76, 175, 125, 0.3);" wire:click="toggleDisponible('{{ $producto->id }}')">
+                                    Habilitar
+                                </button>
+                            @endif
+
+                            <button type="button" class="btn-eliminar"
+                                    @click="$dispatch('abrir-modal-eliminar', { id: '{{ $producto->id }}', nombre: '{{ addslashes($producto->nombre) }}' })">
+                                Eliminar
+                            </button>
+                        </div>
+                    </td>
+                </tr>
+                @endforeach
+            </tbody>
+        </table>
+
+        @if($productos->hasPages())
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border);">
+                {{ $productos->links(data: ['scrollTo' => false]) }}
+            </div>
+        @endif
+    @endif
+</div>
+@endif
+
+{{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
+<div class="modal-overlay" id="modalEliminar" x-cloak
+     x-data="{ show: false, prodId: '', prodNombre: '' }"
+     @abrir-modal-eliminar.window="show = true; prodId = $event.detail.id; prodNombre = $event.detail.nombre;"
+     @close-modal.window="show = false"
+     :class="{ 'active': show }">
+    <div class="modal-confirm" @click.away="show = false">
+        <div class="modal-icon">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+        </div>
+        <h3 class="modal-title">¿Eliminar producto?</h3>
+        <p class="modal-desc">
+            Estás a punto de eliminar el producto <strong x-text="prodNombre"></strong>. Esta acción no se puede deshacer.
+        </p>
+        
+        <div class="modal-actions">
+            <button type="button" class="btn-modal btn-modal-cancel" @click="show = false">Cancelar</button>
+            <button type="button" class="btn-modal btn-modal-confirm" @click="$wire.delete(prodId)">Sí, eliminar</button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL DE IMPORTACIÓN DE EXCEL --}}
+<div class="modal-overlay"
+     x-cloak
+     x-data="{ show: @entangle('showImportModal').live }"
+     x-show="show"
+     :class="{ 'active': show }">
+    <div class="modal-confirm" @click.away="show = false">
+        <div class="modal-header-large">
+            <h3 class="modal-title">Importar Productos</h3>
+            <button type="button" class="btn-cerrar" wire:click="$set('showImportModal', false)">✕</button>
+        </div>
+        <div class="modal-body-scroll" style="margin-top: 1rem;">
+            <p class="modal-desc" style="text-align: left; margin-bottom: 1rem;">
+                Sube tu archivo de Excel con los productos. Asegúrate de usar la plantilla estructurada para evitar errores de formato.
+            </p>
+            <div class="grupo">
+                <label for="archivoImportacion">Seleccionar Archivo Excel (.xlsx, .xls)</label>
+                <input type="file" id="archivoImportacion" wire:model="archivoImportacion" accept=".xlsx, .xls">
+                <div wire:loading wire:target="archivoImportacion" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">Cargando archivo...</div>
+                @error('archivoImportacion') <div class="error-campo">{{ $message }}</div> @enderror
+            </div>
+
+            @if($importSuccess)
+                <div class="alerta alerta-exito" style="margin-top: 1rem;">
+                    {{ $importSuccess }}
+                </div>
+            @endif
+
+            @if(count($importErrors) > 0)
+                <div class="alerta alerta-error" style="margin-top: 1rem; max-height: 150px; overflow-y: auto;">
+                    <ul style="list-style: none; padding: 0;">
+                        @foreach($importErrors as $err)
+                            <li style="font-size: 0.8rem; margin-bottom: 0.25rem;">{{ $err }}</li>
+                        @endforeach
+                    </ul>
+                </div>
+            @endif
+        </div>
+        <div class="modal-footer-large">
+            <button type="button" class="btn-modal btn-modal-cancel" wire:click="$set('showImportModal', false)">Cancelar</button>
+            <button type="button" class="btn-modal btn-modal-confirm" style="background: #c9a84c; color: #000;" wire:click="import" wire:loading.attr="disabled">Importar</button>
+        </div>
+    </div>
+</div>
+
+{{-- MODAL DE VARIANTES OBLIGATORIAS --}}
+<div class="modal-overlay large"
+     x-cloak
+     x-data="{ show: @entangle('showVariantesModal').live }"
+     x-show="show"
+     :class="{ 'active': show }">
+    <div class="modal-confirm" @click.away="show = false">
+        <div class="modal-header-large">
+            <h3 class="modal-title">Variantes de: {{ $selectedProductoNombre }}</h3>
+            <button type="button" class="btn-cerrar" wire:click="$set('showVariantesModal', false)">✕</button>
+        </div>
+        <div class="modal-body-scroll">
+            <div class="grid-dos-columnas">
+                <!-- Formulario de Variante -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: #c9a84c;">{{ $editingVarianteId ? 'Editar Grupo' : 'Nuevo Grupo de Variantes' }}</h4>
+                    <div class="grupo">
+                        <label for="nuevaVarianteNombre">Nombre del Grupo (ej: Tamaño, Sabor)</label>
+                        <input type="text" id="nuevaVarianteNombre" wire:model="nuevaVarianteNombre" placeholder="Ej: Tamaño">
+                        @error('nuevaVarianteNombre') <div class="error-campo">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="grupo">
+                        <div class="toggle-grupo" style="padding: 0.5rem 0.75rem;">
+                            <span class="toggle-label" style="font-size: 0.8rem;">Selección obligatoria (Elige una opción)</span>
+                            <label class="toggle" style="transform: scale(0.85);">
+                                <input type="checkbox" wire:model="nuevaVarianteObligatorio">
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div style="margin-top: 1.5rem; margin-bottom: 0.5rem; display: flex; justify-content: space-between; align-items: center;">
+                        <span style="font-size: 0.75rem; font-weight: 700; color: rgba(247, 243, 238, 0.5); text-transform: uppercase;">Opciones de la variante</span>
+                        <button type="button" class="btn-editar" style="font-size: 0.75rem; padding: 0.25rem 0.5rem;" wire:click="addOpcionToNuevaVariante">+ Añadir opción</button>
+                    </div>
+                    @error('nuevaVarianteOpciones') <div class="error-campo" style="margin-bottom: 0.5rem;">{{ $message }}</div> @enderror
+
+                    <div style="max-height: 250px; overflow-y: auto; padding-right: 0.25rem;">
+                        @foreach($nuevaVarianteOpciones as $index => $opcion)
+                            <div class="opcion-row" wire:key="opcion-{{ $index }}">
+                                <input type="text" wire:model="nuevaVarianteOpciones.{{ $index }}.nombre" placeholder="Nombre (ej: Mediano)" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                                <input type="number" wire:model="nuevaVarianteOpciones.{{ $index }}.precio" placeholder="Precio" step="0.01" min="0" style="padding: 0.4rem 0.6rem; font-size: 0.8rem;">
+                                <select wire:model="nuevaVarianteOpciones.{{ $index }}.tipo_impacto" style="padding: 0.4rem 0.6rem; font-size: 0.8rem; height: auto;">
+                                    <option value="incremental">Incremental (+)</option>
+                                    <option value="fijo">Precio Fijo (=)</option>
+                                </select>
+                                <button type="button" class="btn-eliminar-opcion" wire:click="removeOpcionFromNuevaVariante({{ $index }})" title="Eliminar opción">✕</button>
+                            </div>
+                            @error("nuevaVarianteOpciones.{$index}.nombre") <div class="error-campo" style="display: block; margin-bottom: 0.5rem;">{{ $message }}</div> @enderror
+                            @error("nuevaVarianteOpciones.{$index}.precio") <div class="error-campo" style="display: block; margin-bottom: 0.5rem;">{{ $message }}</div> @enderror
+                        @endforeach
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn-principal" wire:click="saveVariante" style="flex: 1;">
+                            {{ $editingVarianteId ? 'Actualizar' : 'Guardar variante' }}
+                        </button>
+                        @if($editingVarianteId)
+                            <button type="button" class="btn-cancelar" wire:click="resetVarianteForm" style="flex: 0.5; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 0.6rem;">Cancelar</button>
+                        @endif
+                    </div>
+                </div>
+
+                <!-- Listado de Variantes Existentes -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: #c9a84c;">Grupos Registrados</h4>
+                    @php
+                        $selectedProducto = \App\Models\Producto::find($selectedProductoId);
+                        $variantesRegistradas = $selectedProducto ? $selectedProducto->variantes : collect();
+                    @endphp
+                    @if($variantesRegistradas->isEmpty())
+                        <div class="vacio" style="padding: 2rem 1rem; font-size: 0.8rem;">No hay grupos de variantes configurados.</div>
+                    @else
+                        <div class="listado-items-modal" style="max-height: 400px;">
+                            @foreach($variantesRegistradas as $var)
+                                <div class="item-listado" style="flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.75rem;" wire:key="var-reg-{{ $var->id }}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong style="color: #fff;">{{ $var->nombre }}</strong>
+                                        <span class="badge" style="font-size: 0.6rem; padding: 0.15rem 0.4rem; {{ $var->obligatorio ? 'background: rgba(201, 168, 76, 0.15); color: #c9a84c;' : 'background: rgba(255,255,255,0.05); color: #ccc;' }}">
+                                            {{ $var->obligatorio ? 'Obligatorio' : 'Opcional' }}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
+                                        @foreach($var->opciones as $opc)
+                                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 0.15rem 0.4rem; border-radius: 0.25rem;">
+                                                {{ $opc['nombre'] }} ({{ $opc['tipo_impacto'] == 'incremental' ? '+' : '=' }}${{ number_format($opc['precio'], 2) }})
+                                                @if(!($opc['disponible'] ?? true)) <small style="color: #f87171; font-weight: bold;">(Agotado)</small> @endif
+                                            </span>
+                                        @endforeach
+                                    </div>
+                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                                        <button type="button" class="btn-editar" wire:click="editVariante('{{ $var->id }}')">Editar</button>
+                                        <button type="button" class="btn-eliminar" wire:click="deleteVariante('{{ $var->id }}')">Eliminar</button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer-large">
+            <button type="button" class="btn-modal btn-modal-cancel" wire:click="$set('showVariantesModal', false)" style="width: auto;">Cerrar</button>
+        </div>
+    </div>
+</div>
+
+@if($tab === 'adiciones')
+<div class="tarjeta" style="background: var(--surface); padding: 2rem; border: 1px solid rgba(255,255,255,0.07); border-radius: 1rem;">
+    <div class="tarjeta-header" style="margin-bottom: 1.5rem; padding: 0; border: none; font-size: 1.15rem; color: #fff; font-family: 'DM Serif Display', serif; text-transform: none; letter-spacing: normal;">
+        Catálogo Global de Adiciones
+    </div>
+    
+    <div class="grid-dos-columnas">
+        <!-- Formulario de Adición -->
+        <div>
+            <h4 style="margin-bottom: 1.2rem; color: #c9a84c; font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-weight: normal;">
+                {{ $isEditingAdicion ? 'Editar Adición' : 'Nueva Adición' }}
+            </h4>
+            <div class="grupo">
+                <label for="adicionNombre">Nombre de la Adición</label>
+                <input type="text" id="adicionNombre" wire:model="adicionNombre" placeholder="Ej: Queso extra">
+                @error('adicionNombre') <div class="error-campo">{{ $message }}</div> @enderror
+            </div>
+            <div class="grupo">
+                <label for="adicionPrecio">Precio Adicional</label>
+                <input type="number" id="adicionPrecio" wire:model="adicionPrecio" placeholder="0.00" step="0.01" min="0">
+                @error('adicionPrecio') <div class="error-campo">{{ $message }}</div> @enderror
+            </div>
+
+            <!-- Selección de Categorías -->
+            <div class="grupo">
+                <label style="margin-bottom: 0.25rem;">Asociar a Categorías (Aplica a todos los productos del grupo)</label>
+                <div class="multiselect-box">
+                    @foreach($categorias as $cat)
+                        <label class="checkbox-label" wire:key="add-cat-{{ $cat->id }}">
+                            <input type="checkbox" wire:model="adicionCategorias" value="{{ $cat->id }}">
+                            {{ $cat->nombre }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <!-- Selección de Productos Específicos -->
+            <div class="grupo">
+                <label style="margin-bottom: 0.25rem;">Asociar a Productos específicos</label>
+                @php
+                    $todosProductos = \App\Models\Producto::where('sucursal_id', Auth::user()->sucursal_id)->orderBy('nombre')->get();
+                @endphp
+                <div class="multiselect-box" style="max-height: 150px;">
+                    @foreach($todosProductos as $pItem)
+                        <label class="checkbox-label" wire:key="add-prod-{{ $pItem->id }}">
+                            <input type="checkbox" wire:model="adicionProductos" value="{{ $pItem->id }}">
+                            {{ $pItem->nombre }}
+                        </label>
+                    @endforeach
+                </div>
+            </div>
+
+            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                <button type="button" class="btn-principal" wire:click="saveAdicion" style="flex: 1;">
+                    {{ $isEditingAdicion ? 'Actualizar' : 'Guardar adición' }}
+                </button>
+                @if($isEditingAdicion)
+                    <button type="button" class="btn-cancelar" wire:click="resetAdicionForm" style="flex: 0.5; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 0.6rem;">Cancelar</button>
+                @endif
+            </div>
+        </div>
+
+        <!-- Listado de Adiciones Registradas -->
+        <div>
+            <h4 style="margin-bottom: 1.2rem; color: #c9a84c; font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-weight: normal;">
+                Adiciones Registradas
+            </h4>
+            @php
+                $adicionesRegistradas = \App\Models\AdicionCatalogo::where('sucursal_id', Auth::user()->sucursal_id)->orderBy('nombre')->get();
+            @endphp
+            @if($adicionesRegistradas->isEmpty())
+                <div class="vacio" style="padding: 2rem 1rem; font-size: 0.8rem;">No hay adiciones configuradas.</div>
+            @else
+                <div class="listado-items-modal" style="max-height: 520px;">
+                    @foreach($adicionesRegistradas as $ad)
+                        <div class="item-listado" style="flex-direction: column; align-items: stretch; gap: 0.35rem; padding: 0.6rem 0.75rem;" wire:key="ad-reg-{{ $ad->id }}">
+                            <div style="display: flex; justify-content: space-between; align-items: center;">
+                                <strong style="color: #fff;">{{ $ad->nombre }}</strong>
+                                <span style="color: #c9a84c; font-weight: bold; font-size: 0.8rem;">+${{ number_format($ad->precio, 2) }}</span>
+                            </div>
+                            <div style="font-size: 0.7rem; color: rgba(247, 243, 238, 0.45);">
+                                @if($ad->categorias->isNotEmpty())
+                                    <div>Categorías: {{ $ad->categorias->pluck('nombre')->join(', ') }}</div>
+                                @endif
+                                @if($ad->productos->isNotEmpty())
+                                    <div>Productos: {{ $ad->productos->pluck('nombre')->join(', ') }}</div>
+                                @endif
+                                @if($ad->categorias->isEmpty() && $ad->productos->isEmpty())
+                                    <div style="color: #f87171;">Sin asociar (no aparecerá en el menú)</div>
+                                @endif
+                            </div>
+                            
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.4rem;">
+                                <div style="display: flex; gap: 0.5rem;">
+                                    <button type="button" class="btn-editar" wire:click="editAdicion('{{ $ad->id }}')">Editar</button>
+                                    <button type="button" class="btn-eliminar" wire:click="deleteAdicion('{{ $ad->id }}')">Eliminar</button>
+                                </div>
+                                <div style="display: flex; gap: 0.25rem;">
+                                    <button type="button" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.6rem; cursor: pointer; border: none; {{ $ad->activo ? 'background: rgba(76, 175, 125, 0.1); color: #4caf7d; border-color: rgba(76, 175, 125, 0.25);' : 'background: rgba(255,255,255,0.05); color: #ccc; border-color: rgba(255,255,255,0.1);' }}" wire:click="toggleAdicionActivo('{{ $ad->id }}')">
+                                        {{ $ad->activo ? 'Visible' : 'Oculto' }}
+                                    </button>
+                                    <button type="button" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.6rem; cursor: pointer; border: none; {{ $ad->disponible ? 'background: rgba(121, 82, 179, 0.1); color: #bca0dc; border-color: rgba(121, 82, 179, 0.25);' : 'background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3);' }}" wire:click="toggleAdicionDisponible('{{ $ad->id }}')">
+                                        {{ $ad->disponible ? 'Disp.' : 'Agot.' }}
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    @endforeach
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+@endif
+</div>

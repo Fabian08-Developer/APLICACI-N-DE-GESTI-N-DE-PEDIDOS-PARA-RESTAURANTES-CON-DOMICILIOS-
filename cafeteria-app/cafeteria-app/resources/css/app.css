@@ -1,0 +1,154 @@
+@import 'tailwindcss';
+
+@source '../../vendor/laravel/framework/src/Illuminate/Pagination/resources/views/*.blade.php';
+@source '../../storage/framework/views/*.php';
+@source '../**/*.blade.php';
+@source '../**/*.js';
+
+@theme {
+    --font-sans: 'DM Sans', ui-sans-serif, sans-serif;
+    --font-serif: 'DM Serif Display', serif;
+
+    /* Override stone/amber colors with Slate palette to automatically adjust manager views */
+    --color-stone-50: #F8FAFC;
+    --color-stone-100: #F1F5F9;
+    --color-stone-200: #E2E8F0;
+    --color-stone-300: #CBD5E1;
+    --color-stone-400: #94A3B8;
+    --color-stone-500: #64748B;
+    --color-stone-600: #475569;
+    --color-stone-700: #334155;
+    --color-stone-800: #1E293B;
+    --color-stone-900: #0F172A;
+    --color-stone-950: #020617;
+}
+
+:root {
+    font-size: 13px; /* Escala global para compactar toda la interfaz */
+
+    /* Admin palette variables */
+    --bg-main:    #0F172A;
+    --bg-section: #111827;
+    --primary:    #CBD5E1;
+    --secondary:  #475569;
+    --accent:     #94A3B8;
+    --text-main:  #F8FAFC;
+    --text-sec:   #94A3B8;
+    --brand:      #F1F5F9;
+    --surface:    #1E293B;
+    --border:     rgba(255,255,255,0.06);
+}
+
+/* Custom utility overrides to map hardcoded theme classes to Slate/Midnight */
+body {
+    background-color: var(--bg-main) !important;
+    color: var(--text-main) !important;
+    font-family: 'DM Sans', sans-serif !important;
+}
+
+.bg-\[\#0C0A09\] {
+    background-color: var(--bg-main) !important;
+}
+.bg-\[\#141210\] {
+    background-color: var(--bg-section) !important;
+}
+.bg-\[\#1C1917\] {
+    background-color: var(--surface) !important;
+}
+.bg-\[\#1C1917\]\/30 {
+    background-color: rgba(30, 41, 59, 0.3) !important;
+}
+.bg-\[\#141210\]\/98 {
+    background-color: rgba(17, 24, 39, 0.98) !important;
+}
+.bg-\[\#3E3935\]\/50 {
+    background-color: rgba(71, 85, 105, 0.5) !important;
+}
+.bg-\[\#292524\]\/50 {
+    background-color: rgba(30, 41, 59, 0.5) !important;
+}
+.bg-stone-900 {
+    background-color: var(--bg-section) !important;
+}
+.bg-stone-800 {
+    background-color: var(--surface) !important;
+}
+
+/* Border overrides */
+.border-\[\#292524\] {
+    border-color: var(--border) !important;
+}
+.border-stone-800 {
+    border-color: var(--border) !important;
+}
+
+/* Accent (Orange/Amber) overrides to Gold (#c9a84c) and Dark Gold (#b0903b) */
+.text-\[\#A85507\] {
+    color: var(--primary) !important;
+}
+.bg-\[\#A85507\] {
+    background-color: var(--primary) !important;
+    color: #0F172A !important;
+}
+.bg-\[\#A85507\] svg, .bg-\[\#A85507\] path {
+    stroke: #0F172A !important;
+}
+.bg-\[\#A85507\]\/10 {
+    background-color: rgba(201, 168, 76, 0.1) !important;
+    color: var(--primary) !important;
+}
+.bg-\[\#A85507\]\/10 svg, .bg-\[\#A85507\]\/10 path {
+    stroke: var(--primary) !important;
+}
+.bg-\[\#A85507\]\/20 {
+    background-color: rgba(201, 168, 76, 0.2) !important;
+    color: var(--primary) !important;
+}
+.bg-\[\#A85507\]\/20 svg, .bg-\[\#A85507\]\/20 path {
+    stroke: var(--primary) !important;
+}
+.border-\[\#A85507\] {
+    border-color: var(--primary) !important;
+}
+.border-\[\#A85507\]\/20 {
+    border-color: rgba(201, 168, 76, 0.2) !important;
+}
+.border-\[\#A85507\]\/30 {
+    border-color: rgba(201, 168, 76, 0.3) !important;
+}
+.focus\:ring-\[\#A85507\]:focus {
+    --tw-ring-color: var(--primary) !important;
+}
+.hover\:text-\[\#A85507\]:hover {
+    color: var(--primary) !important;
+}
+.hover\:bg-\[\#78350F\]:hover {
+    background-color: var(--secondary) !important;
+    color: #0F172A !important;
+}
+.hover\:bg-\[\#78350F\]:hover svg, .hover\:bg-\[\#78350F\]:hover path {
+    stroke: #0F172A !important;
+}
+.from-\[\#A85507\] {
+    --tw-gradient-from: var(--primary) !important;
+}
+.from-\[\#A85507\]\/20 {
+    --tw-gradient-from: rgba(201, 168, 76, 0.2) !important;
+    --tw-gradient-to: rgba(201, 168, 76, 0) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+.to-\[\#78350F\] {
+    --tw-gradient-to: var(--bg-section) !important;
+}
+.to-\[\#D97706\] {
+    --tw-gradient-to: rgba(201, 168, 76, 0.4) !important;
+    --tw-gradient-stops: var(--tw-gradient-from), var(--tw-gradient-to) !important;
+}
+
+/* Shadow overrides to remove orange shadows */
+.shadow-orange-900\/10,
+.shadow-orange-900\/20,
+.shadow-orange-950\/20 {
+    --tw-shadow-color: rgba(0, 0, 0, 0.5) !important;
+    --tw-shadow: 0 10px 15px -3px var(--tw-shadow-color), 0 4px 6px -4px var(--tw-shadow-color) !important;
+}
