@@ -1215,10 +1215,17 @@
                 
                 if (!elTendencia || !elCategorias) return;
 
+                // Ensure data is array (PHP sometimes JSON encodes collections as objects if keys aren't sequential)
+                let rawTrendTotals = @json($trendTotals);
+                let trendData = Array.isArray(rawTrendTotals) ? rawTrendTotals : Object.values(rawTrendTotals || {});
+                
+                let rawTrendDates = @json($trendDates);
+                let trendCats = Array.isArray(rawTrendDates) ? rawTrendDates : Object.values(rawTrendDates || {});
+
                 var optionsTendencia = {
                     series: [{
                         name: 'Ventas ($)',
-                        data: @json($trendTotals)
+                        data: trendData
                     }],
                     chart: {
                         type: 'area',
@@ -1228,7 +1235,7 @@
                         fontFamily: 'DM Sans, sans-serif',
                         parentHeightOffset: 0
                     },
-                    colors: ['#A85507'],
+                    colors: ['#E07A5F'],
                     fill: {
                         type: 'gradient',
                         gradient: {
@@ -1241,7 +1248,7 @@
                     dataLabels: { enabled: false },
                     stroke: { curve: 'smooth', width: 2 },
                     xaxis: {
-                        categories: @json($trendDates),
+                        categories: trendCats,
                         labels: { style: { colors: '#94A3B8', fontSize: '11px' } },
                         axisBorder: { show: false },
                         axisTicks: { show: false },
@@ -1254,13 +1261,13 @@
                         }
                     },
                     grid: {
-                        borderColor: 'rgba(255,255,255,0.05)',
+                        borderColor: 'rgba(44, 36, 27, 0.05)',
                         strokeDashArray: 4,
                         padding: { top: 0, right: 0, bottom: 0, left: 10 }
                     },
-                    theme: { mode: 'dark' },
+                    theme: { mode: 'light' },
                     tooltip: {
-                        theme: 'dark',
+                        theme: 'light',
                         y: { formatter: function (val) { return "$" + val.toLocaleString() } }
                     }
                 };
@@ -1268,17 +1275,23 @@
                 this.chartTendencia = new ApexCharts(elTendencia, optionsTendencia);
                 this.chartTendencia.render();
 
+                let rawCatTotals = @json($catTotals->map(fn($v) => (int)$v));
+                let catData = Array.isArray(rawCatTotals) ? rawCatTotals : Object.values(rawCatTotals || {});
+                
+                let rawCatNames = @json($catNames);
+                let catLabels = Array.isArray(rawCatNames) ? rawCatNames : Object.values(rawCatNames || {});
+
                 var optionsCategorias = {
-                    series: @json($catTotals->map(fn($v) => (int)$v)),
-                    labels: @json($catNames),
+                    series: catData,
+                    labels: catLabels,
                     chart: {
                         type: 'donut',
                         height: 280,
                         background: 'transparent',
                         fontFamily: 'DM Sans, sans-serif'
                     },
-                    colors: ['#A85507', '#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'],
-                    stroke: { show: true, colors: ['#111827'], width: 3 },
+                    colors: ['#E07A5F', '#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'],
+                    stroke: { show: true, colors: ['#FFFFFF'], width: 3 },
                     dataLabels: { enabled: false },
                     plotOptions: {
                         pie: {
@@ -1290,7 +1303,7 @@
                                     value: {
                                         show: true,
                                         fontSize: '1.2rem',
-                                        color: '#F8FAFC',
+                                        color: '#2C241B',
                                         formatter: function (val) { return "$" + parseInt(val).toLocaleString() }
                                     },
                                     total: {
@@ -1307,8 +1320,8 @@
                         }
                     },
                     legend: { show: false },
-                    theme: { mode: 'dark' },
-                    tooltip: { theme: 'dark' }
+                    theme: { mode: 'light' },
+                    tooltip: { theme: 'light' }
                 };
 
                 this.chartCategorias = new ApexCharts(elCategorias, optionsCategorias);
@@ -1317,22 +1330,28 @@
 
             updateCharts(data) {
                 if (this.chartTendencia && data.trendTotals && data.trendDates) {
+                    let trendCats = Array.isArray(data.trendDates) ? data.trendDates : Object.values(data.trendDates);
+                    let trendData = Array.isArray(data.trendTotals) ? data.trendTotals : Object.values(data.trendTotals);
+                    
                     this.chartTendencia.updateOptions({
                         xaxis: {
-                            categories: data.trendDates
+                            categories: trendCats
                         }
                     }, false, true);
                     this.chartTendencia.updateSeries([{
                         name: 'Ventas ($)',
-                        data: data.trendTotals
+                        data: trendData
                     }], true);
                 }
                 
                 if (this.chartCategorias && data.catTotals && data.catNames) {
+                    let catLabels = Array.isArray(data.catNames) ? data.catNames : Object.values(data.catNames);
+                    let catData = Array.isArray(data.catTotals) ? data.catTotals : Object.values(data.catTotals);
+                    
                     this.chartCategorias.updateOptions({
-                        labels: data.catNames
+                        labels: catLabels
                     }, false, true);
-                    this.chartCategorias.updateSeries(data.catTotals.map(val => parseInt(val) || 0), true);
+                    this.chartCategorias.updateSeries(catData.map(val => parseInt(val) || 0), true);
                 }
             }
         }));

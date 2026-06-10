@@ -7,15 +7,15 @@
 }
 
 .pagina-header-texto h1 {
-    font-family: "DM Serif Display", serif;
-    font-size: 1.8rem;
-    font-weight: 400;
-    color: #f7f3ee;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #2C241B;
 }
 
 .pagina-header-texto p {
-    color: rgba(247, 243, 238, 0.45);
-    font-size: 0.875rem;
+    color: rgba(44, 36, 27, 0.6);
+    font-size: 0.95rem;
     margin-top: 0.3rem;
 }
 
@@ -25,8 +25,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.2rem;
-    background: #c9a84c;
-    color: #0f0f0f;
+    background: #E07A5F;
+    color: #FFFFFF;
     border: none;
     border-radius: 0.6rem;
     font-family: "DM Sans", sans-serif;
@@ -51,26 +51,28 @@
 
 /* ── GRID DE MESAS ── */
 .tarjeta {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 1rem;
+    background: #FFFFFF;
+    border: 1px solid rgba(44, 36, 27, 0.12);
+    border-radius: 1.25rem;
     overflow: hidden;
+    box-shadow: 0 12px 30px -5px rgba(44, 36, 27, 0.08), 0 8px 10px -6px rgba(44, 36, 27, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .tarjeta-header {
     padding: 1.1rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     font-size: 0.8rem;
     font-weight: 600;
-    color: rgba(247, 243, 238, 0.5);
+    color: rgba(44, 36, 27, 0.6);
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
 
 .mesas-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1.2rem;
     padding: 1.5rem;
 }
 
@@ -78,8 +80,8 @@
     border-radius: 0.8rem;
     padding: 1.2rem;
     text-align: center;
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid rgba(44, 36, 27, 0.07);
+    background: rgba(255, 255, 255, 1);
     transition:
         border-color 0.2s,
         transform 0.15s;
@@ -88,7 +90,7 @@
 
 .mesa-card:hover {
     transform: translateY(-2px);
-    border-color: rgba(255, 255, 255, 0.12);
+    border-color: rgba(44, 36, 27, 0.12);
 }
 
 .mesa-card.disponible {
@@ -109,12 +111,12 @@
     font-size: 2rem;
     line-height: 1;
     margin-bottom: 0.3rem;
-    color: #f7f3ee;
+    color: #2C241B;
 }
 
 .mesa-capacidad {
     font-size: 0.75rem;
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
     margin-bottom: 0.6rem;
 }
 
@@ -139,7 +141,7 @@
 }
 .badge-reservada {
     background: rgba(201, 168, 76, 0.15);
-    color: #c9a84c;
+    color: #E07A5F;
     border: 1px solid rgba(201, 168, 76, 0.3);
 }
 
@@ -153,7 +155,7 @@
     padding: 0.3rem 0.7rem;
     background: rgba(201, 168, 76, 0.12);
     border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
     border-radius: 0.4rem;
     font-size: 0.75rem;
     font-family: "DM Sans", sans-serif;
@@ -185,7 +187,7 @@
 .vacio {
     padding: 3rem;
     text-align: center;
-    color: rgba(247, 243, 238, 0.3);
+    color: rgba(44, 36, 27, 0.6);
     font-size: 0.875rem;
 }
 
@@ -215,8 +217,8 @@
     height: 100vh;
     width: 420px;
     max-width: 95vw;
-    background: #0F172A;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    background: #FDFBF7;
+    border-left: 1px solid rgba(44, 36, 27, 0.08);
     z-index: 101;
     display: flex;
     flex-direction: column;
@@ -231,7 +233,7 @@
 
 .drawer-cabecera {
     padding: 1.4rem 1.6rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -242,7 +244,7 @@
     font-family: "DM Serif Display", serif;
     font-size: 1.25rem;
     font-weight: 400;
-    color: #f7f3ee;
+    color: #2C241B;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -252,7 +254,7 @@
     display: inline-block;
     background: rgba(201, 168, 76, 0.15);
     border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
     font-size: 0.65rem;
     font-family: "DM Sans", sans-serif;
     padding: 0.2rem 0.6rem;
@@ -268,10 +270,10 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(44, 36, 27, 0.05);
+    border: 1px solid rgba(44, 36, 27, 0.12);
     border-radius: 0.5rem;
-    color: rgba(247, 243, 238, 0.55);
+    color: rgba(44, 36, 27, 0.6);
     cursor: pointer;
     transition:
         background 0.2s,
@@ -280,8 +282,8 @@
 }
 
 .btn-cerrar:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f7f3ee;
+    background: rgba(44, 36, 27, 0.1);
+    color: #2C241B;
 }
 
 .drawer-cuerpo {
@@ -301,18 +303,18 @@ label {
     font-weight: 500;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: rgba(247, 243, 238, 0.5);
+    color: rgba(44, 36, 27, 0.6);
     margin-bottom: 0.45rem;
 }
 
 input[type="number"],
 select {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(44, 36, 27, 0.05);
+    border: 1px solid rgba(44, 36, 27, 0.1);
     border-radius: 0.6rem;
     padding: 0.75rem 1rem;
-    color: #f7f3ee;
+    color: #2C241B;
     font-family: "DM Sans", sans-serif;
     font-size: 0.9rem;
     outline: none;
@@ -322,7 +324,7 @@ select {
 
 input[type="number"]:focus,
 select:focus {
-    border-color: #c9a84c;
+    border-color: #E07A5F;
     background: rgba(201, 168, 76, 0.06);
 }
 
@@ -338,7 +340,7 @@ select option {
 
 .drawer-footer {
     padding: 1.2rem 1.6rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-top: 1px solid rgba(44, 36, 27, 0.07);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -348,8 +350,8 @@ select option {
 .btn-principal {
     width: 100%;
     padding: 0.8rem;
-    background: #c9a84c;
-    color: #0f0f0f;
+    background: #E07A5F;
+    color: #FFFFFF;
     border: none;
     border-radius: 0.6rem;
     font-family: "DM Sans", sans-serif;
@@ -367,7 +369,7 @@ select option {
     display: block;
     text-align: center;
     font-size: 0.8rem;
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
     text-decoration: none;
     cursor: pointer;
     background: none;
@@ -379,7 +381,7 @@ select option {
 }
 
 .btn-cancelar:hover {
-    color: #f7f3ee;
+    color: #2C241B;
 }
 
 /* ── MODAL ELIMINAR ── */
@@ -404,8 +406,8 @@ select option {
 }
 
 .modal-caja {
-    background: #0F172A;
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: #FDFBF7;
+    border: 1px solid rgba(44, 36, 27, 0.12);
     border-radius: 1rem;
     padding: 2rem 1.75rem 1.75rem;
     width: 100%;
@@ -446,13 +448,13 @@ select option {
     font-family: "DM Serif Display", serif;
     font-size: 1.15rem;
     font-weight: 400;
-    color: #f7f3ee;
+    color: #2C241B;
     margin: 0 0 0.45rem;
 }
 
 .modal-mensaje {
     font-size: 0.85rem;
-    color: rgba(247, 243, 238, 0.45);
+    color: rgba(44, 36, 27, 0.6);
     margin: 0 0 1.6rem;
     line-height: 1.55;
 }
@@ -486,9 +488,9 @@ select option {
 .btn-modal-cancelar {
     flex: 1;
     padding: 0.7rem 1rem;
-    background: rgba(255, 255, 255, 0.04);
-    border: 1px solid rgba(255, 255, 255, 0.08);
-    color: rgba(247, 243, 238, 0.55);
+    background: rgba(44, 36, 27, 0.04);
+    border: 1px solid rgba(44, 36, 27, 0.12);
+    color: rgba(44, 36, 27, 0.6);
     border-radius: 0.6rem;
     font-family: "DM Sans", sans-serif;
     font-size: 0.875rem;
@@ -500,6 +502,6 @@ select option {
 }
 
 .btn-modal-cancelar:hover {
-    background: rgba(255, 255, 255, 0.08);
-    color: #f7f3ee;
+    background: rgba(44, 36, 27, 0.08);
+    color: #2C241B;
 }

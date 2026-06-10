@@ -26,6 +26,9 @@ class PerfilDomiciliario extends Model
         'placa',
         'documento',
         'estado',
+        'latitud',
+        'longitud',
+        'ultima_ubicacion_en',
         'efectivo_pendiente',
         'limite_efectivo',
         'calificacion',
@@ -43,11 +46,6 @@ class PerfilDomiciliario extends Model
         return $this->belongsTo(ZonaCobertura::class, 'zona_id');
     }
 
-    public function barrios(): BelongsToMany
-    {
-        return $this->belongsToMany(Barrio::class, 'barrio_domiciliario', 'perfil_domiciliario_id', 'barrio_id')
-                    ->withPivot('creado_en');
-    }
 
     public function liquidaciones(): HasMany
     {

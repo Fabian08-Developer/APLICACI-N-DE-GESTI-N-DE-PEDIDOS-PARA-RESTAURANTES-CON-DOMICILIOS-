@@ -30,7 +30,8 @@ class Producto extends Model
         'disponible',
         'permite_notas',
         'limite_minimo_adiciones',
-        'limite_maximo_adiciones'
+        'limite_maximo_adiciones',
+        'receta'
     ];
 
     protected $casts = [
@@ -58,9 +59,9 @@ class Producto extends Model
         return $this->hasMany(VarianteProducto::class, 'producto_id');
     }
 
-    public function adicionesAsociadas(): \Illuminate\Database\Eloquent\Relations\BelongsToMany
+    public function adiciones(): \Illuminate\Database\Eloquent\Relations\HasMany
     {
-        return $this->belongsToMany(AdicionCatalogo::class, 'adicion_producto', 'producto_id', 'adicion_id');
+        return $this->hasMany(AdicionProducto::class, 'producto_id');
     }
 
     public function getDisponibleAttribute($value)
@@ -78,28 +79,9 @@ class Producto extends Model
 
     public function getAdicionesDisponiblesAttribute()
     {
-        $adicionesDirectas = $this->adicionesAsociadas()
-            ->where('adiciones_catalogo.activo', true)
-            ->where(function ($q) {
-                $q->where('adiciones_catalogo.disponible', true)
-                  ->orWhereNull('adiciones_catalogo.disponible');
-            })
+        return $this->adiciones()
+            ->where('activo', true)
             ->get();
-        
-        $adicionesCategoria = collect();
-        if ($this->categoria_id) {
-            $adicionesCategoria = AdicionCatalogo::whereHas('categorias', function ($q) {
-                $q->where('categorias.id', $this->categoria_id);
-            })
-            ->where('adiciones_catalogo.activo', true)
-            ->where(function ($q) {
-                $q->where('adiciones_catalogo.disponible', true)
-                  ->orWhereNull('adiciones_catalogo.disponible');
-            })
-            ->get();
-        }
-
-        return $adicionesDirectas->merge($adicionesCategoria)->unique('id')->values();
     }
 
     /**

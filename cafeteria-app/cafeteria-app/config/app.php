@@ -65,7 +65,7 @@ return [
     |
     */
 
-    'timezone' => 'UTC',
+    'timezone' => env('APP_TIMEZONE', 'America/Bogota'),
 
     /*
     |--------------------------------------------------------------------------
@@ -122,5 +122,15 @@ return [
         'driver' => env('APP_MAINTENANCE_DRIVER', 'file'),
         'store' => env('APP_MAINTENANCE_STORE', 'database'),
     ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Timeout de Sesión de Mesa (Cliente)
+    |--------------------------------------------------------------------------
+    | Tiempo en minutos de inactividad antes de cerrar la sesión del cliente
+    | en una mesa. Configurable en .env con SESION_MESA_TIMEOUT_MINUTOS.
+    |
+    */
+    'sesion_mesa_timeout' => (int) env('SESION_MESA_TIMEOUT_MINUTOS', 10),
 
 ];

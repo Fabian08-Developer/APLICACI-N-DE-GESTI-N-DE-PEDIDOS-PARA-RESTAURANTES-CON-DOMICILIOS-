@@ -19,7 +19,8 @@ use Illuminate\Http\Request;
  */
 class ClienteTokenMiddleware
 {
-    const TIMEOUT_MINUTOS = 10;
+    // El timeout se configura en config/app.php via SESION_MESA_TIMEOUT_MINUTOS en .env
+    // Valor por defecto: 10 minutos
 
     public function handle(Request $request, Closure $next)
     {
@@ -61,7 +62,8 @@ class ClienteTokenMiddleware
 
         // Verificar inactividad usando actualizado_en de SesionMesa
         // (no necesitamos session('ultima_actividad') — la BD es la fuente de verdad)
-        if ($sesionMesa->actualizado_en->diffInMinutes(now()) >= self::TIMEOUT_MINUTOS) {
+        $timeout = config('app.sesion_mesa_timeout', 10);
+        if ($sesionMesa->actualizado_en->diffInMinutes(now()) >= $timeout) {
             $this->cerrarPorInactividad($sesionMesa);
 
             return $this->sinAcceso(

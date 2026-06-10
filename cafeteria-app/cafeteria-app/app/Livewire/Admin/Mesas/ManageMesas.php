@@ -23,6 +23,12 @@ class ManageMesas extends Component
     public $selectedMesaId;
     public $showQrModal = false;
 
+    // Propiedades para Cerrar Sesión
+    public $sesionACerrarId = null;
+    public $sesionACerrarCliente = '';
+    public $sesionACerrarMesa = '';
+    public $showCerrarSesionModal = false;
+
     protected $rules = [
         'numero' => 'required|integer|min:1',
         'capacidad' => 'nullable|integer|min:1',
@@ -58,9 +64,25 @@ class ManageMesas extends Component
                ->layout('layouts.admin');
     }
 
-    public function cerrarSesionCliente($sesionId)
+    public function confirmarCerrarSesion($sesionId)
     {
-        $sesion = \App\Models\SesionCliente::findOrFail($sesionId);
+        $sesion = \App\Models\SesionCliente::with('mesa')->findOrFail($sesionId);
+        
+        if ($sesion->sucursal_id !== Auth::user()->sucursal_id) {
+            abort(403);
+        }
+
+        $this->sesionACerrarId = $sesion->id;
+        $this->sesionACerrarCliente = $sesion->nombre_cliente;
+        $this->sesionACerrarMesa = $sesion->mesa ? $sesion->mesa->numero : 'N/A';
+        $this->showCerrarSesionModal = true;
+    }
+
+    public function cerrarSesionConfirmada()
+    {
+        if (!$this->sesionACerrarId) return;
+
+        $sesion = \App\Models\SesionCliente::findOrFail($this->sesionACerrarId);
         
         if ($sesion->sucursal_id !== Auth::user()->sucursal_id) {
             abort(403);
@@ -68,6 +90,8 @@ class ManageMesas extends Component
 
         $sesion->cerrar();
         
+        $this->showCerrarSesionModal = false;
+        $this->sesionACerrarId = null;
         $this->dispatch('close-modal');
     }
 

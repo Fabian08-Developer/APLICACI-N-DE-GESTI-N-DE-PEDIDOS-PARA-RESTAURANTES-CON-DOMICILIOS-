@@ -1,5 +1,5 @@
 @section('titulo', 'Gestión de Pedidos')
-<div>
+<div x-data="{ showDetail: false }" @open-detail-modal.window="showDetail = true" @close-detail-modal.window="showDetail = false">
 @vite(['resources/css/pedidos.css'])
 <style>
     .drawer-overlay:not(.show),
@@ -76,25 +76,28 @@
 
 {{-- NAVEGACIÓN DE PESTAÑAS --}}
 <div class="tabs-container">
-    <button wire:click="setTab('local')" class="tab-btn {{ $tab === 'local' ? 'activo' : '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <button wire:click="setTab('local')" class="tab-btn {{ $tab === 'local' ? 'activo' : '' }}" wire:loading.class="opacity-50 pointer-events-none">
+        <svg wire:loading.remove wire:target="setTab('local')" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
         </svg>
+        <span wire:loading wire:target="setTab('local')" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #f97316; border-radius: 50%; animation: spin 1s linear infinite;"></span>
         Pedidos de Salón
     </button>
-    <button wire:click="setTab('domicilio')" class="tab-btn {{ $tab === 'domicilio' ? 'activo' : '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <button wire:click="setTab('domicilio')" class="tab-btn {{ $tab === 'domicilio' ? 'activo' : '' }}" wire:loading.class="opacity-50 pointer-events-none">
+        <svg wire:loading.remove wire:target="setTab('domicilio')" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
         </svg>
+        <span wire:loading wire:target="setTab('domicilio')" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #f97316; border-radius: 50%; animation: spin 1s linear infinite;"></span>
         Historial Domicilios
     </button>
-    <button wire:click="setTab('domicilios_activos')" class="tab-btn {{ $tab === 'domicilios_activos' ? 'activo' : '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+    <button wire:click="setTab('domicilios_activos')" class="tab-btn {{ $tab === 'domicilios_activos' ? 'activo' : '' }}" wire:loading.class="opacity-50 pointer-events-none">
+        <svg wire:loading.remove wire:target="setTab('domicilios_activos')" xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
             <path stroke-linecap="round" stroke-linejoin="round" d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
+        <span wire:loading wire:target="setTab('domicilios_activos')" style="width: 16px; height: 16px; border: 2px solid #ccc; border-top-color: #f97316; border-radius: 50%; animation: spin 1s linear infinite;"></span>
         Domicilios Activos
         @if($cantDomiciliosActivos > 0)
-            <span class="tab-badge">{{ $cantDomiciliosActivos }}</span>
+            <span class="tab-badge" wire:loading.remove wire:target="setTab('domicilios_activos')">{{ $cantDomiciliosActivos }}</span>
         @endif
     </button>
 </div>
@@ -240,7 +243,7 @@
                         <td>{{ $pedido->zona?->nombre ?? '—' }}</td>
                     @endif
 
-                    <td class="texto-gris">{{ $pedido->detalles->count() }} items</td>
+                    <td class="texto-gris">{{ $pedido->detalles_count }} items</td>
                     <td class="precio">${{ number_format($pedido->total, 2) }}</td>
                     <td>
                         <span class="badge {{ $claseEstado }}">{{ $pedido->estado }}</span>
@@ -248,7 +251,7 @@
                     <td class="texto-gris">{{ $pedido->creado_en?->format('d/m H:i') ?? 'N/A' }}</td>
                     <td>
                         <div class="acciones">
-                            <button type="button" class="btn-ver" wire:click="openDetailModal('{{ $pedido->id }}')">
+                            <button type="button" class="btn-ver" wire:click="openDetailModal('{{ $pedido->id }}')" @click="showDetail = true">
                                 Ver Detalle
                             </button>
                             @if($pedido->tipo === 'domicilio' && !$pedido->perfil_domiciliario_id && $pedido->estado !== 'CANCELADO' && $pedido->estado !== 'ENTREGADO')
@@ -271,15 +274,20 @@
 </div>
 
 {{-- CAJÓN DE DETALLE LATERAL (DRAWER) --}}
-<div class="drawer-overlay {{ $showDetailModal ? 'show' : '' }}" wire:click.self="closeDetailModal">
-    <div class="drawer-content {{ $showDetailModal ? 'show' : '' }}">
+<div class="drawer-overlay" :class="{ 'show': showDetail }" @click="showDetail = false; $wire.closeDetailModal()" wire:ignore.self>
+    <div class="drawer-content" :class="{ 'show': showDetail }" wire:ignore.self>
+        <div wire:loading.flex wire:target="openDetailModal" style="position: absolute; inset: 0; background: rgba(253, 251, 247, 0.8); z-index: 50; display: none; flex-direction: column; align-items: center; justify-content: center;">
+            <div style="width: 40px; height: 40px; border: 3px solid rgba(224, 122, 95, 0.3); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <p style="margin-top: 1rem; color: #2C241B; font-weight: 500;">Cargando pedido...</p>
+        </div>
+
         @if($selectedPedido)
             <div class="drawer-header">
                 <div>
                     <h2>Pedido #{{ substr($selectedPedido->id, 0, 8) }}</h2>
                     <span class="texto-gris">Creado: {{ $selectedPedido->creado_en?->format('d/m/Y H:i') }}</span>
                 </div>
-                <button type="button" class="btn-close-drawer" wire:click="closeDetailModal">✕</button>
+                <button type="button" class="btn-close-drawer" @click="showDetail = false; $wire.closeDetailModal()">✕</button>
             </div>
 
             <div class="drawer-body">

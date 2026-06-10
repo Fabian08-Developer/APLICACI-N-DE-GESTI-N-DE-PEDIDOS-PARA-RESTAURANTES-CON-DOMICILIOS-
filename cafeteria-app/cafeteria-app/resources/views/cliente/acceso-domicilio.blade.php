@@ -77,6 +77,66 @@
             backdrop-filter: blur(12px);
             box-shadow: 0 20px 50px rgba(0, 0, 0, 0.3);
         }
+        
+        /* Ubicación y Sugerencias */
+        .btn-location {
+            position: absolute;
+            right: 0.8rem;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(193, 127, 62, 0.15);
+            border: 1px solid rgba(193, 127, 62, 0.3);
+            color: var(--caramelo);
+            width: 38px;
+            height: 38px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .btn-location:hover {
+            background: rgba(193, 127, 62, 0.3);
+            color: var(--crema);
+        }
+        .suggestions-list {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            width: 100%;
+            background: rgba(25, 12, 6, 0.95);
+            border: 1px solid rgba(193, 127, 62, 0.3);
+            border-radius: 12px;
+            backdrop-filter: blur(10px);
+            z-index: 50;
+            list-style: none;
+            padding: 0.5rem 0;
+            margin: 0;
+            max-height: 200px;
+            overflow-y: auto;
+            box-shadow: 0 10px 25px rgba(0,0,0,0.5);
+        }
+        .suggestions-list li {
+            padding: 0.8rem 1.2rem;
+            color: var(--crema);
+            font-size: 0.85rem;
+            cursor: pointer;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
+            transition: background 0.2s;
+        }
+        .suggestions-list li:last-child {
+            border-bottom: none;
+        }
+        .suggestions-list li:hover {
+            background: rgba(193, 127, 62, 0.2);
+        }
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body>
@@ -142,7 +202,17 @@
 
                 <div class="form-grupo">
                     <label for="direccion_cliente" class="form-label">Dirección de Entrega</label>
-                    <input type="text" id="direccion_cliente" name="direccion_cliente" class="form-control" placeholder="Ej. Calle 10 # 5-20, Apto 402" value="{{ old('direccion_cliente') }}" required>
+                    <div style="position: relative;">
+                        <input type="text" id="direccion_cliente" name="direccion_cliente" class="form-control" style="padding-right: 3.5rem;" placeholder="Escribe para buscar o usa el GPS" value="{{ old('direccion_cliente') }}" autocomplete="off" required>
+                        <input type="hidden" id="latitud_entrega" name="latitud_entrega" value="{{ old('latitud_entrega') }}">
+                        <input type="hidden" id="longitud_entrega" name="longitud_entrega" value="{{ old('longitud_entrega') }}">
+                        <button type="button" id="btn-location" class="btn-location" title="Usar mi ubicación actual">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <polygon points="3 11 22 2 13 21 11 13 3 11"></polygon>
+                            </svg>
+                        </button>
+                        <ul id="suggestions-list" class="suggestions-list" style="display: none;"></ul>
+                    </div>
                 </div>
 
                 <button type="submit" class="btn-submit">
@@ -162,5 +232,102 @@
 
     </div>
 
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const inputDireccion = document.getElementById('direccion_cliente');
+            const btnLocation = document.getElementById('btn-location');
+            const suggestionsList = document.getElementById('suggestions-list');
+            
+            let debounceTimer;
+
+            // ----- 1. GEOLOCALIZACION (Reverse Geocoding) -----
+            btnLocation.addEventListener('click', () => {
+                if (!navigator.geolocation) {
+                    alert("Tu navegador no soporta geolocalización.");
+                    return;
+                }
+
+                // Cambiar icono a cargando
+                btnLocation.innerHTML = `<svg class="spinner" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="2" x2="12" y2="6"></line><line x1="12" y1="18" x2="12" y2="22"></line><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"></line><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"></line><line x1="2" y1="12" x2="6" y2="12"></line><line x1="18" y1="12" x2="22" y2="12"></line><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"></line><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"></line></svg>`;
+                
+                navigator.geolocation.getCurrentPosition(async (position) => {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    
+                    try {
+                        const response = await fetch(`https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lon}&addressdetails=1`);
+                        const data = await response.json();
+                        
+                        if (data && data.display_name) {
+                            inputDireccion.value = data.display_name;
+                            document.getElementById('latitud_entrega').value = lat;
+                            document.getElementById('longitud_entrega').value = lon;
+                        } else {
+                            alert("No pudimos obtener tu dirección exacta desde el GPS.");
+                        }
+                    } catch (error) {
+                        alert("Error de red al buscar la dirección.");
+                    } finally {
+                        resetLocationIcon();
+                    }
+
+                }, (error) => {
+                    resetLocationIcon();
+                    if(error.code === 1) alert("Denegaste el acceso a tu ubicación.");
+                    else alert("No se pudo obtener tu ubicación actual. Comprueba que el GPS esté activo.");
+                }, { timeout: 10000, enableHighAccuracy: true });
+            });
+
+            function resetLocationIcon() {
+                btnLocation.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="3 11 22 2 13 21 11 13 3 11"></polygon></svg>`;
+            }
+
+            // ----- 2. AUTOCOMPLETADO (Search Nominatim) -----
+            inputDireccion.addEventListener('input', (e) => {
+                clearTimeout(debounceTimer);
+                const query = e.target.value.trim();
+                
+                if (query.length < 4) { // Esperar al menos 4 caracteres para buscar
+                    suggestionsList.style.display = 'none';
+                    return;
+                }
+
+                debounceTimer = setTimeout(async () => {
+                    try {
+                        // countrycodes=co limita la busqueda a Colombia
+                        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(query)}&countrycodes=co&limit=5`);
+                        const data = await response.json();
+                        
+                        suggestionsList.innerHTML = '';
+                        if (data.length > 0) {
+                            data.forEach(item => {
+                                const li = document.createElement('li');
+                                li.textContent = item.display_name;
+                                li.addEventListener('click', () => {
+                                    inputDireccion.value = item.display_name;
+                                    document.getElementById('latitud_entrega').value = item.lat;
+                                    document.getElementById('longitud_entrega').value = item.lon;
+                                    suggestionsList.style.display = 'none';
+                                });
+                                suggestionsList.appendChild(li);
+                            });
+                            suggestionsList.style.display = 'block';
+                        } else {
+                            suggestionsList.style.display = 'none';
+                        }
+                    } catch (error) {
+                        console.error("Error al buscar sugerencias", error);
+                    }
+                }, 600); // 600ms debounce
+            });
+
+            // Ocultar sugerencias si hace clic fuera
+            document.addEventListener('click', (e) => {
+                if (!inputDireccion.contains(e.target) && !suggestionsList.contains(e.target)) {
+                    suggestionsList.style.display = 'none';
+                }
+            });
+        });
+    </script>
 </body>
 </html>

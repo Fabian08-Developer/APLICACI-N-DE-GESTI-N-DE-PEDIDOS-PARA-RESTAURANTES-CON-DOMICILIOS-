@@ -110,11 +110,12 @@ class ClienteController extends Controller
             return redirect()->route('cliente.sin-sesion')->with('error', "La sucursal está cerrada. El horario de atención para domicilios es de {$apertura} a {$cierre}.");
         }
 
-        // RF-C02: Registrar datos básicos obligatorios del cliente para domicilios
         $validated = $request->validate([
             'nombre_cliente' => 'required|string|max:255',
             'telefono_cliente' => 'required|string|max:20',
             'direccion_cliente' => 'required|string|max:255',
+            'latitud_entrega' => 'nullable|numeric',
+            'longitud_entrega' => 'nullable|numeric',
         ]);
 
         $token = Str::random(40);
@@ -125,6 +126,8 @@ class ClienteController extends Controller
             'nombre_cliente' => $validated['nombre_cliente'],
             'telefono_cliente' => $validated['telefono_cliente'],
             'direccion_cliente' => $validated['direccion_cliente'],
+            'latitud' => $validated['latitud_entrega'] ?? null,
+            'longitud' => $validated['longitud_entrega'] ?? null,
             'activo' => true,
         ]);
 
@@ -149,7 +152,7 @@ class ClienteController extends Controller
         // Obtener productos de la sucursal activos
         $productos = Producto::activoConCategoriaActiva()
             ->where('disponible', true)
-            ->with(['variantes', 'adicionesAsociadas'])
+            ->with(['variantes', 'adiciones'])
             ->get();
 
         $itemsCarrito = $sesion->itemsCarrito()->with('producto')->get();
@@ -178,6 +181,9 @@ class ClienteController extends Controller
     // Helper para verificar horario
     private function isSucursalOpen(Sucursal $sucursal): bool
     {
+        // NOTA: Desactivado temporalmente a petición del usuario para permitir pruebas 24h
+        return true;
+
         if (!$sucursal->hora_apertura || !$sucursal->hora_cierre) {
             return true;
         }
@@ -208,7 +214,7 @@ class ClienteController extends Controller
         $producto = Producto::activoConCategoriaActiva()
             ->where('disponible', true)
             ->where('id', $validated['producto_id'])
-            ->with(['variantes', 'adicionesAsociadas'])
+            ->with(['variantes', 'adiciones'])
             ->first();
 
         if (!$producto) {
@@ -502,6 +508,8 @@ class ClienteController extends Controller
                 'estado' => EstadoPedido::PENDIENTE_PAGO->value,
                 'estado_pago' => EstadoPago::PENDIENTE->value,
                 'direccion_entrega' => $sesion->tipo === 'domicilio' ? $sesion->direccion_cliente : null,
+                'latitud_entrega' => $sesion->tipo === 'domicilio' ? $sesion->latitud : null,
+                'longitud_entrega' => $sesion->tipo === 'domicilio' ? $sesion->longitud : null,
                 'subtotal' => $subtotal,
                 'costo_envio' => $costoEnvio,
                 'total' => $total,

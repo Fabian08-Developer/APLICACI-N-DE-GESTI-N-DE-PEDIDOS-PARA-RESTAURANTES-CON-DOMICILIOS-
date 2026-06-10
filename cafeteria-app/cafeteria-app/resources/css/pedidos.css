@@ -2,13 +2,14 @@
     margin-bottom: 2rem;
 }
 .pagina-header h1 {
-    font-family: "DM Serif Display", serif;
-    font-size: 1.8rem;
-    font-weight: 400;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #2C241B;
 }
 .pagina-header p {
-    color: rgba(247, 243, 238, 0.45);
-    font-size: 0.875rem;
+    color: rgba(44, 36, 27, 0.6);
+    font-size: 0.95rem;
     margin-top: 0.3rem;
 }
 
@@ -26,81 +27,86 @@
     font-size: 0.78rem;
     font-family: "DM Sans", sans-serif;
     cursor: pointer;
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    border: 1px solid rgba(44, 36, 27, 0.1);
     background: transparent;
-    color: rgba(247, 243, 238, 0.5);
+    color: rgba(44, 36, 27, 0.6);
     transition: all 0.2s;
     text-decoration: none;
 }
 
 .filtro-btn:hover {
-    background: rgba(255, 255, 255, 0.06);
-    color: #f7f3ee;
+    background: rgba(44, 36, 27, 0.06);
+    color: #2C241B;
 }
 .filtro-btn.activo {
     background: rgba(201, 168, 76, 0.12);
     border-color: rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
 }
 
 /* ── TABLA ── */
 .tarjeta {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 1rem;
+    background: #FFFFFF;
+    border: 1px solid rgba(44, 36, 27, 0.12);
+    border-radius: 1.25rem;
     overflow: hidden;
+    box-shadow: 0 12px 30px -5px rgba(44, 36, 27, 0.08), 0 8px 10px -6px rgba(44, 36, 27, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .tarjeta-header {
     padding: 1.1rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     font-size: 0.8rem;
     font-weight: 600;
-    color: rgba(247, 243, 238, 0.5);
+    color: rgba(44, 36, 27, 0.6);
     letter-spacing: 0.07em;
     text-transform: uppercase;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 thead th {
-    padding: 0.7rem 1.5rem;
+    padding: 1.1rem 1.5rem;
     font-size: 0.72rem;
-    font-weight: 500;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(247, 243, 238, 0.3);
+    color: rgba(44, 36, 27, 0.5);
+    background: rgba(44, 36, 27, 0.015);
+    border-bottom: 2px solid rgba(44, 36, 27, 0.06);
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    transition: background 0.15s;
+    transition: all 0.2s ease;
 }
 
 tbody tr:last-child {
     border-bottom: none;
 }
 tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(44, 36, 27, 0.025);
 }
 
 tbody td {
-    padding: 0.9rem 1.5rem;
+    padding: 1.1rem 1.5rem;
     font-size: 0.875rem;
+    color: #2C241B;
+    border-bottom: 1px solid rgba(44, 36, 27, 0.04);
     vertical-align: middle;
 }
 
 .texto-gris {
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
     font-size: 0.8rem;
 }
 .precio {
-    color: #c9a84c;
+    color: #E07A5F;
     font-weight: 600;
 }
 
@@ -115,7 +121,7 @@ tbody td {
 
 .badge-creado {
     background: rgba(201, 168, 76, 0.15);
-    color: #c9a84c;
+    color: #E07A5F;
     border: 1px solid rgba(201, 168, 76, 0.3);
 }
 .badge-en_cocina {
@@ -129,9 +135,9 @@ tbody td {
     border: 1px solid rgba(76, 175, 125, 0.3);
 }
 .badge-entregado {
-    background: rgba(255, 255, 255, 0.07);
-    color: rgba(247, 243, 238, 0.5);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(44, 36, 27, 0.07);
+    color: rgba(44, 36, 27, 0.6);
+    border: 1px solid rgba(44, 36, 27, 0.1);
 }
 .badge-cancelado {
     background: rgba(224, 92, 92, 0.12);
@@ -165,16 +171,16 @@ tbody td {
 .vacio {
     padding: 3rem;
     text-align: center;
-    color: rgba(247, 243, 238, 0.3);
+    color: rgba(44, 36, 27, 0.6);
     font-size: 0.875rem;
 }
 
 .elegant-filter-card {
-    background: #0f172a;
+    background: #FDFBF7;
     border-radius: 12px;
     padding: 1.25rem 1.5rem;
     margin-bottom: 2rem;
-    border: 1px solid #1e293b;
+    border: 1px solid rgba(44, 36, 27, 0.12);
     box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
 
@@ -214,16 +220,16 @@ tbody td {
 
 .elegant-group input, 
 .elegant-group select {
-    background: #1e293b;
-    border: 1px solid #334155;
-    color: #f8fafc;
+    background: #FFFFFF;
+    border: 1px solid rgba(44, 36, 27, 0.15);
+    color: #2C241B;
     padding: 0.65rem 1rem;
     border-radius: 8px;
     font-size: 0.875rem;
     outline: none;
     transition: all 0.2s;
     width: 100%;
-    color-scheme: dark;
+    color-scheme: light;
     min-height: 42px;
 }
 
@@ -241,7 +247,7 @@ tbody td {
 
 .btn-filtrar {
     background: #fbbf24;
-    color: #0f172a;
+    color: #FDFBF7;
     font-weight: 600;
     border: none;
     padding: 0 1.5rem;
@@ -308,16 +314,25 @@ tbody td {
     gap: 1.25rem;
     margin-bottom: 2rem;
 }
+
 .stat-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: #FFFFFF;
+    border: 1px solid rgba(44, 36, 27, 0.05);
     border-radius: 16px;
     padding: 1.25rem;
     display: flex;
     align-items: center;
     gap: 1rem;
-    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
 }
+
+.stat-card:hover {
+    transform: translateY(-2px);
+    border-color: #E07A5F;
+    box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
 .stat-icon {
     width: 48px;
     height: 48px;
@@ -342,7 +357,7 @@ tbody td {
 .stat-value {
     font-size: 1.5rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #2C241B;
     line-height: 1.2;
 }
 .stat-label {
@@ -358,14 +373,14 @@ tbody td {
     display: flex;
     gap: 0.5rem;
     margin-bottom: 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     padding-bottom: 0.5rem;
     flex-wrap: wrap;
 }
 .tab-btn {
     background: transparent;
     border: none;
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
     padding: 0.75rem 1.25rem;
     font-size: 0.875rem;
     font-weight: 600;
@@ -377,18 +392,18 @@ tbody td {
     transition: all 0.2s;
 }
 .tab-btn:hover {
-    color: #f7f3ee;
-    background: rgba(255, 255, 255, 0.03);
+    color: #2C241B;
+    background: rgba(255, 255, 255, 1);
 }
 .tab-btn.activo {
-    color: #c9a84c;
+    color: #E07A5F;
     background: rgba(201, 168, 76, 0.08);
-    border-bottom: 2px solid #c9a84c;
+    border-bottom: 2px solid #E07A5F;
     border-radius: 8px 8px 0 0;
 }
 .tab-badge {
-    background: #c9a84c;
-    color: #0f172a;
+    background: #E07A5F;
+    color: #FDFBF7;
     font-size: 0.7rem;
     font-weight: 700;
     padding: 0.15rem 0.45rem;
@@ -403,14 +418,14 @@ tbody td {
 }
 .cliente-nombre {
     font-weight: 600;
-    color: #f8fafc;
+    color: #2C241B;
 }
 .cliente-tel {
     font-size: 0.75rem;
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
 }
 .direccion-col {
-    color: rgba(247, 243, 238, 0.7);
+    color: rgba(44, 36, 27, 0.6);
 }
 .domiciliario-badge {
     background: rgba(59, 130, 246, 0.1);
@@ -429,7 +444,7 @@ tbody td {
     padding: 0.35rem 0.75rem;
     background: rgba(201, 168, 76, 0.1);
     border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
     border-radius: 6px;
     font-size: 0.75rem;
     cursor: pointer;
@@ -463,7 +478,7 @@ tbody td {
     right: -450px;
     width: 450px;
     height: 100%;
-    background: #0f172a;
+    background: #FDFBF7;
     border-left: 1px solid #1e293b;
     box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
     z-index: 1001;
@@ -484,7 +499,7 @@ tbody td {
 .drawer-header h2 {
     font-size: 1.25rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #2C241B;
 }
 .btn-close-drawer {
     background: transparent;
@@ -506,13 +521,13 @@ tbody td {
     gap: 1.5rem;
 }
 .drawer-section {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.05);
     padding-bottom: 1.25rem;
 }
 .drawer-section h3 {
     font-size: 0.875rem;
     font-weight: 700;
-    color: #c9a84c;
+    color: #E07A5F;
     letter-spacing: 0.05em;
     text-transform: uppercase;
     margin-bottom: 0.75rem;
@@ -538,7 +553,7 @@ tbody td {
 }
 .badge-local {
     background: rgba(201, 168, 76, 0.1);
-    color: #c9a84c;
+    color: #E07A5F;
     border: 1px solid rgba(201, 168, 76, 0.2);
 }
 .badge-domicilio {
@@ -554,7 +569,7 @@ tbody td {
 .btn-action-mini {
     background: transparent;
     border: 1px dashed rgba(201, 168, 76, 0.4);
-    color: #c9a84c;
+    color: #E07A5F;
     padding: 0.15rem 0.4rem;
     border-radius: 4px;
     font-size: 0.7rem;
@@ -572,8 +587,8 @@ tbody td {
     gap: 0.75rem;
 }
 .item-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.04);
+    background: rgba(44, 36, 27, 0.02);
+    border: 1px solid rgba(44, 36, 27, 0.04);
     border-radius: 8px;
     padding: 0.75rem;
 }
@@ -584,10 +599,10 @@ tbody td {
     font-weight: 600;
 }
 .item-name {
-    color: #f8fafc;
+    color: #2C241B;
 }
 .item-subtotal {
-    color: #c9a84c;
+    color: #E07A5F;
 }
 .item-meta {
     font-size: 0.75rem;
@@ -599,7 +614,7 @@ tbody td {
     align-items: center;
 }
 .meta-badge {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(44, 36, 27, 0.05);
     padding: 0.05rem 0.35rem;
     border-radius: 4px;
     font-size: 0.7rem;
@@ -629,8 +644,8 @@ tbody td {
 .grand-total {
     font-size: 1.1rem;
     font-weight: 700;
-    color: #f8fafc;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    color: #2C241B;
+    border-top: 1px solid rgba(44, 36, 27, 0.07);
     padding-top: 0.5rem;
 }
 
@@ -662,8 +677,8 @@ tbody td {
     width: 10px;
     height: 10px;
     border-radius: 50%;
-    background: #c9a84c;
-    border: 2px solid #0f172a;
+    background: #E07A5F;
+    border: 2px solid #FDFBF7;
 }
 .timeline-content {
     display: flex;
@@ -673,7 +688,7 @@ tbody td {
 .timeline-state {
     font-size: 0.8rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: #2C241B;
 }
 .timeline-meta {
     font-size: 0.7rem;
@@ -695,8 +710,8 @@ tbody td {
 }
 .btn-action-primary {
     width: 100%;
-    background: #c9a84c;
-    color: #0f172a;
+    background: #E07A5F;
+    color: #FDFBF7;
     border: none;
     padding: 0.75rem;
     font-weight: 700;
@@ -712,7 +727,7 @@ tbody td {
     width: 100%;
     background: transparent;
     border: 1px solid #1e293b;
-    color: #f8fafc;
+    color: #2C241B;
     padding: 0.75rem;
     font-weight: 600;
     border-radius: 8px;
@@ -721,11 +736,11 @@ tbody td {
     transition: background 0.2s;
 }
 .btn-action-secondary:hover {
-    background: rgba(255, 255, 255, 0.05);
+    background: rgba(44, 36, 27, 0.05);
 }
 
 .cancel-form {
-    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    border-top: 1px solid rgba(44, 36, 27, 0.05);
     padding-top: 1rem;
     margin-top: 0.5rem;
 }
@@ -744,7 +759,7 @@ tbody td {
     flex: 1;
     background: #1e293b;
     border: 1px solid #334155;
-    color: #f8fafc;
+    color: #2C241B;
     padding: 0.5rem;
     border-radius: 6px;
     font-size: 0.8rem;
@@ -804,7 +819,7 @@ tbody td {
     pointer-events: auto;
 }
 .modal-content {
-    background: #0f172a;
+    background: #FDFBF7;
     border: 1px solid #1e293b;
     border-radius: 16px;
     width: 90%;
@@ -824,7 +839,7 @@ tbody td {
 .modal-header h3 {
     font-size: 1rem;
     font-weight: 700;
-    color: #f8fafc;
+    color: #2C241B;
 }
 .btn-close-modal {
     background: transparent;
@@ -849,8 +864,8 @@ tbody td {
     gap: 0.75rem;
 }
 .driver-card {
-    background: rgba(255, 255, 255, 0.02);
-    border: 1px solid rgba(255, 255, 255, 0.05);
+    background: rgba(44, 36, 27, 0.02);
+    border: 1px solid rgba(44, 36, 27, 0.05);
     border-radius: 10px;
     padding: 0.75rem;
     display: flex;
@@ -859,7 +874,7 @@ tbody td {
     transition: background 0.2s;
 }
 .driver-card:hover {
-    background: rgba(255, 255, 255, 0.04);
+    background: rgba(44, 36, 27, 0.04);
 }
 .driver-info {
     display: flex;
@@ -871,7 +886,7 @@ tbody td {
     height: 36px;
     border-radius: 50%;
     background: rgba(201, 168, 76, 0.15);
-    color: #c9a84c;
+    color: #E07A5F;
     font-weight: 700;
     display: flex;
     align-items: center;
@@ -881,7 +896,7 @@ tbody td {
 .driver-name {
     font-size: 0.85rem;
     font-weight: 600;
-    color: #f8fafc;
+    color: #2C241B;
 }
 .driver-meta {
     font-size: 0.7rem;
@@ -896,11 +911,11 @@ tbody td {
 .driver-disponible { background: rgba(16, 185, 129, 0.15); color: #34d399; }
 .driver-en-ruta { background: rgba(59, 130, 246, 0.15); color: #60a5fa; }
 .driver-ocupado { background: rgba(245, 158, 11, 0.15); color: #fbbf24; }
-.driver-no-disponible { background: rgba(255, 255, 255, 0.08); color: #94a3b8; }
+.driver-no-disponible { background: rgba(44, 36, 27, 0.08); color: #94a3b8; }
 
 .btn-assign-driver {
-    background: #c9a84c;
-    color: #0f172a;
+    background: #E07A5F;
+    color: #FDFBF7;
     border: none;
     padding: 0.35rem 0.75rem;
     border-radius: 6px;

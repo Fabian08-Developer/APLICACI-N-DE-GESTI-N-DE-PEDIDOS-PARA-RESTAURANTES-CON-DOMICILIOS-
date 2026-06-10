@@ -69,7 +69,7 @@ export function abrirDrawer(id) {
 
     // Actualizar UI del drawer
     const elNum = document.getElementById('drawer-num');
-    if (elNum) elNum.childNodes[0].textContent = `#${p.id}`;
+    if (elNum) elNum.childNodes[0].textContent = `#${p.short_id || p.id}`;
     
     const elEstado = document.getElementById('drawer-estado-label');
     if (elEstado) elEstado.textContent = ESTADO_LABEL[p.estado] ?? p.estado;

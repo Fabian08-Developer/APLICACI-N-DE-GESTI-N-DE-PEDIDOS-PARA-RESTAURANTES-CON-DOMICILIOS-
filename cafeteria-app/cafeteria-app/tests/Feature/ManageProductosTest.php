@@ -8,7 +8,7 @@ use App\Models\Producto;
 use App\Models\Sucursal;
 use App\Models\User;
 use App\Models\VarianteProducto;
-use App\Models\AdicionCatalogo;
+use App\Models\AdicionProducto;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -276,11 +276,11 @@ class ManageProductosTest extends TestCase
             ],
         ]);
 
-        $adicion = AdicionCatalogo::create([
-            'sucursal_id' => $this->sucursal->id,
+        $adicion = AdicionProducto::create([
+            'producto_id' => $producto->id,
             'nombre' => 'Chispas de Chocolate',
             'precio' => 1500,
-            'disponible' => true,
+            'activo' => true,
         ]);
 
         // Toggle product availability - pass the session token as _st
@@ -297,7 +297,7 @@ class ManageProductosTest extends TestCase
         // Toggle addition availability - pass the session token as _st
         $this->post(route('cocina.disponibilidad.toggle-adicion', $adicion->id) . '?_st=test-kitchen-token')
             ->assertRedirect();
-        $this->assertFalse((bool) $adicion->fresh()->disponible);
+        $this->assertFalse((bool) $adicion->fresh()->activo);
     }
 
     /** @test */
@@ -356,52 +356,32 @@ class ManageProductosTest extends TestCase
     }
 
     /** @test */
-    public function test_it_manages_additions_catalog_rf_104()
+    public function test_it_manages_product_additions_rf_104()
     {
         $this->actingAs($this->user);
 
-        $categoria = Categoria::create([
-            'sucursal_id' => $this->sucursal->id,
-            'nombre' => 'Sandwiches',
-        ]);
-
         $producto = Producto::create([
             'sucursal_id' => $this->sucursal->id,
-            'categoria_id' => $categoria->id,
             'nombre' => 'Sandwich Jamón',
             'precio' => 12000,
         ]);
 
-        // Create addition and associate it with category and product
+        // Create addition and associate it with product
         Livewire::test(\App\Livewire\Admin\Productos\ManageProductos::class)
-            ->call('openAdicionesModal')
-            ->set('adicionNombre', 'Queso Cheddar')
-            ->set('adicionPrecio', 2000)
-            ->set('adicionCategorias', [$categoria->id])
-            ->set('adicionProductos', [$producto->id])
-            ->call('saveAdicion')
+            ->call('openAdicionesModalForProducto', $producto->id)
+            ->set('nuevaAdicionNombre', 'Queso Cheddar')
+            ->set('nuevaAdicionPrecio', 2000)
+            ->call('saveNuevaAdicion')
             ->assertHasNoErrors();
 
-        $this->assertDatabaseHas('adiciones_catalogo', [
-            'sucursal_id' => $this->sucursal->id,
+        $this->assertDatabaseHas('adiciones_producto', [
+            'producto_id' => $producto->id,
             'nombre' => 'Queso Cheddar',
             'precio' => 2000,
+            'activo' => true,
         ]);
 
-        $adicion = AdicionCatalogo::where('nombre', 'Queso Cheddar')->first();
-
-        $this->assertDatabaseHas('adicion_categoria', [
-            'adicion_id' => $adicion->id,
-            'categoria_id' => $categoria->id,
-        ]);
-
-        $this->assertDatabaseHas('adicion_producto', [
-            'adicion_id' => $adicion->id,
-            'producto_id' => $producto->id,
-        ]);
-
-        // Check availability logic via relation helper
-        $disponibles = $producto->adiciones_disponibles;
+        $disponibles = $producto->adiciones;
         $this->assertCount(1, $disponibles);
         $this->assertEquals('Queso Cheddar', $disponibles[0]->nombre);
     }

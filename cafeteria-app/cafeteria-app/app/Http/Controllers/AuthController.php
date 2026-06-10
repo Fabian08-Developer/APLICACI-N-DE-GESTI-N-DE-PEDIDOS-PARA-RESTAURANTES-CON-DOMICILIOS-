@@ -133,14 +133,15 @@ class AuthController extends Controller
         $request->validate([
             'nombre'   => 'required|string|max:100',
             'email'    => 'required|email|unique:usuarios,email',
-            'password' => 'required|string|min:6|confirmed',
+            'password' => ['required', 'string', 'min:8', 'confirmed', 'regex:/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/'],
             'rol_id'   => 'required|exists:roles,id',
         ], [
             'nombre.required'    => 'El nombre es obligatorio',
             'email.required'     => 'El correo es obligatorio',
             'email.unique'       => 'Ese correo ya está registrado',
-            'password.min'       => 'La contraseña debe tener al menos 6 caracteres',
-            'password.confirmed' => 'Las contraseñas no coinciden',
+            'password.min'       => 'La contraseña debe tener al menos 8 caracteres.',
+            'password.regex'     => 'La contraseña debe incluir al menos una mayúscula, una minúscula y un número.',
+            'password.confirmed' => 'Las contraseñas no coinciden.',
             'rol_id.required'    => 'Debes seleccionar un rol',
         ]);
 
@@ -172,6 +173,7 @@ class AuthController extends Controller
             'administrador' => route('admin.dashboard'),
             'mesero'        => route('mesero.dashboard'),
             'cocina'        => route('cocina.dashboard'),
+            'domiciliario'  => route('domiciliario.dashboard'),
             default         => route('login'),
         };
     }

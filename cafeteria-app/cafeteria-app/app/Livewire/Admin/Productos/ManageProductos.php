@@ -17,6 +17,7 @@ class ManageProductos extends Component
     // Campos de Producto
     public $nombre;
     public $descripcion;
+    public $receta;
     public $precio;
     public $precio_oferta;
     public $categoria_id;
@@ -33,19 +34,11 @@ class ManageProductos extends Component
     public $showModal = false;
     public $search = '';
     public $filterCategoria = 'todas';
-    public $tab = 'productos'; // 'productos', 'adiciones'
 
     protected $queryString = [
-        'tab' => ['except' => 'productos'],
         'search' => ['except' => ''],
         'filterCategoria' => ['except' => 'todas']
     ];
-
-    // Excel
-    public $showImportModal = false;
-    public $archivoImportacion;
-    public $importErrors = [];
-    public $importSuccess = null;
 
     // Variantes
     public $showVariantesModal = false;
@@ -56,19 +49,21 @@ class ManageProductos extends Component
     public $nuevaVarianteOpciones = [];
     public $editingVarianteId = null;
 
-    // Catálogo de Adiciones
-    public $adicionId = null;
-    public $adicionNombre = '';
-    public $adicionPrecio = 0;
-    public $adicionCategorias = [];
-    public $adicionProductos = [];
-    public $isEditingAdicion = false;
+    // Adiciones por Producto
+    public $showAdicionesModal = false;
+    public $selectedProductoIdAdicion;
+    public $selectedProductoNombreAdicion;
+    public $adicionesDelProducto = [];
+    public $nuevaAdicionNombre = '';
+    public $nuevaAdicionPrecio = 0;
+    public $editingAdicionId = null;
 
     protected $rules = [
         'nombre'                  => 'required|string|max:100',
         'descripcion'             => 'nullable|string',
+        'receta'                  => 'nullable|string',
         'precio'                  => 'required|numeric|min:0',
-        'precio_oferta'           => 'nullable|numeric|min:0',
+        'precio_oferta'           => 'nullable|numeric|min:0|lte:precio',
         'categoria_id'            => 'nullable|exists:categorias,id',
         'imagen'                  => 'nullable|image|max:2048', // max 2MB
         'activo'                  => 'boolean',
@@ -76,6 +71,10 @@ class ManageProductos extends Component
         'permite_notas'           => 'boolean',
         'limite_minimo_adiciones' => 'required|integer|min:0',
         'limite_maximo_adiciones' => 'nullable|integer|min:0',
+    ];
+
+    protected $messages = [
+        'precio_oferta.lte' => 'El precio de oferta no puede ser mayor al precio normal.',
     ];
 
     public function updatedSearch()
@@ -164,6 +163,7 @@ class ManageProductos extends Component
                 'categoria_id'            => $this->categoria_id ?: null,
                 'nombre'                  => $this->nombre,
                 'descripcion'             => $this->descripcion,
+                'receta'                  => $this->receta,
                 'precio'                  => $this->precio,
                 'precio_oferta'           => $this->precio_oferta ?: null,
                 'imagen'                  => $path,
@@ -188,6 +188,7 @@ class ManageProductos extends Component
                 'categoria_id'            => $this->categoria_id ?: null,
                 'nombre'                  => $this->nombre,
                 'descripcion'             => $this->descripcion,
+                'receta'                  => $this->receta,
                 'precio'                  => $this->precio,
                 'precio_oferta'           => $this->precio_oferta ?: null,
                 'imagen'                  => $path,
@@ -215,6 +216,7 @@ class ManageProductos extends Component
         $this->categoria_id = $producto->categoria_id;
         $this->nombre = $producto->nombre;
         $this->descripcion = $producto->descripcion;
+        $this->receta = $producto->receta;
         $this->precio = $producto->precio;
         $this->precio_oferta = $producto->precio_oferta;
         $this->imagenPath = $producto->imagen;
@@ -261,6 +263,7 @@ class ManageProductos extends Component
     {
         $this->nombre = '';
         $this->descripcion = '';
+        $this->receta = '';
         $this->precio = '';
         $this->precio_oferta = '';
         $this->categoria_id = '';
@@ -272,60 +275,6 @@ class ManageProductos extends Component
         $this->limite_minimo_adiciones = 0;
         $this->limite_maximo_adiciones = null;
         $this->producto_id = null;
-    }
-
-    // --- ACCIONES DE EXCEL ---
-
-    public function export()
-    {
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\ProductosExport(Auth::user()->sucursal_id),
-            'productos.xlsx'
-        );
-    }
-
-    public function descargarPlantilla()
-    {
-        return \Maatwebsite\Excel\Facades\Excel::download(
-            new \App\Exports\ProductosTemplateExport(),
-            'plantilla_productos.xlsx'
-        );
-    }
-
-    public function openImportModal()
-    {
-        $this->archivoImportacion = null;
-        $this->importErrors = [];
-        $this->importSuccess = null;
-        $this->showImportModal = true;
-    }
-
-    public function import()
-    {
-        $this->validate([
-            'archivoImportacion' => 'required|file|mimes:xlsx,xls'
-        ], [
-            'archivoImportacion.required' => 'Debes seleccionar un archivo.',
-            'archivoImportacion.mimes' => 'El archivo debe ser un archivo de Excel (.xlsx o .xls).'
-        ]);
-
-        try {
-            $importer = new \App\Imports\ProductosImport(Auth::user()->sucursal_id);
-            \Maatwebsite\Excel\Facades\Excel::import($importer, $this->archivoImportacion->getRealPath());
-
-            if (count($importer->errors) > 0) {
-                $this->importErrors = $importer->errors;
-                $this->importSuccess = null;
-            } else {
-                $this->importSuccess = "Se importaron correctamente {$importer->importedCount} productos.";
-                $this->importErrors = [];
-                $this->showImportModal = false;
-                $this->archivoImportacion = null;
-            }
-        } catch (\Exception $e) {
-            $this->importErrors = ['Ocurrió un error al procesar el archivo: ' . $e->getMessage()];
-            $this->importSuccess = null;
-        }
     }
 
     // --- ACCIONES DE VARIANTES ---
@@ -426,115 +375,91 @@ class ManageProductos extends Component
         }
     }
 
-    // --- ACCIONES DE CATÁLOGO DE ADICIONES ---
+    // --- ACCIONES DE ADICIONES POR PRODUCTO ---
 
-    public function setTab($tab)
+    public function openAdicionesModalForProducto($productoId)
     {
-        if (in_array($tab, ['productos', 'adiciones'])) {
-            $this->tab = $tab;
-            $this->resetPage();
+        $producto = Producto::findOrFail($productoId);
+        if ($producto->sucursal_id !== Auth::user()->sucursal_id) {
+            abort(403);
         }
+
+        $this->selectedProductoIdAdicion = $productoId;
+        $this->selectedProductoNombreAdicion = $producto->nombre;
+        $this->loadAdiciones();
+        $this->resetNuevaAdicionForm();
+        $this->showAdicionesModal = true;
     }
 
-    public function openAdicionesModal()
+    public function loadAdiciones()
     {
-        $this->resetAdicionForm();
-        $this->tab = 'adiciones';
+        $this->adicionesDelProducto = \App\Models\AdicionProducto::where('producto_id', $this->selectedProductoIdAdicion)
+                                        ->orderBy('nombre')
+                                        ->get()
+                                        ->toArray();
     }
 
-    public function resetAdicionForm()
+    public function resetNuevaAdicionForm()
     {
-        $this->adicionId = null;
-        $this->adicionNombre = '';
-        $this->adicionPrecio = 0.00;
-        $this->adicionCategorias = [];
-        $this->adicionProductos = [];
-        $this->isEditingAdicion = false;
+        $this->nuevaAdicionNombre = '';
+        $this->nuevaAdicionPrecio = 0.00;
+        $this->editingAdicionId = null;
         $this->resetValidation();
     }
 
-    public function saveAdicion()
+    public function saveNuevaAdicion()
     {
         $this->validate([
-            'adicionNombre' => 'required|string|max:100',
-            'adicionPrecio' => 'required|numeric|min:0',
-            'adicionCategorias' => 'array',
-            'adicionProductos' => 'array',
+            'nuevaAdicionNombre' => 'required|string|max:100',
+            'nuevaAdicionPrecio' => 'required|numeric|min:0',
         ], [
-            'adicionNombre.required' => 'El nombre es obligatorio.',
-            'adicionPrecio.required' => 'El precio es obligatorio.',
-            'adicionPrecio.numeric' => 'El precio debe ser un número.',
-            'adicionPrecio.min' => 'El precio debe ser mayor o igual a 0.'
+            'nuevaAdicionNombre.required' => 'El nombre es obligatorio.',
+            'nuevaAdicionPrecio.required' => 'El precio es obligatorio.',
+            'nuevaAdicionPrecio.numeric' => 'El precio debe ser numérico.',
+            'nuevaAdicionPrecio.min' => 'El precio no puede ser negativo.',
         ]);
 
-        $sucursal_id = Auth::user()->sucursal_id;
-
-        if ($this->isEditingAdicion) {
-            $adicion = \App\Models\AdicionCatalogo::findOrFail($this->adicionId);
-            if ($adicion->sucursal_id !== $sucursal_id) {
-                abort(403);
-            }
+        if ($this->editingAdicionId) {
+            $adicion = \App\Models\AdicionProducto::findOrFail($this->editingAdicionId);
             $adicion->update([
-                'nombre' => $this->adicionNombre,
-                'precio' => $this->adicionPrecio
+                'nombre' => $this->nuevaAdicionNombre,
+                'precio' => $this->nuevaAdicionPrecio,
             ]);
         } else {
-            $adicion = \App\Models\AdicionCatalogo::create([
-                'sucursal_id' => $sucursal_id,
-                'nombre' => $this->adicionNombre,
-                'precio' => $this->adicionPrecio,
+            \App\Models\AdicionProducto::create([
+                'producto_id' => $this->selectedProductoIdAdicion,
+                'nombre' => $this->nuevaAdicionNombre,
+                'precio' => $this->nuevaAdicionPrecio,
                 'activo' => true,
-                'disponible' => true
             ]);
         }
 
-        $adicion->categorias()->sync($this->adicionCategorias);
-        $adicion->productos()->sync($this->adicionProductos);
-
-        $this->resetAdicionForm();
+        $this->loadAdiciones();
+        $this->resetNuevaAdicionForm();
     }
 
-    public function editAdicion($id)
+    public function editAdicionSimple($id)
     {
-        $adicion = \App\Models\AdicionCatalogo::findOrFail($id);
-        if ($adicion->sucursal_id !== Auth::user()->sucursal_id) {
-            abort(403);
-        }
-
-        $this->adicionId = $adicion->id;
-        $this->adicionNombre = $adicion->nombre;
-        $this->adicionPrecio = $adicion->precio;
-        $this->adicionCategorias = $adicion->categorias()->pluck('categorias.id')->toArray();
-        $this->adicionProductos = $adicion->productos()->pluck('productos.id')->toArray();
-        $this->isEditingAdicion = true;
+        $adicion = \App\Models\AdicionProducto::findOrFail($id);
+        $this->editingAdicionId = $adicion->id;
+        $this->nuevaAdicionNombre = $adicion->nombre;
+        $this->nuevaAdicionPrecio = $adicion->precio;
     }
 
-    public function deleteAdicion($id)
+    public function deleteAdicionSimple($id)
     {
-        $adicion = \App\Models\AdicionCatalogo::findOrFail($id);
-        if ($adicion->sucursal_id !== Auth::user()->sucursal_id) {
-            abort(403);
-        }
-
+        $adicion = \App\Models\AdicionProducto::findOrFail($id);
         $adicion->delete();
-        if ($this->adicionId == $id) {
-            $this->resetAdicionForm();
+        $this->loadAdiciones();
+        if ($this->editingAdicionId == $id) {
+            $this->resetNuevaAdicionForm();
         }
     }
 
-    public function toggleAdicionActivo($id)
+    public function toggleAdicionSimpleActivo($id)
     {
-        $adicion = \App\Models\AdicionCatalogo::findOrFail($id);
-        if ($adicion->sucursal_id === Auth::user()->sucursal_id) {
-            $adicion->update(['activo' => !$adicion->activo]);
-        }
-    }
-
-    public function toggleAdicionDisponible($id)
-    {
-        $adicion = \App\Models\AdicionCatalogo::findOrFail($id);
-        if ($adicion->sucursal_id === Auth::user()->sucursal_id) {
-            $adicion->update(['disponible' => !$adicion->disponible]);
-        }
+        $adicion = \App\Models\AdicionProducto::findOrFail($id);
+        $adicion->update(['activo' => !$adicion->activo]);
+        $this->loadAdiciones();
     }
 }

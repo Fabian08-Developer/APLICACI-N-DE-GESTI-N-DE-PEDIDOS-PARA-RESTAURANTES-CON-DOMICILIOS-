@@ -1,8 +1,8 @@
 <div x-data="{ isOpen: @entangle('isOpen'), showDetail: false }"
-     @open-sidebar.window="isOpen = true"
-     @close-sidebar.window="isOpen = false"
-     @open-detail-modal.window="showDetail = true"
-     @close-detail-modal.window="showDetail = false">
+    @open-sidebar.window="isOpen = true"
+    @close-sidebar.window="isOpen = false"
+    @open-detail-modal.window="showDetail = true"
+    @close-detail-modal.window="showDetail = false">
     <style>
         :root {
             --z-primary: #c9a84c;
@@ -32,17 +32,49 @@
         }
 
         .card-z {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: #FFFFFF;
+            border: 1px solid rgba(196, 139, 87, 0.15);
             border-radius: 1.25rem;
             padding: 1.5rem;
-            transition: all 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
 
         .card-z:hover {
             transform: translateY(-2px);
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+        }
+
+        .btn-acciones {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .btn-editar {
+            color: var(--z-primary);
+        }
+
+        .btn-editar:hover {
+            background: rgba(201, 168, 76, 0.1);
+            border-color: rgba(201, 168, 76, 0.2);
+        }
+
+        .btn-eliminar {
+            color: var(--status-error);
+        }
+
+        .btn-eliminar:hover {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.2);
         }
 
         .stat-value {
@@ -124,13 +156,14 @@
             right: -450px;
             width: 450px;
             height: 100vh;
-            background-color: #0F172A;
+            background-color: #FFFFFF;
             z-index: 1001;
             transition: right 0.3s;
             border-left: 1px solid var(--border);
             padding: 2rem;
             display: flex;
             flex-direction: column;
+            box-shadow: -4px 0 25px rgba(0, 0, 0, 0.05);
         }
 
         .sidebar-z.open {
@@ -161,8 +194,13 @@
         }
 
         .btn-z-primary {
-            background: var(--z-primary);
-            color: #0f0f0f;
+            background-color: #E07A5F;
+            color: #FFFFFF;
+        }
+
+        .btn-z-primary:hover {
+            background-color: #D4694D;
+            box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
         }
 
         .btn-z-ghost {
@@ -190,7 +228,7 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
-            color: #fff;
+            color: var(--text-main);
         }
 
         .form-help {
@@ -208,8 +246,8 @@
         }
 
         .zona-card-premium {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: #FFFFFF;
+            border: 1px solid var(--border);
             border-radius: 1.5rem;
             padding: 1.75rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
@@ -217,12 +255,13 @@
             flex-direction: column;
             position: relative;
             overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
         }
 
         .zona-card-premium:hover {
             transform: translateY(-2px);
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
 
         .zona-card-header {
@@ -289,7 +328,8 @@
         }
 
         .zona-stat-box {
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(44, 36, 27, 0.02);
+            border: 1px solid rgba(44, 36, 27, 0.05);
             padding: 1rem;
             border-radius: 1rem;
             text-align: center;
@@ -352,7 +392,7 @@
             width: 100%;
             margin-top: 1.25rem;
             padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(44, 36, 27, 0.02);
             border: 1px solid var(--border);
             border-radius: 0.75rem;
             color: var(--text-main);
@@ -363,8 +403,8 @@
         }
 
         .btn-ver-detalle:hover {
-            background: rgba(255, 255, 255, 0.1);
-            border-color: var(--text-sec);
+            background: rgba(44, 36, 27, 0.05);
+            border-color: var(--primary);
         }
 
         /* ── DETAIL MODAL ── */
@@ -385,13 +425,13 @@
         }
 
         .modal-zona-detail {
-            background: #0F172A;
+            background: #FFFFFF;
             width: 100%;
             max-width: 550px;
             border-radius: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            border: 1px solid var(--border);
             overflow: hidden;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
         }
 
         .modal-detail-header {
@@ -420,17 +460,17 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            background: rgba(255, 255, 255, 0.03);
+            background: rgba(44, 36, 27, 0.02);
             padding: 0.75rem 1rem;
             border-radius: 1rem;
             margin-bottom: 0.75rem;
-            border: 1px solid transparent;
+            border: 1px solid var(--border);
             transition: all 0.2s;
         }
 
         .domiciliario-row:hover {
-            background: rgba(255, 255, 255, 0.05);
-            border-color: rgba(255, 255, 255, 0.05);
+            background: rgba(44, 36, 27, 0.05);
+            border-color: var(--primary);
         }
 
         .dom-avatar {
@@ -473,7 +513,7 @@
             <h1 class="page-title">Zonas de Cobertura</h1>
             <p style="color: var(--text-sec); font-size: 0.875rem;">Jerarquía: Zona → Barrios asociados</p>
         </div>
-        <button class="btn-z btn-z-primary" wire:click="openCreate">
+        <button class="btn-z btn-z-primary" @click="isOpen = true" wire:click="openCreate">
             <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                 <line x1="12" y1="5" x2="12" y2="19"></line>
                 <line x1="5" y1="12" x2="19" y2="12"></line>
@@ -484,14 +524,14 @@
 
     <!-- Alert Banners -->
     @if(session()->has('success'))
-        <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; color: #4ade80; font-size: 0.85rem;">
-            {{ session('success') }}
-        </div>
+    <div style="background: rgba(34, 197, 94, 0.1); border: 1px solid rgba(34, 197, 94, 0.2); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; color: #4ade80; font-size: 0.85rem;">
+        {{ session('success') }}
+    </div>
     @endif
     @if(session()->has('error'))
-        <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; color: #f87171; font-size: 0.85rem;">
-            {{ session('error') }}
-        </div>
+    <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; color: #f87171; font-size: 0.85rem;">
+        {{ session('error') }}
+    </div>
     @endif
 
     <div class="stats-grid">
@@ -549,17 +589,17 @@
                             </button>
                         </td>
                         <td>
-                            <div style="display: flex; gap: 0.5rem; justify-content: flex-end;">
-                                <button class="btn-z btn-z-ghost" wire:click="openEdit('{{ $zona->id }}')" style="padding: 0.5rem;">
+                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                                <button type="button" class="btn-acciones btn-editar" @click="isOpen = true" wire:click="openEdit('{{ $zona->id }}')" title="Editar">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"></path>
-                                        <path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                                        <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                                        <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
                                     </svg>
                                 </button>
-                                <button type="button" wire:click="delete('{{ $zona->id }}')" wire:confirm="¿Eliminar esta zona?" class="btn-z btn-z-ghost" style="padding: 0.5rem; color: var(--status-error);">
+                                <button type="button" class="btn-acciones btn-eliminar" wire:click="delete('{{ $zona->id }}')" wire:confirm="¿Eliminar esta zona?" title="Eliminar">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                                         <polyline points="3 6 5 6 21 6"></polyline>
-                                        <path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2"></path>
+                                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
                                     </svg>
                                 </button>
                             </div>
@@ -621,7 +661,7 @@
                 </span>
             </div>
 
-            <button class="btn-ver-detalle" wire:click="viewDetail('{{ $zona->id }}')">
+            <button class="btn-ver-detalle" @click="showDetail = true" wire:click="viewDetail('{{ $zona->id }}')">
                 Ver detalle
             </button>
         </div>
@@ -666,9 +706,9 @@
                     <span class="detail-section-label">Barrios Cubiertos:</span>
                     <div style="display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 0.5rem;">
                         @forelse($selectedZona['barrios'] as $barrio)
-                            <span class="barrio-tag" style="margin: 0;">{{ $barrio }}</span>
+                        <span class="barrio-tag" style="margin: 0;">{{ $barrio }}</span>
                         @empty
-                            <span style="color: var(--text-sec); font-style: italic; font-size: 0.85rem;">Ningún barrio registrado</span>
+                        <span style="color: var(--text-sec); font-style: italic; font-size: 0.85rem;">Ningún barrio registrado</span>
                         @endforelse
                     </div>
                 </div>
@@ -700,18 +740,18 @@
                     <span class="detail-section-label">Domiciliarios asignados ({{ count($selectedZona['domiciliarios']) }}):</span>
                     <div style="max-height: 200px; overflow-y: auto; padding-right: 0.5rem;">
                         @forelse($selectedZona['domiciliarios'] as $dom)
-                            <div class="domiciliario-row">
-                                <div class="dom-avatar">{{ $dom['iniciales'] }}</div>
-                                <div class="dom-info">
-                                    <h4>{{ $dom['nombre'] }}</h4>
-                                    <p>{{ $dom['vehiculo'] }}</p>
-                                </div>
-                                <span class="dom-status" style="background: rgba(255,255,255,0.05); color: {{ $dom['estado_color'] === 'success' ? '#7FB77E' : ($dom['estado_color'] === 'warning' ? '#E6B566' : ($dom['estado_color'] === 'info' ? '#7A9CC6' : '#C97C7C')) }};">
-                                    {{ str_replace('_', ' ', $dom['estado']) }}
-                                </span>
+                        <div class="domiciliario-row">
+                            <div class="dom-avatar">{{ $dom['iniciales'] }}</div>
+                            <div class="dom-info">
+                                <h4>{{ $dom['nombre'] }}</h4>
+                                <p>{{ $dom['vehiculo'] }}</p>
                             </div>
+                            <span class="dom-status" style="background: rgba(44,36,27,0.05); color: {{ $dom['estado_color'] === 'success' ? '#7FB77E' : ($dom['estado_color'] === 'warning' ? '#E6B566' : ($dom['estado_color'] === 'info' ? '#7A9CC6' : '#C97C7C')) }};">
+                                {{ str_replace('_', ' ', $dom['estado']) }}
+                            </span>
+                        </div>
                         @empty
-                            <p style="color: var(--text-sec); font-style: italic; font-size: 0.85rem; text-align: center; padding: 1rem;">No hay domiciliarios asignados a esta zona.</p>
+                        <p style="color: var(--text-sec); font-style: italic; font-size: 0.85rem; text-align: center; padding: 1rem;">No hay domiciliarios asignados a esta zona.</p>
                         @endforelse
                     </div>
                 </div>
@@ -728,11 +768,11 @@
     <!-- Sidebar Form -->
     <div class="overlay-z" :class="{ 'show': isOpen }" @click="closeSidebar" wire:ignore.self></div>
     <div class="sidebar-z" :class="{ 'open': isOpen }" wire:ignore.self>
-        <h2 style="color: #fff; font-family: 'DM Serif Display', serif; margin-bottom: 1.5rem;">
+        <h2 style="color: var(--text-main); font-family: 'DM Serif Display', serif; margin-bottom: 1.5rem;">
             {{ $isEdit ? 'Editar Zona' : 'Nueva Zona' }}
         </h2>
         <form wire:submit.prevent="save" style="display: flex; flex-direction: column; height: 100%;">
-            
+
             <div class="form-group">
                 <label class="form-label">Nombre de la Zona</label>
                 <input type="text" wire:model="nombre" class="form-input" required placeholder="Ej: Zona Norte">

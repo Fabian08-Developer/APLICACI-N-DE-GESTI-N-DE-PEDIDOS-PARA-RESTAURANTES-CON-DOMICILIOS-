@@ -8,6 +8,8 @@ enum EstadoPedido: string
     case CREADO        = 'CREADO'; // Visualmente: Nuevo
     case EN_PREPARACION = 'EN_PREPARACION'; // Visualmente: Preparando
     case LISTO         = 'LISTO';
+    case ASIGNADO      = 'ASIGNADO'; // Asignado a domiciliario
+    case EN_CAMINO     = 'EN_CAMINO'; // Domiciliario en ruta
     case ENTREGADO     = 'ENTREGADO';
     case CANCELADO     = 'CANCELADO';
 
@@ -22,7 +24,9 @@ enum EstadoPedido: string
             self::CREADO         => 0,
             self::EN_PREPARACION => 1,
             self::LISTO          => 2,
-            self::ENTREGADO      => 3,
+            self::ASIGNADO       => 3,
+            self::EN_CAMINO      => 4,
+            self::ENTREGADO      => 5,
             self::CANCELADO      => -1,
         };
     }

@@ -27,6 +27,8 @@ class SesionCliente extends Model
         'telefono_cliente',
         'correo_cliente',
         'direccion_cliente',
+        'latitud',
+        'longitud',
         'activo',
         'ultima_actividad_en',
     ];

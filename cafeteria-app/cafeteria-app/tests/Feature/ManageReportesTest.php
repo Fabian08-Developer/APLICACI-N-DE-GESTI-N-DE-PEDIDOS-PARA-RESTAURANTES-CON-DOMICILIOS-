@@ -236,6 +236,7 @@ class ManageReportesTest extends TestCase
     /** @test */
     public function test_date_filters_rf127()
     {
+        Carbon::setTestNow(Carbon::create(2026, 6, 15, 12, 0, 0));
         $this->actingAs($this->administrador);
 
         // Create categories/products
@@ -294,7 +295,7 @@ class ManageReportesTest extends TestCase
             'subtotal'          => 12000,
             'total'             => 12000,
         ]);
-        $pedidoMes->creado_en = Carbon::today()->subDays(10);
+        $pedidoMes->creado_en = Carbon::today()->subDays(2);
         $pedidoMes->save();
 
         DetallePedido::create([
@@ -324,8 +325,8 @@ class ManageReportesTest extends TestCase
         // 3. Test 'personalizado' filter
         Livewire::withQueryParams([
             'period' => 'personalizado',
-            'start'  => Carbon::today()->subDays(12)->format('Y-m-d'),
-            'end'    => Carbon::today()->subDays(8)->format('Y-m-d')
+            'start'  => Carbon::today()->subDays(4)->format('Y-m-d'),
+            'end'    => Carbon::today()->subDays(1)->format('Y-m-d')
         ])
             ->test(\App\Livewire\Admin\Reportes\ManageReportes::class)
             ->assertViewHas('currentMetrics', function ($metrics) {

@@ -38,18 +38,44 @@
         }
 
         .card-d {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid rgba(255, 255, 255, 0.07);
+            background: #FFFFFF;
+            border: 1px solid rgba(196, 139, 87, 0.15);
             border-radius: 1.25rem;
             overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+            transition: transform 0.2s, border-color 0.2s, box-shadow 0.2s;
         }
 
         .stat-card:hover {
             transform: translateY(-2px);
             border-color: var(--primary);
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
         }
+
+        .btn-acciones {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 0.5rem;
+            border: 1px solid transparent;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: transparent;
+        }
+
+        .btn-ver { color: var(--status-info); }
+        .btn-ver:hover { background: rgba(59, 130, 246, 0.1); border-color: rgba(59, 130, 246, 0.2); }
+
+        .btn-editar { color: var(--d-primary); }
+        .btn-editar:hover { background: rgba(201, 168, 76, 0.1); border-color: rgba(201, 168, 76, 0.2); }
+
+        .btn-liquidar { background: rgba(245, 158, 11, 0.1); border-color: rgba(245, 158, 11, 0.2); }
+        .btn-liquidar:hover { background: rgba(245, 158, 11, 0.2); transform: scale(1.05); }
+
+        .btn-eliminar { color: var(--status-error); }
+        .btn-eliminar:hover { background: rgba(239, 68, 68, 0.1); border-color: rgba(239, 68, 68, 0.2); }
 
         .card-d-content {
             padding: 1.5rem;
@@ -159,8 +185,12 @@
         }
 
         .btn-d-primary {
-            background-color: var(--d-primary);
-            color: #0f0f0f;
+            background-color: #E07A5F;
+            color: #FFFFFF;
+        }
+        .btn-d-primary:hover {
+            background-color: #D4694D;
+            box-shadow: 0 4px 12px rgba(224, 122, 95, 0.3);
         }
 
         .btn-d-ghost {
@@ -262,12 +292,13 @@
             right: -450px;
             width: 450px;
             height: 100vh;
-            background-color: #0F172A;
+            background-color: #FFFFFF;
             z-index: 1001;
             transition: right 0.3s;
             border-left: 1px solid var(--border);
             display: flex;
             flex-direction: column;
+            box-shadow: -4px 0 25px rgba(0,0,0,0.05);
         }
 
         .sidebar-form.open {
@@ -653,24 +684,21 @@
                             </select>
                         </td>
                         <td>
-                            <div class="dropdown">
-                                <button class="btn-d btn-d-ghost" onclick="toggleDropdown(this)">
-                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                                        <circle cx="12" cy="12" r="1"></circle>
-                                        <circle cx="12" cy="5" r="1"></circle>
-                                        <circle cx="12" cy="19" r="1"></circle>
-                                    </svg>
+                            <div style="display: flex; gap: 0.4rem; justify-content: flex-end;">
+                                <button type="button" class="btn-acciones btn-ver" onclick="viewDetail('{{ $dom->id }}')" title="Ver detalle">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                                 </button>
-                                <div class="dropdown-menu">
-                                    <button class="dropdown-item" onclick="viewDetail('{{ $dom->id }}')">Ver detalle</button>
-                                    <button class="dropdown-item" @click="isOpen = true; openEditForm('{{ $dom->id }}')">Editar</button>
-                                    @if($dom->efectivo_pendiente > 0)
-                                    <button type="button" class="dropdown-item" wire:click="iniciarLiquidacion('{{ $dom->id }}')" style="color: var(--status-warning);">
-                                        💰 Liquidar (${{ number_format($dom->efectivo_pendiente, 0, ',', '.') }})
-                                    </button>
-                                    @endif
-                                    <button type="button" class="dropdown-item danger" wire:click="delete('{{ $dom->id }}')" wire:confirm="¿Eliminar domiciliario y su cuenta de usuario?">Eliminar</button>
-                                </div>
+                                <button type="button" class="btn-acciones btn-editar" @click="isOpen = true; openEditForm('{{ $dom->id }}')" title="Editar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                @if($dom->efectivo_pendiente > 0)
+                                <button type="button" class="btn-acciones btn-liquidar" wire:click="iniciarLiquidacion('{{ $dom->id }}')" title="Liquidar (${{ number_format($dom->efectivo_pendiente, 0, ',', '.') }})">
+                                    💰
+                                </button>
+                                @endif
+                                <button type="button" class="btn-acciones btn-eliminar" wire:click="delete('{{ $dom->id }}')" wire:confirm="¿Eliminar domiciliario y su cuenta de usuario?" title="Eliminar">
+                                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
+                                </button>
                             </div>
                         </td>
                     </tr>
@@ -755,12 +783,7 @@
                     </svg> <span id="detPhone">--</span></div>
                 <div class="info-row" id="detVehicle">--</div>
                 <div class="info-row" id="detZone">--</div>
-                <div class="info-row" style="flex-direction: column; align-items: flex-start; border-bottom: none;">
-                    <span class="form-label" style="margin-bottom: 0.5rem; font-size: 0.65rem;">Barrios Asignados</span>
-                    <div class="detail-barrios" id="detBarrios">
-                        <span class="texto-gris" style="font-size: 0.75rem;">Ningún barrio seleccionado</span>
-                    </div>
-                </div>
+
             </div>
             <div class="modal-footer-d">
                 <button class="btn-close-modal" onclick="closeDetailModal()">Cerrar</button>
@@ -773,7 +796,7 @@
     <div class="sidebar-form-overlay" id="formOverlay" :class="{ 'show': isOpen }" @click="isOpen = false" wire:ignore></div>
     <div class="sidebar-form" id="sidebarForm" :class="{ 'open': isOpen }" wire:ignore>
         <div class="sidebar-form-header">
-            <h2 id="formTitle" style="color: #fff; font-family: 'DM Serif Display', serif;">Nuevo Domiciliario</h2>
+            <h2 id="formTitle" style="color: var(--text-main); font-family: 'DM Serif Display', serif;">Nuevo Domiciliario</h2>
         </div>
         <div class="sidebar-form-content">
             <form id="mainForm" method="POST">
@@ -800,19 +823,12 @@
                 </div>
                 <div class="form-group">
                     <label class="form-label">Zona de Trabajo</label>
-                    <select name="zona_id" id="inZoneId" class="select-d" style="width:100%" onchange="loadBarrios(this.value)">
+                    <select name="zona_id" id="inZoneId" class="select-d" style="width:100%">
                         <option value="">Seleccione una zona</option>
                         @foreach($zonas as $zona)
                         <option value="{{ $zona->id }}">{{ $zona->nombre }}</option>
                         @endforeach
                     </select>
-                </div>
-                <div class="form-group" id="barriosSection" style="display: none;">
-                    <label class="form-label">Barrios Específicos</label>
-                    <div class="barrios-grid" id="barriosContainer">
-                        <!-- Dynamic Barrios -->
-                    </div>
-                    <p class="driver-date" style="margin-top: 0.5rem;">Selecciona los barrios que cubrirá este domiciliario.</p>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tipo de Vehículo</label>
@@ -856,16 +872,7 @@
                         document.getElementById('detVehicle').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> ${dom.vehiculo_tipo.charAt(0).toUpperCase() + dom.vehiculo_tipo.slice(1)} ${dom.placa ? '(' + dom.placa + ')' : ''}`;
                         document.getElementById('detZone').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dom.zona ? dom.zona.nombre : 'Sin zona'}`;
 
-                        // Render Barrios in detail
-                        const detBarrios = document.getElementById('detBarrios');
-                        detBarrios.innerHTML = '';
-                        if (dom.barrios && dom.barrios.length > 0) {
-                            dom.barrios.forEach(b => {
-                                detBarrios.innerHTML += `<span class="barrio-tag">${b.nombre}</span>`;
-                            });
-                        } else {
-                            detBarrios.innerHTML = '<span class="texto-gris" style="font-size: 0.75rem;">Todos los barrios de la zona</span>';
-                        }
+
 
                         document.getElementById('btnEditFromDetail').onclick = () => {
                             window.dispatchEvent(new CustomEvent('open-sidebar'));
@@ -880,39 +887,13 @@
             document.getElementById('detailModal').classList.remove('show');
         }
 
-        function loadBarrios(zonaId, selectedIds = []) {
-            const section = document.getElementById('barriosSection');
-            const container = document.getElementById('barriosContainer');
 
-            if (!zonaId) {
-                section.style.display = 'none';
-                return;
-            }
-
-            fetch(`/admin/zonas-cobertura/${zonaId}/barrios`)
-                .then(res => res.json())
-                .then(barrios => {
-                    if (barrios.length > 0) {
-                        section.style.display = 'block';
-                        container.innerHTML = barrios.map(b => `
-                        <label class="barrio-checkbox-item">
-                            <input type="checkbox" name="barrios[]" value="${b.id}" ${selectedIds.includes(b.id) ? 'checked' : ''}>
-                            <span>${b.nombre}</span>
-                        </label>
-                    `).join('');
-                    } else {
-                        section.style.display = 'none';
-                        container.innerHTML = '';
-                    }
-                });
-        }
 
         function openCreateForm() {
             document.getElementById('formTitle').innerText = "Nuevo Domiciliario";
             document.getElementById('mainForm').action = "{{ '#' }}";
             document.getElementById('methodField').innerHTML = '';
             document.getElementById('mainForm').reset();
-            document.getElementById('barriosSection').style.display = 'none';
             window.dispatchEvent(new CustomEvent('open-sidebar'));
         }
 
@@ -931,9 +912,6 @@
                         document.getElementById('inZoneId').value = dom.zona_id;
                         document.getElementById('inVehicleType').value = dom.vehiculo_tipo;
                         document.getElementById('inPlate').value = dom.placa || '';
-
-                        // Load barrios and pre-select
-                        loadBarrios(dom.zona_id, res.barrios_ids);
 
                         window.dispatchEvent(new CustomEvent('open-sidebar'));
                     }

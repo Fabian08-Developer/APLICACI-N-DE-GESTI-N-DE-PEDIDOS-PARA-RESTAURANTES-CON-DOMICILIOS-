@@ -30,7 +30,9 @@ class Sucursal extends Model
         'configuracion',
         'activo',
         'hora_apertura',
-        'hora_cierre'
+        'hora_cierre',
+        'latitud',
+        'longitud'
     ];
 
     /**

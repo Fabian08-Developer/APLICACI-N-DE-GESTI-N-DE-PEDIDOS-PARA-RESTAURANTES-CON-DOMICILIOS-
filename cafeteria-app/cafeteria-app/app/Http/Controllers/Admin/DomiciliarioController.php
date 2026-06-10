@@ -53,16 +53,12 @@ class DomiciliarioController extends Controller
             'estado' => 'disponible',
         ]);
 
-        if ($request->has('barrios')) {
-            $dom->barrios()->sync($request->input('barrios'));
-        }
-
         return redirect()->route('admin.domiciliarios.index')->with('success', 'Domiciliario creado correctamente.');
     }
 
     public function show($id)
     {
-        $dom = PerfilDomiciliario::with(['usuario', 'zona', 'barrios'])->find($id);
+        $dom = PerfilDomiciliario::with(['usuario', 'zona'])->find($id);
         if (!$dom) {
             return response()->json(['success' => false, 'message' => 'Domiciliario no encontrado']);
         }
@@ -76,15 +72,13 @@ class DomiciliarioController extends Controller
             'placa' => $dom->placa,
             'zona_id' => $dom->zona_id,
             'zona' => $dom->zona ? ['nombre' => $dom->zona->nombre] : null,
-            'barrios' => $dom->barrios->map(fn($b) => ['nombre' => $b->nombre])->toArray(),
         ];
 
         return response()->json([
             'success' => true,
             'data' => $data,
             'iniciales' => $dom->iniciales,
-            'estado_color' => $dom->estado === 'disponible' ? 'success' : ($dom->estado === 'ocupado' ? 'warning' : ($dom->estado === 'en_ruta' ? 'info' : 'destructive')),
-            'barrios_ids' => $dom->barrios->pluck('id')->toArray()
+            'estado_color' => $dom->estado === 'disponible' ? 'success' : ($dom->estado === 'ocupado' ? 'warning' : ($dom->estado === 'en_ruta' ? 'info' : 'destructive'))
         ]);
     }
 
@@ -120,12 +114,6 @@ class DomiciliarioController extends Controller
                 'nombre' => $request->input('nombre'),
                 'telefono' => $request->input('telefono'),
             ]);
-        }
-
-        if ($request->has('barrios')) {
-            $dom->barrios()->sync($request->input('barrios'));
-        } else {
-            $dom->barrios()->detach();
         }
 
         return redirect()->route('admin.domiciliarios.index')->with('success', 'Domiciliario actualizado correctamente.');

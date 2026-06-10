@@ -17,6 +17,7 @@ export default defineConfig({
                 'resources/css/cerrar_sesion.css',
                 'resources/css/cocina.css',
                 'resources/css/confirmacion.css',
+                'resources/css/domiciliario.css',
                 'resources/css/login.css',
                 'resources/css/menu.css',
                 'resources/css/mesas.css',

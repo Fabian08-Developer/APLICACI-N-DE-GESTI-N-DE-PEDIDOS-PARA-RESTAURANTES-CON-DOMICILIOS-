@@ -71,6 +71,10 @@ class ProductosImport implements ToCollection, WithHeadingRow
                     $this->errors[] = "Fila {$rowCount}: El precio de oferta del producto '{$nombre}' debe ser un número mayor o igual a 0.";
                     continue;
                 }
+                if ($precio_oferta > $precio) {
+                    $this->errors[] = "Fila {$rowCount}: El precio de oferta del producto '{$nombre}' no puede ser mayor al precio normal.";
+                    continue;
+                }
             } else {
                 $precio_oferta = null;
             }

@@ -25,7 +25,14 @@
                 </button>
             </div>
 
-            <div class="drawer-cuerpo">
+            <div class="drawer-cuerpo" style="position: relative;">
+                <!-- Overlay de Carga -->
+                <div wire:loading.flex wire:target="edit" style="position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                    <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                    <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
+                </div>
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
                 <div class="grupo">
                     <label for="nombre">Nombre</label>
                     <input type="text" id="nombre" wire:model="nombre"
@@ -121,7 +128,7 @@
             <tbody>
                 @foreach($categorias as $categoria)
                 <tr wire:key="cat-{{ $categoria->id }}">
-                    <td class="texto-gris">{{ $categoria->id }}</td>
+                    <td class="texto-gris">{{ $categoria->short_id }}</td>
                     <td>{{ $categoria->nombre }}</td>
                     <td class="texto-gris">{{ $categoria->descripcion ?? '—' }}</td>
                     <td>

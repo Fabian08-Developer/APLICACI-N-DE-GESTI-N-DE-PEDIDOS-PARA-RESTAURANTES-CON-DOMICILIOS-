@@ -7,7 +7,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
     @vite(['resources/css/cocina.css', 'resources/js/cocina.js'])
 </head>
-<body>
+<body class="artisan-bg">
 
     <aside class="sidebar">
         <div class="sidebar-logo">
@@ -39,6 +39,14 @@
                     <path d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" stroke-linecap="round" stroke-linejoin="round"/>
                 </svg>
                 Disponibilidad
+            </a>
+            <a href="{{ route('cocina.recetas') }}"
+               class="nav-item {{ request()->is('cocina/recetas') ? 'activo' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"/>
+                    <path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"/>
+                </svg>
+                Recetas
             </a>
         </nav>
 

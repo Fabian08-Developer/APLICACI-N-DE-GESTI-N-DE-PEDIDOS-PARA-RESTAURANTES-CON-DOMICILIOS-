@@ -526,24 +526,19 @@ class ClienteSessionTest extends TestCase
         ]);
 
         // Crear adiciones
-        $adicion1 = \App\Models\AdicionCatalogo::create([
-            'sucursal_id' => $this->sucursal->id,
+        $adicion1 = \App\Models\AdicionProducto::create([
+            'producto_id' => $producto->id,
             'nombre' => 'Chispas de Chocolate',
             'precio' => 800,
             'activo' => true,
-            'disponible' => true,
         ]);
 
-        $adicion2 = \App\Models\AdicionCatalogo::create([
-            'sucursal_id' => $this->sucursal->id,
+        $adicion2 = \App\Models\AdicionProducto::create([
+            'producto_id' => $producto->id,
             'nombre' => 'Crema Batida',
             'precio' => 1200,
             'activo' => true,
-            'disponible' => true,
         ]);
-
-        // Asociar adiciones al producto
-        $producto->adicionesAsociadas()->attach([$adicion1->id, $adicion2->id]);
 
         // Caso 1: Variante fija + Variante incremental + Adiciones
         // Elegimos: Tamaño: Grande (fijo 8000), Leche: Deslactosada (+500), Adiciones: Chispas de Chocolate (+800), Crema Batida (+1200)
@@ -620,15 +615,12 @@ class ClienteSessionTest extends TestCase
             'disponible' => true,
         ]);
 
-        $adicion = \App\Models\AdicionCatalogo::create([
-            'sucursal_id' => $this->sucursal->id,
+        $adicion = \App\Models\AdicionProducto::create([
+            'producto_id' => $producto->id,
             'nombre' => 'Leche Condensada',
             'precio' => 1500,
             'activo' => true,
-            'disponible' => true,
         ]);
-
-        $producto->adicionesAsociadas()->attach($adicion->id);
 
         // 1. Agregar con la adición
         $response1 = $this->postJson(route('cliente.carrito.agregar', ['t' => $sesion->token]), [
@@ -749,11 +741,9 @@ class ClienteSessionTest extends TestCase
             'limite_maximo_adiciones' => 2,
         ]);
 
-        $adicion1 = \App\Models\AdicionCatalogo::create(['sucursal_id' => $this->sucursal->id, 'nombre' => 'A1', 'precio' => 500, 'activo' => true, 'disponible' => true]);
-        $adicion2 = \App\Models\AdicionCatalogo::create(['sucursal_id' => $this->sucursal->id, 'nombre' => 'A2', 'precio' => 500, 'activo' => true, 'disponible' => true]);
-        $adicion3 = \App\Models\AdicionCatalogo::create(['sucursal_id' => $this->sucursal->id, 'nombre' => 'A3', 'precio' => 500, 'activo' => true, 'disponible' => true]);
-
-        $producto->adicionesAsociadas()->attach([$adicion1->id, $adicion2->id, $adicion3->id]);
+        $adicion1 = \App\Models\AdicionProducto::create(['producto_id' => $producto->id, 'nombre' => 'A1', 'precio' => 500, 'activo' => true]);
+        $adicion2 = \App\Models\AdicionProducto::create(['producto_id' => $producto->id, 'nombre' => 'A2', 'precio' => 500, 'activo' => true]);
+        $adicion3 = \App\Models\AdicionProducto::create(['producto_id' => $producto->id, 'nombre' => 'A3', 'precio' => 500, 'activo' => true]);
 
         // Caso 1: Cero adiciones elegidas (mínimo es 1)
         $response1 = $this->postJson(route('cliente.carrito.agregar', ['t' => $sesion->token]), [

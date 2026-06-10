@@ -80,7 +80,7 @@ class PedidoController extends Controller
 
         $productos = Producto::activoConCategoriaActiva()
             ->where('disponible', true)
-            ->with(['variantes', 'adicionesAsociadas'])
+            ->with(['variantes', 'adiciones'])
             ->get();
 
         $itemsCarrito = $sesion->itemsCarrito()->with('producto')->get();
@@ -110,7 +110,7 @@ class PedidoController extends Controller
         $producto = Producto::activoConCategoriaActiva()
             ->where('disponible', true)
             ->where('id', $validated['producto_id'])
-            ->with(['variantes', 'adicionesAsociadas'])
+            ->with(['variantes', 'adiciones'])
             ->first();
 
         if (!$producto) {

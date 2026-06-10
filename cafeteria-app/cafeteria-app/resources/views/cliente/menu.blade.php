@@ -484,6 +484,13 @@
                             currentHeaderCount.textContent = newHeaderCount.textContent;
                         }
                         
+                        // Actualizar Menú (productos, estado agotado, adiciones)
+                        const currentMenu = document.querySelector('main');
+                        const newMenu = doc.querySelector('main');
+                        if (currentMenu && newMenu) {
+                            currentMenu.innerHTML = newMenu.innerHTML;
+                        }
+                        
                         const subtotalVal = document.getElementById('cart-subtotal-val');
                         const newSubtotalVal = doc.getElementById('cart-subtotal-val');
                         if (subtotalVal && newSubtotalVal) subtotalVal.textContent = newSubtotalVal.textContent;
@@ -504,8 +511,11 @@
                             confirmBtn.disabled = badgeCount === 0;
                         }
                     })
-                    .catch(err => console.error("Error al refrescar el carrito:", err));
+                    .catch(err => console.error("Error al refrescar el carrito/menú:", err));
             }
+
+            // Refresco periódico del menú y el carrito cada 15 segundos para actualizaciones en tiempo real (RF-100)
+            setInterval(refreshCart, 15000);
 
             // AJAX: Actualizar cantidad de item
             function updateCartItemQuantity(id, qty) {

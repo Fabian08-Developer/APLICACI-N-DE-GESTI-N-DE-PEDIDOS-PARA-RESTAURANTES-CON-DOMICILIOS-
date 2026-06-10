@@ -148,74 +148,64 @@
 {{-- ── Estilos locales ── --}}
 <style>
     .page-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
-    .page-title { font-size: 1.5rem; font-weight: 700; margin: 0; }
-    .page-sub { font-size: 0.85rem; color: var(--text-muted); margin: 0; }
+    .page-title { font-family: 'Playfair Display', serif; font-size: 1.8rem; font-weight: 700; margin: 0; color: var(--text-main); }
+    .page-sub { font-size: 0.9rem; color: var(--text-muted); margin: 0; }
     .header-stats { display: flex; gap: 1rem; }
-    .stat-pill { background: var(--surface); border: 1px solid var(--border); padding: 0.5rem 1rem; border-radius: 8px; text-align: center; }
-    .stat-value { display: block; font-size: 1.25rem; font-weight: 700; }
-    .stat-label { font-size: 0.7rem; color: var(--text-muted); text-transform: uppercase; }
+    .stat-pill { background: var(--surface); border: 1px solid var(--border-light); padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); text-align: center; box-shadow: var(--shadow-sm); }
+    .stat-value { display: block; font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; color: var(--text-main); }
+    .stat-label { font-size: 0.7rem; color: var(--text-dim); text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em; }
 
     .mesas-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 1.5rem; }
     
     .mesa-card { 
-        background: linear-gradient(145deg, var(--surface), rgba(255,255,255,0.02));
-        border: 1px solid var(--border); 
-        border-radius: 16px; 
+        background: var(--surface);
+        border: 1px solid var(--border-light); 
+        border-radius: var(--radius); 
         display: flex; 
         flex-direction: column; 
         overflow: hidden; 
         transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         position: relative;
+        box-shadow: var(--shadow-sm);
     }
     
     .mesa-card::before {
         content: '';
         position: absolute;
         top: 0; left: 0; right: 0; bottom: 0;
-        background: radial-gradient(circle at 50% 0%, rgba(255,255,255,0.05), transparent 70%);
+        background: radial-gradient(circle at 50% 0%, var(--surface-2), transparent 70%);
         opacity: 0;
         transition: opacity 0.3s ease;
         pointer-events: none;
     }
 
     .mesa-card:hover {
-        transform: translateY(-6px);
-        box-shadow: 0 10px 25px rgba(0,0,0,0.3);
-        border-color: rgba(255,255,255,0.15);
+        transform: translateY(-4px);
+        box-shadow: var(--shadow-md);
+        border-color: var(--border);
     }
     
     .mesa-card:hover::before { opacity: 1; }
     
-    .mesa-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.05); position: relative; z-index: 1; }
-    .mesa-numero { font-size: 1.2rem; font-weight: 800; display: flex; align-items: center; gap: 0.6rem; color: var(--text-main); }
+    .mesa-card-header { padding: 1.25rem 1.5rem; border-bottom: 1px solid var(--border-light); position: relative; z-index: 1; background: var(--surface-2); }
+    .mesa-numero { font-family: 'Playfair Display', serif; font-size: 1.4rem; font-weight: 700; display: flex; align-items: center; gap: 0.6rem; color: var(--text-main); }
     .mesa-numero svg { width: 22px; height: 22px; color: var(--primary); }
     
-    .badge-estado { font-size: 0.75rem; padding: 0.25rem 0.75rem; border-radius: 100px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; }
-    .badge-estado--ocupada { background: rgba(91,141,238,0.15); color: #8bb1ff; border: 1px solid rgba(91,141,238,0.3); }
-    .badge-estado--disponible { background: rgba(82,183,136,0.15); color: #74cfa4; border: 1px solid rgba(82,183,136,0.3); }
+    .badge-estado { font-size: 0.7rem; padding: 0.35rem 0.8rem; border-radius: 100px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; }
+    .badge-estado--ocupada { background: rgba(224, 122, 95, 0.1); color: var(--primary); }
+    .badge-estado--disponible { background: rgba(129, 178, 154, 0.1); color: var(--status-success); }
 
-    .btn-liberar-mesa { background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.1); color: var(--text-muted); padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; }
-    .btn-liberar-mesa:hover { background: rgba(248,113,113,0.15); color: #f87171; border-color: rgba(248,113,113,0.3); }
+    .btn-liberar-mesa { background: var(--surface); border: 1px solid var(--border-light); color: var(--text-dim); padding: 0.5rem 1rem; border-radius: var(--radius-sm); font-size: 0.75rem; font-weight: 600; cursor: pointer; transition: all 0.2s; box-shadow: var(--shadow-sm); }
+    .btn-liberar-mesa:hover { background: rgba(224, 122, 95, 0.1); color: var(--primary); border-color: rgba(224, 122, 95, 0.3); }
 
-    .mesa-pedidos { padding: 1.5rem; flex-grow: 1; position: relative; z-index: 1; }
-    .pedido-row:hover { border-color: rgba(139, 177, 255, 0.4); transform: translateX(2px); }
+    .mesa-pedidos { padding: 1.5rem; flex-grow: 1; position: relative; z-index: 1; background: var(--surface); }
+    .pedido-row { transition: all 0.2s ease; }
+    .pedido-row:hover { border-color: var(--border); transform: translateX(2px); box-shadow: var(--shadow-sm); }
     
-    .pedido-badge--creado { background: rgba(91,141,238,0.1); color: var(--accent); }
-    .pedido-badge--en-cocina { background: rgba(201,168,76,0.1); color: var(--gold); }
-    .pedido-badge--en-preparacion { background: rgba(201,168,76,0.1); color: var(--gold); }
-    .pedido-badge--listo { background: rgba(82,183,136,0.1); color: var(--green); }
-
-    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); backdrop-filter: blur(4px); display: none; align-items: center; justify-content: center; z-index: 1000; }
-    .modal-overlay.active { display: flex; }
-    .modal-confirm { background: var(--surface); width: 90%; max-width: 400px; padding: 2rem; border-radius: var(--radius); border: 1px solid var(--border); text-align: center; }
-    .modal-icon { width: 48px; height: 48px; background: rgba(248,113,113,0.1); color: #f87171; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 1.5rem auto; }
-    .modal-icon svg { width: 24px; height: 24px; }
-    .modal-title { font-size: 1.25rem; margin-bottom: 0.75rem; }
-    .modal-desc { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 2rem; line-height: 1.5; }
-    .modal-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
-    .btn-modal { padding: 0.75rem; border-radius: 8px; font-weight: 600; cursor: pointer; border: none; font-family: inherit; }
-    .btn-modal-cancel { background: var(--surface-2); color: var(--text); }
-    .btn-modal-confirm { background: #f87171; color: white; }
+    .pedido-badge--creado { background: rgba(242, 204, 143, 0.2); color: #B48A36; }
+    .pedido-badge--en-cocina { background: rgba(224, 122, 95, 0.1); color: var(--primary); }
+    .pedido-badge--en-preparacion { background: rgba(224, 122, 95, 0.1); color: var(--primary); }
+    .pedido-badge--listo { background: rgba(129, 178, 154, 0.2); color: #3A7A5D; }
 </style>
 
 {{-- ── MODAL DE CONFIRMACIÓN ÚNICO ── --}}

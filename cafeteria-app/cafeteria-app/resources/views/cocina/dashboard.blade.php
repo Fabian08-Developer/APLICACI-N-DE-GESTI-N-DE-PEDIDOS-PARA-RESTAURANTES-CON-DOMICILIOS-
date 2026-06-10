@@ -10,8 +10,27 @@
 {{-- PAGE HEADER --}}
 <div class="page-header">
     <div>
-        <h1>Panel de cocina</h1>
+        <h1>Panel de preparación</h1>
         <div class="page-header-meta" id="live-time">{{ now()->format('d/m/Y H:i') }}</div>
+    </div>
+</div>
+
+{{-- METRICS BAR --}}
+<div class="metrics-bar">
+    <div class="metric-card">
+        <div class="metric-label">Órdenes Activas</div>
+        <div class="metric-value" id="metric-activas">{{ $pedidosNuevos->count() + $pedidosEnPreparacion->count() }}</div>
+        <div class="metric-desc">En cola y preparación</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Platos Listos Hoy</div>
+        <div class="metric-value" id="metric-listos">{{ $pedidosListos->count() }}</div>
+        <div class="metric-desc">Esperando entrega</div>
+    </div>
+    <div class="metric-card">
+        <div class="metric-label">Tiempo Promedio</div>
+        <div class="metric-value">14<span style="font-size:1rem;">m</span></div>
+        <div class="metric-desc">Estimado por orden</div>
     </div>
 </div>
 

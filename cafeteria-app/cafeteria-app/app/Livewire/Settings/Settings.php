@@ -313,6 +313,11 @@ class Settings extends Component
                 'documento_pendiente_path' => $path
             ]);
             $this->documento_pendiente_path = $path;
+
+            $superAdmins = User::where('rol', 'super-admin')->get();
+            foreach ($superAdmins as $admin) {
+                $admin->notify(new \App\Notifications\NuevaSolicitudNit($empresa->nombre, $empresa->nit, $user->nombre));
+            }
         }
 
         $this->nuevo_documento = null;

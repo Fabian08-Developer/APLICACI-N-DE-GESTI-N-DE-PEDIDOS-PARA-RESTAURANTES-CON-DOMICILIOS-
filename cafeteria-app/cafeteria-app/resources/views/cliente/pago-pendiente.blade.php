@@ -61,7 +61,7 @@
         {{-- Simulador de Pago (RF-C29 & RF-C30) --}}
         @if($pago->metodo === 'Nequi')
             <div class="dev-tools">
-                <p>⚡ <strong>Herramientas de Simulación (Pruebas)</strong></p>
+                <p> <strong>Herramientas de Simulación (Pruebas)</strong></p>
                 <form action="{{ route('cliente.pago.simular', ['pagoId' => $pago->id, 't' => $sesion->token]) }}" method="POST" id="form-simular">
                     @csrf
                     <input type="hidden" name="resultado" id="resultado-simulacion" value="">

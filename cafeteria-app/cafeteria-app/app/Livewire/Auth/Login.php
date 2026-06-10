@@ -90,6 +90,9 @@ class Login extends Component
         if ($user->hasRole('cocina')) {
             return route('cocina.dashboard');
         }
+        if ($user->hasRole('domiciliario')) {
+            return route('domiciliario.dashboard');
+        }
         // Fallback for delivery or others if they access the panel
         return route('admin.dashboard');
     }

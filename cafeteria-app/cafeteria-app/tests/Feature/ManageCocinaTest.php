@@ -3,7 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\EstadoPedido;
-use App\Models\AdicionCatalogo;
+use App\Models\AdicionProducto;
 use App\Models\Empresa;
 use App\Models\Pedido;
 use App\Models\DetallePedido;
@@ -261,11 +261,11 @@ class ManageCocinaTest extends TestCase
             ],
         ]);
 
-        $adicion = AdicionCatalogo::create([
-            'sucursal_id' => $this->sucursal->id,
+        $adicion = AdicionProducto::create([
+            'producto_id' => $producto->id,
             'nombre' => 'Crema Batida',
             'precio' => 1200,
-            'disponible' => true,
+            'activo' => true,
         ]);
 
         // Toggle product availability
@@ -281,6 +281,6 @@ class ManageCocinaTest extends TestCase
         // Toggle addition availability
         $this->post(route('cocina.disponibilidad.toggle-adicion', $adicion->id) . '?_st=kitchen-token-123')
             ->assertRedirect();
-        $this->assertFalse((bool) $adicion->fresh()->disponible);
+        $this->assertFalse((bool) $adicion->fresh()->activo);
     }
 }

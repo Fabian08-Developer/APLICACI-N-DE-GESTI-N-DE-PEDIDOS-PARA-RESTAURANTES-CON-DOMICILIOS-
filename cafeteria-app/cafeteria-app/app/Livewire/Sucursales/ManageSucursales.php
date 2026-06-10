@@ -21,6 +21,8 @@ class ManageSucursales extends Component
     public $ciudad;
     public $telefono;
     public $activo = true;
+    public $latitud;
+    public $longitud;
     
     public $isEditing = false;
     public $showModal = false;
@@ -54,6 +56,8 @@ class ManageSucursales extends Component
                     ->ignore($ignoreId),
             ],
             'activo'    => 'boolean',
+            'latitud'   => 'nullable|numeric',
+            'longitud'  => 'nullable|numeric',
         ];
     }
 
@@ -131,6 +135,8 @@ class ManageSucursales extends Component
         $this->ciudad = '';
         $this->telefono = '';
         $this->activo = true;
+        $this->latitud = null;
+        $this->longitud = null;
         $this->isEditing = false;
         $this->resetErrorBag();
     }
@@ -180,6 +186,8 @@ class ManageSucursales extends Component
                 'ciudad' => $this->ciudad,
                 'telefono' => $this->telefono,
                 'activo' => $this->activo,
+                'latitud' => $this->latitud,
+                'longitud' => $this->longitud,
             ];
 
             if ($this->isEditing) {
@@ -217,6 +225,8 @@ class ManageSucursales extends Component
         $this->ciudad = $sucursal->ciudad;
         $this->telefono = $sucursal->telefono;
         $this->activo = $sucursal->activo;
+        $this->latitud = $sucursal->latitud;
+        $this->longitud = $sucursal->longitud;
         
         $this->isEditing = true;
         $this->showModal = true;

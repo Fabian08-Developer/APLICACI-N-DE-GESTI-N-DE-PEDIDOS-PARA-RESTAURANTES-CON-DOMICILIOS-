@@ -263,10 +263,10 @@ class ManagePedidos extends Component
         $query = Pedido::with([
             'sesionCliente.mesa',
             'mesero',
-            'detalles.producto',
             'domiciliario.usuario',
             'zona'
         ])
+        ->withCount('detalles')
         ->where('sucursal_id', $sucursal_id);
 
         // Filter based on selected tab

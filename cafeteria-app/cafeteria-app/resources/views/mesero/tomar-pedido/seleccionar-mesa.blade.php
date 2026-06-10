@@ -64,13 +64,11 @@
         background: linear-gradient(to right, var(--border), transparent);
     }
     .page-title { 
+        font-family: 'Playfair Display', serif;
         font-size: 1.8rem; 
-        font-weight: 800; 
+        font-weight: 700; 
         margin: 0; 
-        background: linear-gradient(90deg, #fff, var(--text-muted));
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        letter-spacing: -0.5px;
+        color: var(--text-main);
     }
     .page-sub { 
         font-size: 0.95rem; 

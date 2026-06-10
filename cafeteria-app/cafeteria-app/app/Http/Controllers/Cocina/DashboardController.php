@@ -197,16 +197,12 @@ class DashboardController extends Controller
     {
         $sucursal_id = auth()->user()->sucursal_id;
 
-        $productos = \App\Models\Producto::with('variantes')
+        $productos = \App\Models\Producto::with(['variantes', 'adiciones'])
             ->where('sucursal_id', $sucursal_id)
             ->orderBy('nombre')
             ->get();
 
-        $adiciones = \App\Models\AdicionCatalogo::where('sucursal_id', $sucursal_id)
-            ->orderBy('nombre')
-            ->get();
-
-        return view('cocina.disponibilidad', compact('productos', 'adiciones'));
+        return view('cocina.disponibilidad', compact('productos'));
     }
 
     public function toggleProducto(Request $request, string $id)
@@ -233,10 +229,17 @@ class DashboardController extends Controller
             $producto->update(['disponible' => true]);
         } else {
             // Toggle manual normal, quitamos cualquier pausa temporal si existe
+            $isPaused = \Illuminate\Support\Facades\Cache::has("producto_{$producto->id}_pausado");
             \Illuminate\Support\Facades\Cache::forget("producto_{$producto->id}_pausado");
-            // Usar el atributo raw de la base de datos por si estaba pausado
-            $estadoDb = $producto->getRawOriginal('disponible');
-            $producto->update(['disponible' => !$estadoDb]);
+            
+            if ($isPaused) {
+                // Si estaba pausado, el usuario lo veía como 'Agotado' y su intención al clickear es ponerlo 'Disponible'
+                $producto->update(['disponible' => true]);
+            } else {
+                // Usar el atributo raw de la base de datos por si estaba pausado
+                $estadoDb = $producto->getRawOriginal('disponible');
+                $producto->update(['disponible' => !$estadoDb]);
+            }
         }
 
         if ($request->ajax() || $request->expectsJson()) {
@@ -279,14 +282,14 @@ class DashboardController extends Controller
 
     public function toggleAdicion(Request $request, string $id)
     {
-        $adicion = \App\Models\AdicionCatalogo::findOrFail($id);
-        if ($adicion->sucursal_id !== auth()->user()->sucursal_id) {
+        $adicion = \App\Models\AdicionProducto::findOrFail($id);
+        if ($adicion->producto->sucursal_id !== auth()->user()->sucursal_id) {
             abort(403);
         }
 
         $tiempo = $request->input('tiempo');
         
-        if ($tiempo && $adicion->disponible) {
+        if ($tiempo && $adicion->activo) {
             if ($tiempo === 'resto_dia') {
                 $segundos = now()->diffInSeconds(now()->endOfDay());
             } elseif ($tiempo === '3s') {
@@ -296,21 +299,69 @@ class DashboardController extends Controller
             }
             $expiresAt = now()->addSeconds($segundos);
             \Illuminate\Support\Facades\Cache::put("adicion_{$adicion->id}_pausada", $expiresAt->timestamp, $expiresAt);
-            $adicion->update(['disponible' => true]);
         } else {
+            $isPaused = \Illuminate\Support\Facades\Cache::has("adicion_{$adicion->id}_pausada");
             \Illuminate\Support\Facades\Cache::forget("adicion_{$adicion->id}_pausada");
-            $estadoDb = $adicion->getRawOriginal('disponible');
-            $adicion->update(['disponible' => !$estadoDb]);
+            
+            if (!$isPaused) {
+                $adicion->update(['activo' => !$adicion->activo]);
+            }
         }
 
         if ($request->ajax() || $request->expectsJson()) {
             return response()->json([
                 'ok' => true,
-                'disponible' => $adicion->fresh()->disponible,
+                'disponible' => $adicion->fresh()->activo && !\Illuminate\Support\Facades\Cache::has("adicion_{$adicion->id}_pausada"),
                 'expira' => \Illuminate\Support\Facades\Cache::get("adicion_{$adicion->id}_pausada")
             ]);
         }
 
         return back()->with('exito', "Disponibilidad de la adición '{$adicion->nombre}' actualizada.");
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Recetario de cocina (Nuevas funciones)
+    |--------------------------------------------------------------------------
+    */
+    public function recetas()
+    {
+        $sucursal_id = auth()->user()->sucursal_id;
+
+        // Cargar todos los productos activos
+        $productos = \App\Models\Producto::with('categoria')
+            ->where('sucursal_id', $sucursal_id)
+            ->where('activo', true)
+            ->orderBy('nombre')
+            ->get();
+
+        // Obtener categorías únicas de esos productos para los filtros
+        $categorias = $productos->pluck('categoria')->filter()->unique('id');
+
+        return view('cocina.recetas', compact('productos', 'categorias'));
+    }
+
+    public function guardarReceta(Request $request, string $id)
+    {
+        $producto = \App\Models\Producto::findOrFail($id);
+        
+        // Verificar que el producto pertenezca a la misma sucursal
+        if ($producto->sucursal_id !== auth()->user()->sucursal_id) {
+            abort(403);
+        }
+
+        $request->validate([
+            'receta' => 'required|string'
+        ]);
+
+        $producto->update([
+            'receta' => $request->input('receta')
+        ]);
+
+        return response()->json([
+            'ok' => true,
+            'mensaje' => 'Receta guardada con éxito',
+            'receta' => $producto->receta
+        ]);
     }
 }

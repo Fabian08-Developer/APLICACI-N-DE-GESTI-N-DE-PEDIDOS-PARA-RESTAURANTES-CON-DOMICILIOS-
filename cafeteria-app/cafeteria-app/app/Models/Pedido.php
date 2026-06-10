@@ -30,6 +30,8 @@ class Pedido extends Model
         'metodo_pago',
         'estado_pago',
         'direccion_entrega',
+        'latitud_entrega',
+        'longitud_entrega',
         'subtotal',
         'costo_envio',
         'total',
@@ -40,14 +42,14 @@ class Pedido extends Model
         'entregado_en',
     ];
 
-    protected $dates = [
-        'pagado_en',
-        'en_cocina_en',
-        'listo_en',
-        'entregado_en',
-        'creado_en',
-        'actualizado_en',
-        'eliminado_en',
+    protected $casts = [
+        'pagado_en' => 'datetime',
+        'en_cocina_en' => 'datetime',
+        'listo_en' => 'datetime',
+        'entregado_en' => 'datetime',
+        'creado_en' => 'datetime',
+        'actualizado_en' => 'datetime',
+        'eliminado_en' => 'datetime',
     ];
 
     public function sesionCliente(): BelongsTo
@@ -83,6 +85,11 @@ class Pedido extends Model
     public function historial(): HasMany
     {
         return $this->hasMany(HistorialEstadoPedido::class, 'pedido_id')->latest('cambiado_en');
+    }
+
+    public function getShortIdAttribute()
+    {
+        return substr($this->id, 0, 8);
     }
 
     public function pagos(): HasMany

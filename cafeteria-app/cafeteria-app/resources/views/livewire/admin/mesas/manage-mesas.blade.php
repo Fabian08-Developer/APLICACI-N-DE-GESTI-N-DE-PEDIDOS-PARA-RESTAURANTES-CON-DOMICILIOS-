@@ -25,7 +25,14 @@
             </button>
         </div>
 
-        <div class="drawer-cuerpo">
+        <div class="drawer-cuerpo" style="position: relative;">
+            <!-- Overlay de Carga -->
+            <div wire:loading.flex wire:target="edit" style="position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
+            </div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
             <div class="grupo">
                 <label for="numero">Número de mesa</label>
                 <input type="number" id="numero" wire:model="numero"
@@ -107,20 +114,20 @@
                         $sesionActiva = $mesa->sesionActiva;
                     @endphp
                     @if($sesionActiva)
-                        <div style="margin-top: 0.75rem; padding: 0.5rem; background: rgba(196, 139, 87, 0.08); border-radius: 8px; border: 1px dashed rgba(196, 139, 87, 0.2); font-size: 0.8rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;">
-                            <span style="color: var(--text-main); font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap;">
+                        <div style="margin-top: 0.75rem; padding: 0.6rem; background: rgba(196, 139, 87, 0.08); border-radius: 8px; border: 1px dashed rgba(196, 139, 87, 0.2); font-size: 0.8rem; display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div style="color: var(--text-main); font-weight: 500; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; text-align: center;">
                                 👤 {{ $sesionActiva->nombre_cliente }}
-                            </span>
+                            </div>
                             <button type="button" 
                                     class="btn-eliminar" 
-                                    style="padding: 0.25rem 0.5rem; font-size: 0.75rem; line-height: 1; border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.08); color: #EF4444; cursor: pointer; flex-shrink: 0;"
-                                    @click="$dispatch('abrir-modal-cerrar-sesion', { sesionId: '{{ $sesionActiva->id }}', cliente: '{{ $sesionActiva->nombre_cliente }}', mesa: '{{ $mesa->numero }}' })">
-                                Finalizar
+                                    style="padding: 0.4rem; font-size: 0.75rem; line-height: 1; border-color: rgba(220, 38, 38, 0.3); background: rgba(220, 38, 38, 0.08); color: #EF4444; cursor: pointer; width: 100%;"
+                                    wire:click="confirmarCerrarSesion('{{ $sesionActiva->id }}')">
+                                Finalizar mesa
                             </button>
                         </div>
                     @endif
 
-                    <div class="mesa-acciones">
+                    <div class="mesa-acciones" style="margin-top: 1.2rem; flex-wrap: wrap;">
                         <button type="button" class="btn-editar"
                             wire:click="edit('{{ $mesa->id }}')" @click="isOpen = true">Editar</button>
 
@@ -129,7 +136,7 @@
                             Eliminar
                         </button>
 
-                        <button type="button" class="btn-editar" wire:click="openQrModal('{{ $mesa->id }}')">Ver QR</button>
+                        <button type="button" class="btn-editar" wire:click="openQrModal('{{ $mesa->id }}')" @click="$dispatch('abrir-modal-qr')">Ver QR</button>
                     </div>
                 </div>
             @endforeach
@@ -182,10 +189,16 @@
 
 {{-- MODAL VER QR --}}
 <div class="modal-overlay" id="modalQrOverlay" x-cloak
-     x-data="{ show: @entangle('showQrModal').live }"
+     x-data="{ show: @entangle('showQrModal') }"
+     @abrir-modal-qr.window="show = true"
      @close-modal.window="show = false"
      :class="{ 'activo': show }">
-    <div class="modal-caja" @click.away="show = false" style="max-width: 400px; text-align: center;">
+    <div class="modal-caja" @click.away="show = false" style="max-width: 400px; text-align: center; position: relative;">
+        <!-- Overlay de Carga -->
+        <div wire:loading.flex wire:target="openQrModal, regenerateQr" style="position: absolute; inset: 0; background: rgba(253, 251, 247, 0.8); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center; border-radius: 1rem;">
+            <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+            <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Generando QR...</span>
+        </div>
         <div class="drawer-cabecera" style="border: none; padding: 0 0 1rem 0; background: transparent;">
             <h2 class="modal-titulo" style="font-size: 1.3rem;">Código QR - Mesa {{ $selectedMesa?->numero }}</h2>
             <button type="button" class="btn-cerrar" @click="show = false">
@@ -208,7 +221,7 @@
                 {!! SimpleSoftwareIO\QrCode\Facades\QrCode::size(220)->margin(1)->generate($url) !!}
             </div>
             
-            <p class="modal-text" style="color: rgba(247, 243, 238, 0.6); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.4;">
+            <p class="modal-text" style="color: rgba(44, 36, 27, 0.6); font-size: 0.85rem; margin-bottom: 1.5rem; line-height: 1.4;">
                 Escanea este código o descárgalo para imprimirlo en tu local.
             </p>
             
@@ -216,8 +229,9 @@
                 <a href="{{ route('admin.mesas.imprimir-qr', $selectedMesa->id) }}" target="_blank" class="btn-principal" style="text-decoration: none; display: block; text-align: center; line-height: 1;">
                     Descargar PDF para Imprimir
                 </a>
-                <button type="button" wire:click="regenerateQr('{{ $selectedMesa->id }}')" class="btn-editar" style="width: 100%; border-color: rgba(255, 255, 255, 0.15); color: rgba(247, 243, 238, 0.7); background: rgba(255, 255, 255, 0.05); margin-top: 0.25rem; font-size: 0.8rem; padding: 0.5rem 1rem;">
-                    Regenerar Código QR
+                <button type="button" wire:click.stop="regenerateQr('{{ $selectedMesa->id }}')" class="btn-editar" style="width: 100%; margin-top: 0.25rem; font-size: 0.8rem; padding: 0.5rem 1rem;" wire:loading.attr="disabled" wire:target="regenerateQr">
+                    <span wire:loading.remove wire:target="regenerateQr">Regenerar Código QR</span>
+                    <span wire:loading wire:target="regenerateQr">Actualizando...</span>
                 </button>
                 <button type="button" class="btn-cancelar" @click="show = false" style="margin-top: 0.5rem;">
                     Cerrar
@@ -229,9 +243,7 @@
 
 {{-- MODAL CONFIRMAR CERRAR SESION CLIENTE --}}
 <div class="modal-overlay" id="modalCerrarSesionOverlay" x-cloak
-     x-data="{ show: false, sesionId: '', cliente: '', mesa: '' }"
-     @abrir-modal-cerrar-sesion.window="show = true; sesionId = $event.detail.sesionId; cliente = $event.detail.cliente; mesa = $event.detail.mesa;"
-     @close-modal.window="show = false"
+     x-data="{ show: @entangle('showCerrarSesionModal') }"
      :class="{ 'activo': show }">
     <div class="modal-caja" @click.away="show = false">
         <div class="modal-icono" style="background: rgba(220, 38, 38, 0.1); color: #EF4444; border-color: rgba(220, 38, 38, 0.25);">
@@ -242,11 +254,11 @@
             </svg>
         </div>
         <h2 class="modal-titulo">¿Finalizar sesión del cliente?</h2>
-        <p class="modal-mensaje" style="color: var(--text-muted); font-size: 0.875rem; margin-top: 0.5rem; line-height: 1.5;">
-            ¿Seguro que deseas finalizar la sesión de <strong x-text="cliente"></strong> en la mesa <strong x-text="mesa"></strong>? Se cancelarán los pedidos pendientes de esta sesión.
+        <p class="modal-mensaje" style="color: rgba(44, 36, 27, 0.6); font-size: 0.875rem; margin-top: 0.5rem; line-height: 1.5;">
+            ¿Seguro que deseas finalizar la sesión de <strong>{{ $sesionACerrarCliente }}</strong> en la mesa <strong>{{ $sesionACerrarMesa }}</strong>? Se cancelarán los pedidos pendientes de esta sesión.
         </p>
         <div class="modal-acciones" style="margin-top: 1.5rem; display: flex; gap: 0.75rem;">
-            <button type="button" class="btn-modal-eliminar" style="background: #dc2626; color: white;" @click="$wire.cerrarSesionCliente(sesionId).then(() => { show = false; })">
+            <button type="button" class="btn-modal-eliminar" style="background: #dc2626; color: white;" wire:click="cerrarSesionConfirmada">
                 Sí, finalizar
             </button>
             <button type="button" class="btn-modal-cancelar" @click="show = false">

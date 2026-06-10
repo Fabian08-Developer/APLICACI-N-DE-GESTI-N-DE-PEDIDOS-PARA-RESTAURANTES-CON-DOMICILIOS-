@@ -36,7 +36,7 @@ Route::post('/logout', function (Illuminate\Http\Request $request) {
     auth()->logout();
     request()->session()->invalidate();
     request()->session()->regenerateToken();
-    return redirect('/');
+    return redirect()->route('login');
 })->name('logout');
 
 
@@ -90,6 +90,9 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'rol:administ
     Route::get('/mesas', ManageMesas::class)->name('mesas');
     Route::get('/mesas/{id}/imprimir-qr', [\App\Http\Controllers\Admin\MesaController::class, 'imprimirQr'])->name('mesas.imprimir-qr');
     Route::get('/productos', ManageProductos::class)->name('productos');
+    Route::get('/productos/exportar', [\App\Http\Controllers\Admin\ExcelProductosController::class, 'exportar'])->name('productos.exportar');
+    Route::get('/productos/plantilla', [\App\Http\Controllers\Admin\ExcelProductosController::class, 'plantilla'])->name('productos.plantilla');
+    Route::post('/productos/importar', [\App\Http\Controllers\Admin\ExcelProductosController::class, 'importar'])->name('productos.importar');
     Route::get('/pedidos', ManagePedidos::class)->name('pedidos');
     
     // Zonas de Cobertura routes
@@ -175,7 +178,21 @@ Route::prefix('cocina')->name('cocina.')
         Route::post('/disponibilidad/toggle-producto/{id}',                 [\App\Http\Controllers\Cocina\DashboardController::class, 'toggleProducto'])->name('disponibilidad.toggle-producto');
         Route::post('/disponibilidad/toggle-variante/{varianteId}/{nombre}', [\App\Http\Controllers\Cocina\DashboardController::class, 'toggleVariante'])->name('disponibilidad.toggle-variante');
         Route::post('/disponibilidad/toggle-adicion/{id}',                  [\App\Http\Controllers\Cocina\DashboardController::class, 'toggleAdicion'])->name('disponibilidad.toggle-adicion');
+        
+        // Recetas de Cocina
+        Route::get('/recetas',                                              [\App\Http\Controllers\Cocina\DashboardController::class, 'recetas'])->name('recetas');
+        Route::post('/recetas/{id}/guardar',                                [\App\Http\Controllers\Cocina\DashboardController::class, 'guardarReceta'])->name('recetas.guardar');
     });
+
+/*
+|--------------------------------------------------------------------------
+| Domiciliario
+|--------------------------------------------------------------------------
+*/
+Route::prefix('domiciliario')->name('domiciliario.')->middleware(['auth.custom', 'rol:domiciliario'])->group(function () {
+    // Livewire dashboard
+    Route::get('/dashboard', \App\Livewire\Domiciliario\Dashboard::class)->name('dashboard');
+});
 
 /*
 |--------------------------------------------------------------------------

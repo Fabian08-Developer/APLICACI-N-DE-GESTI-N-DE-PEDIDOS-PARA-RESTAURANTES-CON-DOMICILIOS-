@@ -7,15 +7,15 @@
 }
 
 .pagina-header-texto h1 {
-    font-family: "DM Serif Display", serif;
-    font-size: 1.8rem;
-    font-weight: 400;
-    color: #f7f3ee;
+    font-family: 'DM Serif Display', serif;
+    font-size: 2.2rem;
+    font-weight: 500;
+    color: #2C241B;
 }
 
 .pagina-header-texto p {
-    color: rgba(247, 243, 238, 0.45);
-    font-size: 0.875rem;
+    color: rgba(44, 36, 27, 0.6);
+    font-size: 0.95rem;
     margin-top: 0.3rem;
 }
 
@@ -25,8 +25,8 @@
     align-items: center;
     gap: 0.5rem;
     padding: 0.65rem 1.2rem;
-    background: #c9a84c;
-    color: #0f0f0f;
+    background: #E07A5F;
+    color: #FFFFFF;
     border: none;
     border-radius: 0.6rem;
     font-family: "DM Sans", sans-serif;
@@ -52,59 +52,63 @@
 
 /* ── TABLA ── */
 .tarjeta {
-    background: rgba(255, 255, 255, 0.03);
-    border: 1px solid rgba(255, 255, 255, 0.07);
-    border-radius: 1rem;
+    background: #FFFFFF;
+    border: 1px solid rgba(44, 36, 27, 0.12);
+    border-radius: 1.25rem;
     overflow: hidden;
+    box-shadow: 0 12px 30px -5px rgba(44, 36, 27, 0.08), 0 8px 10px -6px rgba(44, 36, 27, 0.03);
+    transition: transform 0.2s, box-shadow 0.2s;
 }
 
 .tarjeta-header {
     padding: 1.2rem 1.5rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     font-size: 0.85rem;
     font-weight: 600;
-    color: rgba(247, 243, 238, 0.6);
+    color: rgba(44, 36, 27, 0.6);
     letter-spacing: 0.06em;
     text-transform: uppercase;
 }
 
 table {
     width: 100%;
-    border-collapse: collapse;
+    border-collapse: separate;
+    border-spacing: 0;
 }
 
 thead th {
-    padding: 0.8rem 1.5rem;
-    font-size: 0.75rem;
-    font-weight: 500;
+    padding: 1.1rem 1.5rem;
+    font-size: 0.72rem;
+    font-weight: 700;
     letter-spacing: 0.08em;
     text-transform: uppercase;
-    color: rgba(247, 243, 238, 0.35);
+    color: rgba(44, 36, 27, 0.5);
+    background: rgba(44, 36, 27, 0.015);
+    border-bottom: 2px solid rgba(44, 36, 27, 0.06);
     text-align: left;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 tbody tr {
-    border-bottom: 1px solid rgba(255, 255, 255, 0.04);
-    transition: background 0.15s;
+    transition: all 0.2s ease;
 }
 
 tbody tr:last-child {
     border-bottom: none;
 }
 tbody tr:hover {
-    background: rgba(255, 255, 255, 0.03);
+    background: rgba(44, 36, 27, 0.025);
 }
 
 tbody td {
-    padding: 0.9rem 1.5rem;
-    font-size: 0.9rem;
-    color: #f7f3ee;
+    padding: 1.1rem 1.5rem;
+    font-size: 0.875rem;
+    color: #2C241B;
+    border-bottom: 1px solid rgba(44, 36, 27, 0.04);
     vertical-align: middle;
 }
 
 .texto-gris {
-    color: rgba(247, 243, 238, 0.45);
+    color: rgba(44, 36, 27, 0.6);
     font-size: 0.82rem;
 }
 
@@ -117,7 +121,7 @@ tbody td {
     padding: 0.35rem 0.8rem;
     background: rgba(201, 168, 76, 0.12);
     border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
     border-radius: 0.4rem;
     font-size: 0.78rem;
     font-family: "DM Sans", sans-serif;
@@ -149,7 +153,7 @@ tbody td {
 .vacio {
     padding: 3rem 1.5rem;
     text-align: center;
-    color: rgba(247, 243, 238, 0.3);
+    color: rgba(44, 36, 27, 0.6);
     font-size: 0.875rem;
 }
 
@@ -179,8 +183,8 @@ tbody td {
     height: 100vh;
     width: 420px;
     max-width: 95vw;
-    background: #0F172A;
-    border-left: 1px solid rgba(255, 255, 255, 0.08);
+    background: #FDFBF7;
+    border-left: 1px solid rgba(44, 36, 27, 0.08);
     z-index: 101;
     display: flex;
     flex-direction: column;
@@ -195,7 +199,7 @@ tbody td {
 
 .drawer-cabecera {
     padding: 1.4rem 1.6rem;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+    border-bottom: 1px solid rgba(44, 36, 27, 0.07);
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -206,7 +210,7 @@ tbody td {
     font-family: "DM Serif Display", serif;
     font-size: 1.25rem;
     font-weight: 400;
-    color: #f7f3ee;
+    color: #2C241B;
     display: flex;
     align-items: center;
     gap: 0.6rem;
@@ -216,7 +220,7 @@ tbody td {
     display: inline-block;
     background: rgba(201, 168, 76, 0.15);
     border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #c9a84c;
+    color: #E07A5F;
     font-size: 0.65rem;
     font-family: "DM Sans", sans-serif;
     padding: 0.2rem 0.6rem;
@@ -232,10 +236,10 @@ tbody td {
     display: flex;
     align-items: center;
     justify-content: center;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.08);
+    background: rgba(44, 36, 27, 0.05);
+    border: 1px solid rgba(44, 36, 27, 0.12);
     border-radius: 0.5rem;
-    color: rgba(247, 243, 238, 0.55);
+    color: rgba(44, 36, 27, 0.6);
     cursor: pointer;
     transition:
         background 0.2s,
@@ -244,8 +248,8 @@ tbody td {
 }
 
 .btn-cerrar:hover {
-    background: rgba(255, 255, 255, 0.1);
-    color: #f7f3ee;
+    background: rgba(44, 36, 27, 0.1);
+    color: #2C241B;
 }
 
 .drawer-cuerpo {
@@ -265,18 +269,18 @@ label {
     font-weight: 500;
     letter-spacing: 0.09em;
     text-transform: uppercase;
-    color: rgba(247, 243, 238, 0.5);
+    color: rgba(44, 36, 27, 0.6);
     margin-bottom: 0.45rem;
 }
 
 input[type="text"],
 textarea {
     width: 100%;
-    background: rgba(255, 255, 255, 0.05);
-    border: 1px solid rgba(255, 255, 255, 0.1);
+    background: rgba(44, 36, 27, 0.05);
+    border: 1px solid rgba(44, 36, 27, 0.1);
     border-radius: 0.6rem;
     padding: 0.75rem 1rem;
-    color: #f7f3ee;
+    color: #2C241B;
     font-family: "DM Sans", sans-serif;
     font-size: 0.9rem;
     outline: none;
@@ -289,7 +293,7 @@ textarea {
 
 input[type="text"]:focus,
 textarea:focus {
-    border-color: #c9a84c;
+    border-color: #E07A5F;
     background: rgba(201, 168, 76, 0.06);
 }
 
@@ -301,7 +305,7 @@ textarea:focus {
 
 .drawer-footer {
     padding: 1.2rem 1.6rem;
-    border-top: 1px solid rgba(255, 255, 255, 0.07);
+    border-top: 1px solid rgba(44, 36, 27, 0.07);
     display: flex;
     flex-direction: column;
     gap: 0.5rem;
@@ -311,8 +315,8 @@ textarea:focus {
 .btn-principal {
     width: 100%;
     padding: 0.8rem;
-    background: #c9a84c;
-    color: #0f0f0f;
+    background: #E07A5F;
+    color: #FFFFFF;
     border: none;
     border-radius: 0.6rem;
     font-family: "DM Sans", sans-serif;
@@ -330,7 +334,7 @@ textarea:focus {
     display: block;
     text-align: center;
     font-size: 0.8rem;
-    color: rgba(247, 243, 238, 0.4);
+    color: rgba(44, 36, 27, 0.6);
     text-decoration: none;
     cursor: pointer;
     background: none;
@@ -342,7 +346,7 @@ textarea:focus {
 }
 
 .btn-cancelar:hover {
-    color: #f7f3ee;
+    color: #2C241B;
 }
 
 /* ── TOGGLE SWITCH ESTILIZADO (ESPRESSO ACCENT) ── */
@@ -358,8 +362,8 @@ textarea:focus {
     position: relative;
     width: 44px;
     height: 22px;
-    background-color: rgba(255, 255, 255, 0.1);
-    border: 1px solid rgba(255, 255, 255, 0.15);
+    background-color: rgba(44, 36, 27, 0.1);
+    border: 1px solid rgba(44, 36, 27, 0.15);
     border-radius: 9999px;
     transition: background-color 0.25s, border-color 0.25s;
 }
@@ -372,7 +376,7 @@ textarea:focus {
     width: 16px;
     height: 16px;
     border-radius: 50%;
-    background-color: #f7f3ee;
+    background-color: #2C241B;
     transition: transform 0.25s cubic-bezier(0.4, 0, 0.2, 1);
     box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
 }
@@ -382,13 +386,13 @@ textarea:focus {
 }
 
 .toggle-checkbox:checked + .toggle-switch {
-    background-color: #c9a84c; /* Espresso/Gold accent */
+    background-color: #E07A5F; /* Espresso/Gold accent */
     border-color: rgba(201, 168, 76, 0.5);
 }
 
 .toggle-checkbox:checked + .toggle-switch::after {
     transform: translateX(22px);
-    background-color: #0f0f0f;
+    background-color: #FFFFFF;
 }
 
 /* Badge de estado en tabla */

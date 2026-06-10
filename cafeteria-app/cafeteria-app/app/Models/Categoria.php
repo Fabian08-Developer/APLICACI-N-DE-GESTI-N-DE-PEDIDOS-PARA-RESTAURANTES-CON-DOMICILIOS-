@@ -38,4 +38,9 @@ class Categoria extends Model
     {
         return $query->where('activo', true);
     }
+
+    public function getShortIdAttribute()
+    {
+        return substr($this->id, 0, 8);
+    }
 }

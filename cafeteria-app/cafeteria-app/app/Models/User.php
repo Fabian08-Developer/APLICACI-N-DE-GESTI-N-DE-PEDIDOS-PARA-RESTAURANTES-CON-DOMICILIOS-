@@ -64,6 +64,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->belongsTo(Sucursal::class);
     }
 
+    public function perfilDomiciliario()
+    {
+        return $this->hasOne(\App\Models\PerfilDomiciliario::class, 'usuario_id');
+    }
+
     // ── REEMPLAZO MAGICO PARA SPATIE ──
     // Este método analiza si el rol coincide. Al soportar arrays, no rompe nada del código existente.
     public function hasRole($role): bool

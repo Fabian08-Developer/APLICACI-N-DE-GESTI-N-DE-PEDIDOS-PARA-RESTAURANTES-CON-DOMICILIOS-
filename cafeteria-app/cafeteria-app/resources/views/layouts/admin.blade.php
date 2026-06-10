@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es" style="background-color: #0F172A;">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -14,7 +14,7 @@
         }
     </style>
 </head>
-<body>
+<body x-data="{ sidebarOpen: false }">
     @php
         $globalSettings = @json_decode(@file_get_contents(storage_path('app/global_settings.json')), true) ?: [];
         $hasActiveNotice = ($globalSettings['aviso_activo'] ?? false) && ($globalSettings['aviso_mostrar_banner'] ?? false) && !empty($globalSettings['aviso_titulo']);

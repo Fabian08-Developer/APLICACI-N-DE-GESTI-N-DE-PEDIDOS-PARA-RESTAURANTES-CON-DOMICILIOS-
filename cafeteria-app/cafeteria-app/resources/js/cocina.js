@@ -82,10 +82,11 @@ export async function cambiarEstado(btn, pedidoId, estadoSiguiente) {
                 btn.className   = `btn-action ${clase}`;
                 btn.onclick     = () => cambiarEstado(btn, pedidoId, sig);
             } else {
-                // Si no hay botón (estado LISTO), reemplazar con "Esperando al mesero..."
+                // Si no hay botón (estado LISTO), reemplazar con texto de espera
                 const parent = btn.parentElement;
                 if (parent) {
-                    parent.innerHTML = `<div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 0.5rem 0; font-style: italic;">Esperando al mesero...</div>`;
+                    const isDomicilio = String(card.querySelector('.order-table')?.textContent).toLowerCase().includes('domicilio');
+                    parent.innerHTML = `<div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 0.5rem 0; font-style: italic;">Esperando al ${isDomicilio ? 'domiciliario' : 'mesero'}...</div>`;
                 }
             }
 
@@ -256,10 +257,11 @@ async function sincronizarEstadosExistentes() {
                                     btn.className = `btn-action ${clase}`;
                                     btn.onclick = () => cambiarEstado(btn, id, sig);
                                 } else {
-                                    // Reemplazar con el texto de espera del mesero
+                                    // Reemplazar con el texto de espera correspondiente
                                     const parent = btn.parentElement;
                                     if (parent) {
-                                        parent.innerHTML = `<div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 0.5rem 0; font-style: italic;">Esperando al mesero...</div>`;
+                                        const isDomicilio = String(card.querySelector('.order-table')?.textContent).toLowerCase().includes('domicilio');
+                                        parent.innerHTML = `<div style="text-align: center; color: var(--text-dim); font-size: 0.8rem; padding: 0.5rem 0; font-style: italic;">Esperando al ${isDomicilio ? 'domiciliario' : 'mesero'}...</div>`;
                                     }
                                 }
                             }
@@ -340,7 +342,7 @@ function construirCard(p) {
         </div>`;
     }).join('');
 
-    const mesaText = p.tipo === 'DOMICILIO' ? 'Domicilio' : `Mesa ${p.mesa}`;
+    const mesaText = String(p.tipo).toLowerCase() === 'domicilio' ? 'Domicilio' : `Mesa ${p.mesa}`;
 
     return `
         <div class="order-card state-new flash-new-card" id="card-${p.id}">

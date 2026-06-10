@@ -11,19 +11,19 @@
 </div>
 
 <!-- Barra de Filtros y Búsqueda -->
-<div class="filters-bar">
-    <input type="text" class="search-input" id="searchInput" placeholder="Buscar producto, adición o categoría...">
+<div class="filters-bar" style="flex-direction: column; align-items: stretch; gap: 1rem;">
+    <input type="text" class="search-input" id="searchInput" placeholder="Buscar producto, adición o categoría..." style="width: 100%;">
     
-    <div style="display: flex; gap: 0.5rem; align-items: center;">
-        <button class="filter-pill active" data-filter="all">Todos</button>
-        <button class="filter-pill" data-filter="available">Solo Disponibles</button>
-        <button class="filter-pill" data-filter="unavailable">Solo Agotados</button>
+    <div style="display: flex; gap: 0.5rem; align-items: center; overflow-x: auto; padding-bottom: 0.5rem; width: 100%;">
+        <button class="filter-pill active" data-filter="all" style="white-space: nowrap;">Todos</button>
+        <button class="filter-pill" data-filter="available" style="white-space: nowrap;">Solo Disponibles</button>
+        <button class="filter-pill" data-filter="unavailable" style="white-space: nowrap;">Solo Agotados</button>
     </div>
 </div>
 
-<div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.5rem; align-items: start;">
+<div style="display: flex; flex-direction: column; gap: 1.5rem; align-items: stretch;">
     
-    <!-- COLUMNA 1: PRODUCTOS Y VARIANTES -->
+    <!-- COLUMNA 1: PRODUCTOS, VARIANTES Y ADICIONES -->
     <div style="display: flex; flex-direction: column; gap: 1rem;">
         <h2 style="font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; font-weight: 600;">Productos del Menú</h2>
         
@@ -85,6 +85,40 @@
                                     </div>
                                 @endforeach
                             </div>
+                        @else
+                            <div style="margin-top: auto;"></div>
+                        @endif
+                        
+                        <!-- Adiciones -->
+                        @if($producto->adiciones->isNotEmpty())
+                            <div style="border-top: 1px solid var(--border); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                                <h4 style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Adiciones</h4>
+                                @foreach($producto->adiciones as $adicion)
+                                    @php 
+                                        $adicionPausada = \Illuminate\Support\Facades\Cache::has("adicion_{$adicion->id}_pausada");
+                                        $adicionDisponible = $adicion->activo && !$adicionPausada;
+                                        $expira = \Illuminate\Support\Facades\Cache::get("adicion_{$adicion->id}_pausada");
+                                    @endphp
+                                    <div class="disp-card {{ $adicionDisponible ? '' : 'agotado' }} item-searchable" data-type="adicion" data-available="{{ $adicionDisponible ? '1' : '0' }}" data-id="{{ $adicion->id }}" data-search="{{ strtolower($adicion->nombre) }}" {{ !$adicionDisponible && $expira ? 'data-expires='.$expira : '' }} style="display: flex; justify-content: space-between; align-items: center; padding: 0; background: transparent; border: none; box-shadow: none; margin-bottom: 0.25rem;">
+                                        
+                                        <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
+                                            <span style="font-size: 0.75rem; color: {{ $adicionDisponible ? '#fff' : 'var(--text-dim)' }};">{{ $adicion->nombre }} <small style="color: #c9a84c;">(+${{ number_format($adicion->precio, 2) }})</small></span>
+                                            <span class="status-label" style="font-size: 0.6rem; font-weight: 600; color: {{ $adicionDisponible ? 'transparent' : '#F87171' }};" data-base="{{ $adicionDisponible ? 'Disponible' : 'Agotado' }}">
+                                                {{ $adicionDisponible ? '' : 'Agotado' }}
+                                            </span>
+                                        </div>
+                                        <div style="display: flex; align-items: center; gap: 0.25rem;">
+                                            <button class="btn-clock" onclick="openPauseModal('adicion', '{{ $adicion->id }}', '{{ addslashes($adicion->nombre) }}')" title="Pausar temporalmente" style="display: {{ $adicionDisponible ? 'flex' : 'none' }}; width: 20px; height: 20px; padding: 2px;">
+                                                <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                            </button>
+                                            <label class="switch" style="transform: scale(0.7); transform-origin: right; margin-left: 0.5rem;">
+                                                <input type="checkbox" class="toggle-switch" data-type="adicion" data-id="{{ $adicion->id }}" {{ $adicionDisponible ? 'checked' : '' }}>
+                                                <span class="slider"></span>
+                                            </label>
+                                        </div>
+                                    </div>
+                                @endforeach
+                            </div>
                         @endif
                         
                     </div>
@@ -93,39 +127,6 @@
         @endif
     </div>
 
-    <!-- COLUMNA 2: ADICIONES -->
-    <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <h2 style="font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; font-weight: 600;">Adiciones Opcionales</h2>
-        
-        @if($adiciones->isEmpty())
-            <div class="col-empty">No hay adiciones en el catálogo.</div>
-        @else
-            <div style="display: flex; flex-direction: column; gap: 0.75rem;" id="adiciones-list">
-                @foreach($adiciones as $adicion)
-                    <div class="disp-card {{ $adicion->disponible ? '' : 'agotado' }} item-searchable" data-type="adicion" data-available="{{ $adicion->disponible ? '1' : '0' }}" data-id="{{ $adicion->id }}" data-search="{{ strtolower($adicion->nombre) }}" style="padding: 0.75rem;" {{ !$adicion->disponible && $adicion->pausa_expira ? 'data-expires='.$adicion->pausa_expira : '' }}>
-                        <div class="disp-header">
-                            <div class="disp-info">
-                                <div class="disp-title" style="font-size: 0.85rem;">{{ $adicion->nombre }}</div>
-                                <div style="font-size: 0.72rem; color: #c9a84c;">+${{ number_format($adicion->precio, 2) }}</div>
-                            </div>
-                        </div>
-                        <div class="disp-actions" style="margin-top: 0.5rem;">
-                            <label class="switch" style="transform: scale(0.85); transform-origin: left;">
-                                <input type="checkbox" class="toggle-switch" data-id="{{ $adicion->id }}" data-type="adicion" {{ $adicion->disponible ? 'checked' : '' }}>
-                                <span class="slider"></span>
-                            </label>
-                            <span class="status-label" style="font-size: 0.7rem; font-weight: 600; color: {{ $adicion->disponible ? '#34D399' : '#F87171' }}; flex: 1;" data-base="{{ $adicion->disponible ? 'Disp.' : 'Agotado' }}">
-                                {{ $adicion->disponible ? 'Disp.' : 'Agotado' }}
-                            </span>
-                            <button class="btn-clock" onclick="openPauseModal('adicion', '{{ $adicion->id }}', '{{ addslashes($adicion->nombre) }}')" title="Pausar temporalmente" style="display: {{ $adicion->disponible ? 'flex' : 'none' }}; width: 24px; height: 24px;">
-                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
-                            </button>
-                        </div>
-                    </div>
-                @endforeach
-            </div>
-        @endif
-    </div>
 
 </div>
 
@@ -204,6 +205,28 @@
         
         const body = { _token: csrfToken };
         if(tiempo) body.tiempo = tiempo;
+        
+        // Bloquear UI temporalmente mientras se ejecuta la petición
+        const card = document.querySelector(`.disp-card[data-type="${type}"][data-id="${id}"]`);
+        let checkbox = null, label = null, clockBtn = null;
+        let originalText = '';
+        if (card) {
+            checkbox = card.querySelector('.toggle-switch');
+            label = card.querySelector('.status-label');
+            clockBtn = card.querySelector('.btn-clock');
+            
+            if (checkbox) checkbox.disabled = true;
+            if (clockBtn) {
+                clockBtn.disabled = true;
+                clockBtn.style.pointerEvents = 'none';
+                clockBtn.style.opacity = '0.5';
+            }
+            if (label) {
+                originalText = label.textContent;
+                label.textContent = 'Actualizando...';
+                label.style.opacity = '0.6';
+            }
+        }
 
         try {
             const res = await fetch(url, {
@@ -220,52 +243,66 @@
             
             if (data.ok) {
                 // Actualizar UI
-                const card = document.querySelector(`.disp-card[data-type="${type}"][data-id="${id}"]`);
-                const checkbox = card.querySelector('.toggle-switch');
-                const label = card.querySelector('.status-label');
-                const clockBtn = card.querySelector('.btn-clock');
-                
-                card.setAttribute('data-available', data.disponible ? '1' : '0');
-                checkbox.checked = data.disponible;
-                
-                if (data.disponible) {
-                    card.removeAttribute('data-expires');
-                    card.classList.remove('agotado');
-                    label.setAttribute('data-base', type === 'producto' ? 'Disponible' : 'Disp.');
-                    label.textContent = label.getAttribute('data-base');
-                    label.style.color = '#34D399';
-                    if(clockBtn) clockBtn.style.display = 'flex';
-                    showToast('Marcado como disponible');
-                } else {
-                    if (data.expira) card.setAttribute('data-expires', data.expira);
-                    else card.removeAttribute('data-expires');
+                if (card) {
+                    card.setAttribute('data-available', data.disponible ? '1' : '0');
+                    if (checkbox) checkbox.checked = data.disponible;
                     
-                    card.classList.add('agotado');
-                    label.setAttribute('data-base', 'Agotado');
-                    label.textContent = 'Agotado';
-                    label.style.color = '#F87171';
-                    if(clockBtn) clockBtn.style.display = 'none';
-                    let txt = 'Agotado indefinidamente';
-                    if (tiempo) {
-                        if (tiempo === 'resto_dia') txt = 'Agotado por hoy';
-                        else if (tiempo === '3s') txt = 'Pausado por 3 segundos';
-                        else txt = `Pausado por ${tiempo} min`;
+                    if (data.disponible) {
+                        card.removeAttribute('data-expires');
+                        card.classList.remove('agotado');
+                        if (label) {
+                            label.setAttribute('data-base', type === 'producto' ? 'Disponible' : 'Disp.');
+                            label.textContent = label.getAttribute('data-base');
+                            label.style.color = '#34D399';
+                        }
+                        if(clockBtn) clockBtn.style.display = 'flex';
+                        showToast('Marcado como disponible');
+                    } else {
+                        if (data.expira) card.setAttribute('data-expires', data.expira);
+                        else card.removeAttribute('data-expires');
+                        
+                        card.classList.add('agotado');
+                        if (label) {
+                            label.setAttribute('data-base', 'Agotado');
+                            label.textContent = 'Agotado';
+                            label.style.color = '#F87171';
+                        }
+                        if(clockBtn) clockBtn.style.display = 'none';
+                        let txt = 'Agotado indefinidamente';
+                        if (tiempo) {
+                            if (tiempo === 'resto_dia') txt = 'Agotado por hoy';
+                            else if (tiempo === '3s') txt = 'Pausado por 3 segundos';
+                            else txt = `Pausado por ${tiempo} min`;
+                        }
+                        showToast(txt);
                     }
-                    showToast(txt);
                 }
                 
                 filterItems();
             } else {
+                if (label) label.textContent = originalText;
+                if (checkbox) checkbox.checked = !checkbox.checked; // revert local change if any
                 showToast(data.mensaje || 'Error al cambiar estado', true);
             }
         } catch (e) {
             console.error(e);
+            if (label) label.textContent = originalText;
+            if (checkbox) checkbox.checked = !checkbox.checked; // revert
             showToast('Error de conexión', true);
+        } finally {
+            if (checkbox) checkbox.disabled = false;
+            if (clockBtn) {
+                clockBtn.disabled = false;
+                clockBtn.style.pointerEvents = 'auto';
+                clockBtn.style.opacity = '1';
+            }
+            if (label) label.style.opacity = '1';
         }
     }
 
     async function toggleVariante(varianteId, nombre, checkbox) {
         const url = `/cocina/disponibilidad/toggle-variante/${varianteId}/${encodeURIComponent(nombre)}`;
+        checkbox.disabled = true; // Bloquear UI durante la petición
         try {
             const res = await fetch(url, {
                 method: 'POST',
@@ -287,6 +324,8 @@
         } catch (e) {
             checkbox.checked = !checkbox.checked;
             showToast('Error de conexión', true);
+        } finally {
+            checkbox.disabled = false; // Restaurar UI
         }
     }
 

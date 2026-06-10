@@ -25,7 +25,14 @@
             </button>
         </div>
 
-        <div class="drawer-cuerpo">
+        <div class="drawer-cuerpo" style="position: relative;">
+            <!-- Overlay de Carga -->
+            <div wire:loading.flex wire:target="edit" style="position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
+            </div>
+            <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
             <div class="grupo">
                 <label for="nombre">Nombre</label>
                 <input type="text" id="nombre" wire:model="nombre"
@@ -38,6 +45,13 @@
                 <textarea id="descripcion" wire:model="descripcion" rows="2"
                           placeholder="Descripción del producto..."></textarea>
                 @error('descripcion')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
+            </div>
+
+            <div class="grupo">
+                <label for="receta">Receta y Preparación <small style="opacity:.5">(Solo visible en cocina)</small></label>
+                <textarea id="receta" wire:model="receta" rows="4"
+                          placeholder="Ingredientes y pasos para preparar este producto..."></textarea>
+                @error('receta')<div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div>@enderror
             </div>
             
             <div class="grupo">
@@ -142,50 +156,34 @@
         <h1>Productos</h1>
         <p>Administra los productos del menú</p>
     </div>
-    <div style="display:flex; gap: 0.75rem; flex-wrap: wrap;">
-        @if($tab === 'productos')
-            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="openImportModal">
+    <div style="display:flex; gap: 0.75rem; flex-wrap: wrap; align-items: center;">
+        <div class="excel-actions" style="display: flex; gap: 0.5rem; background: rgba(0,0,0,0.03); padding: 0.3rem; border-radius: 0.75rem; border: 1px solid var(--border);">
+            <button type="button" class="btn-secundario" style="font-size: 0.8rem; padding: 0.5rem 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; background: transparent; border: none; color: var(--text-main); font-weight: 600; cursor: pointer; border-radius: 0.5rem; transition: background 0.2s;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'" @click="$dispatch('abrir-modal-import')">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-                Importar Excel
+                Importar
             </button>
-            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="export">
+            <div style="width: 1px; background: var(--border); margin: 0.3rem 0;"></div>
+            <a href="{{ route('admin.productos.exportar') }}" class="btn-secundario" style="font-size: 0.8rem; padding: 0.5rem 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; background: transparent; border: none; color: var(--text-main); font-weight: 600; cursor: pointer; border-radius: 0.5rem; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"/></svg>
-                Exportar Excel
-            </button>
-            <button class="btn-editar" style="font-size: 0.85rem; padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem;" wire:click="descargarPlantilla">
+                Exportar
+            </a>
+            <div style="width: 1px; background: var(--border); margin: 0.3rem 0;"></div>
+            <a href="{{ route('admin.productos.plantilla') }}" class="btn-secundario" style="font-size: 0.8rem; padding: 0.5rem 0.8rem; display: inline-flex; align-items: center; gap: 0.4rem; background: transparent; border: none; color: var(--text-main); font-weight: 600; cursor: pointer; border-radius: 0.5rem; transition: background 0.2s; text-decoration: none;" onmouseover="this.style.background='rgba(0,0,0,0.05)'" onmouseout="this.style.background='transparent'">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                Plantilla Excel
-            </button>
-            <button class="btn-nuevo" @click="isOpen = true" wire:click="openCreateModal">
-                <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                     fill="none" stroke="currentColor" stroke-width="2.5"
-                     stroke-linecap="round" stroke-linejoin="round">
-                    <line x1="12" y1="5" x2="12" y2="19"/>
-                    <line x1="5" y1="12" x2="19" y2="12"/>
-                </svg>
-                Nuevo producto
-            </button>
-        @endif
+                Plantilla
+            </a>
+        </div>
+        <button class="btn-nuevo" style="padding: 0.65rem 1.2rem; display: inline-flex; align-items: center; gap: 0.4rem; border-radius: 0.75rem;" @click="isOpen = true" wire:click="openCreateModal">
+            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" width="18" height="18">
+                <line x1="12" y1="5" x2="12" y2="19"/>
+                <line x1="5" y1="12" x2="19" y2="12"/>
+            </svg>
+            Nuevo producto
+        </button>
     </div>
 </div>
 
-{{-- NAVEGACIÓN DE PESTAÑAS --}}
-<div class="tabs-container">
-    <button wire:click="setTab('productos')" class="tab-btn {{ $tab === 'productos' ? 'activo' : '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-        </svg>
-        Productos
-    </button>
-    <button wire:click="setTab('adiciones')" class="tab-btn {{ $tab === 'adiciones' ? 'activo' : '' }}">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
-        </svg>
-        Adiciones
-    </button>
-</div>
 
-@if($tab === 'productos')
 {{-- FILTROS --}}
 <div class="tarjeta" style="margin-bottom: 1.5rem; padding: 1.2rem; background: var(--surface);">
     <div class="filtros-form" style="display: flex; gap: 1rem; align-items: flex-end; flex-wrap: wrap;">
@@ -239,6 +237,9 @@
                     </td>
                     <td>
                         {{ $producto->nombre }}
+                        @if($producto->receta)
+                            <span style="font-size: 0.65rem; background: rgba(52, 211, 153, 0.15); color: #34D399; padding: 0.1rem 0.3rem; border-radius: 4px; border: 1px solid rgba(52, 211, 153, 0.3); margin-left: 0.4rem;" title="Tiene receta configurada">📖 Receta</span>
+                        @endif
                         @if($producto->descripcion)
                             <div class="texto-gris">{{ Str::limit($producto->descripcion, 40) }}</div>
                         @endif
@@ -283,6 +284,10 @@
                                 Variantes ({{ $producto->variantes->count() }})
                             </button>
 
+                            <button type="button" class="btn-editar" style="background: rgba(201, 168, 76, 0.1); color: #c9a84c; border-color: rgba(201, 168, 76, 0.25);" wire:click="openAdicionesModalForProducto('{{ $producto->id }}')">
+                                Adiciones ({{ $producto->adiciones->count() }})
+                            </button>
+
                             @if($producto->activo)
                                 <button type="button" class="btn-eliminar" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.25);" wire:click="toggleActivo('{{ $producto->id }}')">
                                     Ocultar
@@ -321,7 +326,7 @@
         @endif
     @endif
 </div>
-@endif
+
 
 {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
 <div class="modal-overlay" id="modalEliminar" x-cloak
@@ -348,47 +353,50 @@
 </div>
 
 {{-- MODAL DE IMPORTACIÓN DE EXCEL --}}
-<div class="modal-overlay"
+<div class="modal-overlay" id="modalImport"
      x-cloak
-     x-data="{ show: @entangle('showImportModal').live }"
+     x-data="{ show: {{ session('importErrors') || session('importSuccess') || $errors->has('archivoImportacion') ? 'true' : 'false' }} }"
+     @abrir-modal-import.window="show = true"
      x-show="show"
      :class="{ 'active': show }">
     <div class="modal-confirm" @click.away="show = false">
         <div class="modal-header-large">
             <h3 class="modal-title">Importar Productos</h3>
-            <button type="button" class="btn-cerrar" wire:click="$set('showImportModal', false)">✕</button>
+            <button type="button" class="btn-cerrar" @click="show = false">✕</button>
         </div>
-        <div class="modal-body-scroll" style="margin-top: 1rem;">
-            <p class="modal-desc" style="text-align: left; margin-bottom: 1rem;">
-                Sube tu archivo de Excel con los productos. Asegúrate de usar la plantilla estructurada para evitar errores de formato.
-            </p>
-            <div class="grupo">
-                <label for="archivoImportacion">Seleccionar Archivo Excel (.xlsx, .xls)</label>
-                <input type="file" id="archivoImportacion" wire:model="archivoImportacion" accept=".xlsx, .xls">
-                <div wire:loading wire:target="archivoImportacion" style="font-size: 0.8rem; color: var(--primary); margin-top: 0.5rem;">Cargando archivo...</div>
-                @error('archivoImportacion') <div class="error-campo">{{ $message }}</div> @enderror
+        <form action="{{ route('admin.productos.importar') }}" method="POST" enctype="multipart/form-data" style="margin: 0; padding: 0;">
+            @csrf
+            <div class="modal-body-scroll" style="margin-top: 1rem;">
+                <p class="modal-desc" style="text-align: left; margin-bottom: 1rem;">
+                    Sube tu archivo de Excel con los productos. Asegúrate de usar la plantilla estructurada para evitar errores de formato.
+                </p>
+                <div class="grupo">
+                    <label for="archivoImportacion">Seleccionar Archivo Excel (.xlsx, .xls)</label>
+                    <input type="file" id="archivoImportacion" name="archivoImportacion" accept=".xlsx, .xls" required style="width: 100%; border: 1px dashed var(--border); padding: 1rem; border-radius: 8px; background: rgba(0,0,0,0.01);">
+                    @error('archivoImportacion') <div class="error-campo" style="color: #f87171; font-size: 0.8rem; margin-top: 5px;">{{ $message }}</div> @enderror
+                </div>
+
+                @if(session('importSuccess'))
+                    <div class="alerta alerta-exito" style="margin-top: 1rem; padding: 0.75rem; background: rgba(76, 175, 125, 0.1); color: #4caf7d; border-radius: 0.5rem; border: 1px solid rgba(76, 175, 125, 0.2);">
+                        {{ session('importSuccess') }}
+                    </div>
+                @endif
+
+                @if(session('importErrors'))
+                    <div class="alerta alerta-error" style="margin-top: 1rem; max-height: 150px; overflow-y: auto; padding: 0.75rem; background: rgba(220, 38, 38, 0.1); color: #f87171; border-radius: 0.5rem; border: 1px solid rgba(220, 38, 38, 0.2);">
+                        <ul style="list-style: disc; padding-left: 1.2rem; margin: 0;">
+                            @foreach(session('importErrors') as $err)
+                                <li style="font-size: 0.8rem; margin-bottom: 0.25rem;">{{ $err }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                @endif
             </div>
-
-            @if($importSuccess)
-                <div class="alerta alerta-exito" style="margin-top: 1rem;">
-                    {{ $importSuccess }}
-                </div>
-            @endif
-
-            @if(count($importErrors) > 0)
-                <div class="alerta alerta-error" style="margin-top: 1rem; max-height: 150px; overflow-y: auto;">
-                    <ul style="list-style: none; padding: 0;">
-                        @foreach($importErrors as $err)
-                            <li style="font-size: 0.8rem; margin-bottom: 0.25rem;">{{ $err }}</li>
-                        @endforeach
-                    </ul>
-                </div>
-            @endif
-        </div>
-        <div class="modal-footer-large">
-            <button type="button" class="btn-modal btn-modal-cancel" wire:click="$set('showImportModal', false)">Cancelar</button>
-            <button type="button" class="btn-modal btn-modal-confirm" style="background: #c9a84c; color: #000;" wire:click="import" wire:loading.attr="disabled">Importar</button>
-        </div>
+            <div class="modal-footer-large">
+                <button type="button" class="btn-modal btn-modal-cancel" @click="show = false">Cancelar</button>
+                <button type="submit" class="btn-modal btn-modal-confirm" style="background: #c9a84c; color: #000;">Importar Archivo</button>
+            </div>
+        </form>
     </div>
 </div>
 
@@ -406,7 +414,13 @@
         <div class="modal-body-scroll">
             <div class="grid-dos-columnas">
                 <!-- Formulario de Variante -->
-                <div>
+                <div style="position: relative;">
+                    <!-- Overlay de Carga -->
+                    <div wire:loading.flex wire:target="editVariante" style="position: absolute; inset: -10px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="width: 30px; height: 30px; border: 3px solid rgba(201, 168, 76, 0.2); border-top-color: #c9a84c; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-main, #333); font-weight: 500;">Cargando...</span>
+                    </div>
+
                     <h4 style="margin-bottom: 1rem; color: #c9a84c;">{{ $editingVarianteId ? 'Editar Grupo' : 'Nuevo Grupo de Variantes' }}</h4>
                     <div class="grupo">
                         <label for="nuevaVarianteNombre">Nombre del Grupo (ej: Tamaño, Sabor)</label>
@@ -469,20 +483,20 @@
                             @foreach($variantesRegistradas as $var)
                                 <div class="item-listado" style="flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.75rem;" wire:key="var-reg-{{ $var->id }}">
                                     <div style="display: flex; justify-content: space-between; align-items: center;">
-                                        <strong style="color: #fff;">{{ $var->nombre }}</strong>
-                                        <span class="badge" style="font-size: 0.6rem; padding: 0.15rem 0.4rem; {{ $var->obligatorio ? 'background: rgba(201, 168, 76, 0.15); color: #c9a84c;' : 'background: rgba(255,255,255,0.05); color: #ccc;' }}">
+                                        <strong style="color: var(--text-main, #333);">{{ $var->nombre }}</strong>
+                                        <span class="badge" style="font-size: 0.6rem; padding: 0.15rem 0.4rem; {{ $var->obligatorio ? 'background: rgba(201, 168, 76, 0.15); color: #c9a84c;' : 'background: rgba(0,0,0,0.05); color: var(--text-muted, #666);' }}">
                                             {{ $var->obligatorio ? 'Obligatorio' : 'Opcional' }}
                                         </span>
                                     </div>
                                     <div style="display: flex; flex-wrap: wrap; gap: 0.25rem;">
                                         @foreach($var->opciones as $opc)
-                                            <span style="font-size: 0.75rem; background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.08); padding: 0.15rem 0.4rem; border-radius: 0.25rem;">
+                                            <span style="font-size: 0.75rem; background: rgba(0,0,0,0.02); border: 1px solid var(--border, #e2e8f0); color: var(--text-main, #333); padding: 0.15rem 0.4rem; border-radius: 0.25rem;">
                                                 {{ $opc['nombre'] }} ({{ $opc['tipo_impacto'] == 'incremental' ? '+' : '=' }}${{ number_format($opc['precio'], 2) }})
                                                 @if(!($opc['disponible'] ?? true)) <small style="color: #f87171; font-weight: bold;">(Agotado)</small> @endif
                                             </span>
                                         @endforeach
                                     </div>
-                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.5rem;">
+                                    <div style="display: flex; justify-content: flex-end; gap: 0.5rem; margin-top: 0.25rem; border-top: 1px solid var(--border, #e2e8f0); padding-top: 0.5rem;">
                                         <button type="button" class="btn-editar" wire:click="editVariante('{{ $var->id }}')">Editar</button>
                                         <button type="button" class="btn-eliminar" wire:click="deleteVariante('{{ $var->id }}')">Eliminar</button>
                                     </div>
@@ -499,118 +513,83 @@
     </div>
 </div>
 
-@if($tab === 'adiciones')
-<div class="tarjeta" style="background: var(--surface); padding: 2rem; border: 1px solid rgba(255,255,255,0.07); border-radius: 1rem;">
-    <div class="tarjeta-header" style="margin-bottom: 1.5rem; padding: 0; border: none; font-size: 1.15rem; color: #fff; font-family: 'DM Serif Display', serif; text-transform: none; letter-spacing: normal;">
-        Catálogo Global de Adiciones
-    </div>
-    
-    <div class="grid-dos-columnas">
-        <!-- Formulario de Adición -->
-        <div>
-            <h4 style="margin-bottom: 1.2rem; color: #c9a84c; font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-weight: normal;">
-                {{ $isEditingAdicion ? 'Editar Adición' : 'Nueva Adición' }}
-            </h4>
-            <div class="grupo">
-                <label for="adicionNombre">Nombre de la Adición</label>
-                <input type="text" id="adicionNombre" wire:model="adicionNombre" placeholder="Ej: Queso extra">
-                @error('adicionNombre') <div class="error-campo">{{ $message }}</div> @enderror
-            </div>
-            <div class="grupo">
-                <label for="adicionPrecio">Precio Adicional</label>
-                <input type="number" id="adicionPrecio" wire:model="adicionPrecio" placeholder="0.00" step="0.01" min="0">
-                @error('adicionPrecio') <div class="error-campo">{{ $message }}</div> @enderror
-            </div>
+{{-- MODAL DE ADICIONES --}}
+<div class="modal-overlay large"
+     x-cloak
+     x-data="{ show: @entangle('showAdicionesModal').live }"
+     x-show="show"
+     :class="{ 'active': show }">
+    <div class="modal-confirm" @click.away="show = false">
+        <div class="modal-header-large">
+            <h3 class="modal-title">Adiciones de: {{ $selectedProductoNombreAdicion }}</h3>
+            <button type="button" class="btn-cerrar" wire:click="$set('showAdicionesModal', false)">✕</button>
+        </div>
+        <div class="modal-body-scroll">
+            <div class="grid-dos-columnas">
+                <!-- Formulario de Adición -->
+                <div style="position: relative;">
+                    <!-- Overlay de Carga -->
+                    <div wire:loading.flex wire:target="editAdicionSimple" style="position: absolute; inset: -10px; background: rgba(255, 255, 255, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center; border-radius: 8px;">
+                        <div style="width: 30px; height: 30px; border: 3px solid rgba(201, 168, 76, 0.2); border-top-color: #c9a84c; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                        <span style="margin-top: 0.8rem; font-size: 0.85rem; color: var(--text-main, #333); font-weight: 500;">Cargando...</span>
+                    </div>
 
-            <!-- Selección de Categorías -->
-            <div class="grupo">
-                <label style="margin-bottom: 0.25rem;">Asociar a Categorías (Aplica a todos los productos del grupo)</label>
-                <div class="multiselect-box">
-                    @foreach($categorias as $cat)
-                        <label class="checkbox-label" wire:key="add-cat-{{ $cat->id }}">
-                            <input type="checkbox" wire:model="adicionCategorias" value="{{ $cat->id }}">
-                            {{ $cat->nombre }}
-                        </label>
-                    @endforeach
+                    <h4 style="margin-bottom: 1rem; color: #c9a84c;">{{ $editingAdicionId ? 'Editar Adición' : 'Nueva Adición' }}</h4>
+                    <div class="grupo">
+                        <label for="nuevaAdicionNombre">Nombre (ej: Extra Queso)</label>
+                        <input type="text" id="nuevaAdicionNombre" wire:model="nuevaAdicionNombre" placeholder="Ej: Extra Queso">
+                        @error('nuevaAdicionNombre') <div class="error-campo">{{ $message }}</div> @enderror
+                    </div>
+                    <div class="grupo">
+                        <label for="nuevaAdicionPrecio">Precio</label>
+                        <input type="number" id="nuevaAdicionPrecio" wire:model="nuevaAdicionPrecio" placeholder="0.00" step="0.01" min="0">
+                        @error('nuevaAdicionPrecio') <div class="error-campo">{{ $message }}</div> @enderror
+                    </div>
+
+                    <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
+                        <button type="button" class="btn-principal" wire:click="saveNuevaAdicion" style="flex: 1;">
+                            {{ $editingAdicionId ? 'Actualizar' : 'Guardar adición' }}
+                        </button>
+                        @if($editingAdicionId)
+                            <button type="button" class="btn-cancelar" wire:click="resetNuevaAdicionForm" style="flex: 0.5; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 0.6rem;">Cancelar</button>
+                        @endif
+                    </div>
                 </div>
-            </div>
 
-            <!-- Selección de Productos Específicos -->
-            <div class="grupo">
-                <label style="margin-bottom: 0.25rem;">Asociar a Productos específicos</label>
-                @php
-                    $todosProductos = \App\Models\Producto::where('sucursal_id', Auth::user()->sucursal_id)->orderBy('nombre')->get();
-                @endphp
-                <div class="multiselect-box" style="max-height: 150px;">
-                    @foreach($todosProductos as $pItem)
-                        <label class="checkbox-label" wire:key="add-prod-{{ $pItem->id }}">
-                            <input type="checkbox" wire:model="adicionProductos" value="{{ $pItem->id }}">
-                            {{ $pItem->nombre }}
-                        </label>
-                    @endforeach
+                <!-- Listado de Adiciones Existentes -->
+                <div>
+                    <h4 style="margin-bottom: 1rem; color: #c9a84c;">Adiciones Registradas</h4>
+                    @if(empty($adicionesDelProducto))
+                        <div class="vacio" style="padding: 2rem 1rem; font-size: 0.8rem;">No hay adiciones configuradas.</div>
+                    @else
+                        <div class="listado-items-modal" style="max-height: 400px;">
+                            @foreach($adicionesDelProducto as $adicion)
+                                <div class="item-listado" style="flex-direction: column; align-items: stretch; gap: 0.5rem; padding: 0.75rem;" wire:key="adicion-{{ $adicion['id'] }}">
+                                    <div style="display: flex; justify-content: space-between; align-items: center;">
+                                        <strong style="color: var(--text-main, #333);">{{ $adicion['nombre'] }}</strong>
+                                        <span class="badge" style="font-size: 0.75rem; padding: 0.15rem 0.4rem; background: rgba(201, 168, 76, 0.15); color: #c9a84c;">
+                                            +${{ number_format($adicion['precio'], 2) }}
+                                        </span>
+                                    </div>
+                                    <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem; border-top: 1px solid var(--border, #e2e8f0); padding-top: 0.5rem;">
+                                        <div style="display: flex; gap: 0.5rem;">
+                                            <button type="button" class="btn-editar" wire:click="editAdicionSimple('{{ $adicion['id'] }}')">Editar</button>
+                                            <button type="button" class="btn-eliminar" wire:click="deleteAdicionSimple('{{ $adicion['id'] }}')">Eliminar</button>
+                                        </div>
+                                        <button type="button" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.6rem; cursor: pointer; border: none; {{ $adicion['activo'] ? 'background: rgba(76, 175, 125, 0.1); color: #4caf7d;' : 'background: rgba(220, 38, 38, 0.15); color: #f87171;' }}" wire:click="toggleAdicionSimpleActivo('{{ $adicion['id'] }}')">
+                                            {{ $adicion['activo'] ? 'Activo' : 'Oculto' }}
+                                        </button>
+                                    </div>
+                                </div>
+                            @endforeach
+                        </div>
+                    @endif
                 </div>
-            </div>
-
-            <div style="margin-top: 1.5rem; display: flex; gap: 0.5rem;">
-                <button type="button" class="btn-principal" wire:click="saveAdicion" style="flex: 1;">
-                    {{ $isEditingAdicion ? 'Actualizar' : 'Guardar adición' }}
-                </button>
-                @if($isEditingAdicion)
-                    <button type="button" class="btn-cancelar" wire:click="resetAdicionForm" style="flex: 0.5; padding: 0.8rem; background: rgba(255,255,255,0.05); border-radius: 0.6rem;">Cancelar</button>
-                @endif
             </div>
         </div>
-
-        <!-- Listado de Adiciones Registradas -->
-        <div>
-            <h4 style="margin-bottom: 1.2rem; color: #c9a84c; font-family: 'DM Serif Display', serif; font-size: 1.1rem; font-weight: normal;">
-                Adiciones Registradas
-            </h4>
-            @php
-                $adicionesRegistradas = \App\Models\AdicionCatalogo::where('sucursal_id', Auth::user()->sucursal_id)->orderBy('nombre')->get();
-            @endphp
-            @if($adicionesRegistradas->isEmpty())
-                <div class="vacio" style="padding: 2rem 1rem; font-size: 0.8rem;">No hay adiciones configuradas.</div>
-            @else
-                <div class="listado-items-modal" style="max-height: 520px;">
-                    @foreach($adicionesRegistradas as $ad)
-                        <div class="item-listado" style="flex-direction: column; align-items: stretch; gap: 0.35rem; padding: 0.6rem 0.75rem;" wire:key="ad-reg-{{ $ad->id }}">
-                            <div style="display: flex; justify-content: space-between; align-items: center;">
-                                <strong style="color: #fff;">{{ $ad->nombre }}</strong>
-                                <span style="color: #c9a84c; font-weight: bold; font-size: 0.8rem;">+${{ number_format($ad->precio, 2) }}</span>
-                            </div>
-                            <div style="font-size: 0.7rem; color: rgba(247, 243, 238, 0.45);">
-                                @if($ad->categorias->isNotEmpty())
-                                    <div>Categorías: {{ $ad->categorias->pluck('nombre')->join(', ') }}</div>
-                                @endif
-                                @if($ad->productos->isNotEmpty())
-                                    <div>Productos: {{ $ad->productos->pluck('nombre')->join(', ') }}</div>
-                                @endif
-                                @if($ad->categorias->isEmpty() && $ad->productos->isEmpty())
-                                    <div style="color: #f87171;">Sin asociar (no aparecerá en el menú)</div>
-                                @endif
-                            </div>
-                            
-                            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 0.25rem; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.4rem;">
-                                <div style="display: flex; gap: 0.5rem;">
-                                    <button type="button" class="btn-editar" wire:click="editAdicion('{{ $ad->id }}')">Editar</button>
-                                    <button type="button" class="btn-eliminar" wire:click="deleteAdicion('{{ $ad->id }}')">Eliminar</button>
-                                </div>
-                                <div style="display: flex; gap: 0.25rem;">
-                                    <button type="button" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.6rem; cursor: pointer; border: none; {{ $ad->activo ? 'background: rgba(76, 175, 125, 0.1); color: #4caf7d; border-color: rgba(76, 175, 125, 0.25);' : 'background: rgba(255,255,255,0.05); color: #ccc; border-color: rgba(255,255,255,0.1);' }}" wire:click="toggleAdicionActivo('{{ $ad->id }}')">
-                                        {{ $ad->activo ? 'Visible' : 'Oculto' }}
-                                    </button>
-                                    <button type="button" class="badge" style="font-size: 0.72rem; padding: 0.3rem 0.6rem; cursor: pointer; border: none; {{ $ad->disponible ? 'background: rgba(121, 82, 179, 0.1); color: #bca0dc; border-color: rgba(121, 82, 179, 0.25);' : 'background: rgba(220, 38, 38, 0.15); color: #f87171; border-color: rgba(220, 38, 38, 0.3);' }}" wire:click="toggleAdicionDisponible('{{ $ad->id }}')">
-                                        {{ $ad->disponible ? 'Disp.' : 'Agot.' }}
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    @endforeach
-                </div>
-            @endif
+        <div class="modal-footer-large">
+            <button type="button" class="btn-modal btn-modal-cancel" wire:click="$set('showAdicionesModal', false)" style="width: auto;">Cerrar</button>
         </div>
     </div>
 </div>
-@endif
 </div>
