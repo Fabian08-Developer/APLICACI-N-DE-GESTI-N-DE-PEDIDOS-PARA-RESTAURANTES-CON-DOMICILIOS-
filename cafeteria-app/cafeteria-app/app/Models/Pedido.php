@@ -77,6 +77,11 @@ class Pedido extends Model
         return $this->belongsTo(PerfilDomiciliario::class, 'perfil_domiciliario_id');
     }
 
+    public function calificacionDomiciliario(): \Illuminate\Database\Eloquent\Relations\HasOne
+    {
+        return $this->hasOne(CalificacionDomiciliario::class, 'pedido_id');
+    }
+
     public function zona(): BelongsTo
     {
         return $this->belongsTo(ZonaCobertura::class, 'zona_id');

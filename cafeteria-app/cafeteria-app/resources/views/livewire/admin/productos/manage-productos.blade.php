@@ -1,5 +1,10 @@
 <div wire:key="manage-productos-container"
-     x-data="{ isOpen: @entangle('showModal').live }"
+     x-data="{ 
+        isOpen: @entangle('showModal').live,
+        showModalEliminar: false,
+        deleteId: '',
+        deleteName: ''
+     }"
      @open-sidebar.window="isOpen = true"
      @close-sidebar.window="isOpen = false"
      @close-modal.window="window.dispatchEvent(new CustomEvent('close-sidebar'))">
@@ -309,7 +314,7 @@
                             @endif
 
                             <button type="button" class="btn-eliminar"
-                                    @click="$dispatch('abrir-modal-eliminar', { id: '{{ $producto->id }}', nombre: '{{ addslashes($producto->nombre) }}' })">
+                                    @click.prevent.stop="deleteId = '{{ $producto->id }}'; deleteName = {{ json_encode($producto->nombre) }}; showModalEliminar = true;">
                                 Eliminar
                             </button>
                         </div>
@@ -327,31 +332,227 @@
     @endif
 </div>
 
-
-{{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
-<div class="modal-overlay" id="modalEliminar" x-cloak
-     x-data="{ show: false, prodId: '', prodNombre: '' }"
-     @abrir-modal-eliminar.window="show = true; prodId = $event.detail.id; prodNombre = $event.detail.nombre;"
-     @close-modal.window="show = false"
-     :class="{ 'active': show }">
-    <div class="modal-confirm" @click.away="show = false">
-        <div class="modal-icon">
+{{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN CON ALPINE JS (SÚPER RÁPIDO) --}}
+<div class="modal-eliminar-overlay" x-cloak x-show="showModalEliminar">
+    <div class="modal-eliminar-caja" @click.away="showModalEliminar = false">
+        <div class="modal-eliminar-icono">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                 <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
             </svg>
         </div>
-        <h3 class="modal-title">¿Eliminar producto?</h3>
-        <p class="modal-desc">
-            Estás a punto de eliminar el producto <strong x-text="prodNombre"></strong>. Esta acción no se puede deshacer.
+        <h3 class="modal-eliminar-titulo">¿Eliminar producto?</h3>
+        <p class="modal-eliminar-mensaje">
+            Estás a punto de eliminar el producto <strong x-text="deleteName"></strong>. Esta acción no se puede deshacer.
         </p>
         
-        <div class="modal-actions">
-            <button type="button" class="btn-modal btn-modal-cancel" @click="show = false">Cancelar</button>
-            <button type="button" class="btn-modal btn-modal-confirm" @click="$wire.delete(prodId)">Sí, eliminar</button>
+        <div class="modal-eliminar-acciones">
+            <button type="button" class="btn-modal-cancelar" @click="showModalEliminar = false">Cancelar</button>
+            <button type="button" class="btn-modal-eliminar" @click="$wire.eliminarProducto(deleteId); showModalEliminar = false">Sí, eliminar</button>
         </div>
     </div>
 </div>
 
+<style>
+    .modal-eliminar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999; /* Asegura que siempre esté por encima de todo */
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-eliminar-caja {
+        background: var(--surface);
+        width: 90%;
+        max-width: 400px;
+        padding: 2.5rem 2rem;
+        border-radius: 1.5rem;
+        border: 1px solid var(--border);
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-eliminar-icono {
+        width: 60px;
+        height: 60px;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+    }
+
+    .modal-eliminar-icono svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .modal-eliminar-titulo {
+        font-family: 'DM Serif Display', serif;
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-main);
+    }
+
+    .modal-eliminar-mensaje {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .modal-eliminar-mensaje strong {
+        color: var(--text-main);
+    }
+
+    .modal-eliminar-acciones {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn-modal-cancelar {
+        flex: 1;
+        padding: 0.875rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--border);
+        font-size: 0.95rem;
+        background: transparent;
+        color: var(--text-main);
+    }
+
+    .btn-modal-cancelar:hover {
+        background: rgba(0,0,0,0.05);
+    }
+
+    .btn-modal-eliminar {
+        flex: 1;
+        padding: 0.875rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        font-size: 0.95rem;
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-modal-eliminar:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>
+<style>
+    .modal-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.5);
+        backdrop-filter: blur(4px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 2500;
+    }
+
+    .modal-confirm {
+        background: var(--surface);
+        width: 90%;
+        max-width: 400px;
+        padding: 2rem;
+        border-radius: 1.2rem;
+        border: 1px solid var(--border);
+        text-align: center;
+        box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+    }
+
+    .modal-icon {
+        width: 50px;
+        height: 50px;
+        background: rgba(248, 113, 113, 0.1);
+        color: #f87171;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+    }
+
+    .modal-icon svg {
+        width: 24px;
+        height: 24px;
+    }
+
+    .modal-title {
+        font-family: 'DM Serif Display', serif;
+        font-size: 1.4rem;
+        margin-bottom: 0.5rem;
+        color: var(--text-main);
+    }
+
+    .modal-desc {
+        font-size: 0.9rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        line-height: 1.5;
+    }
+
+    .modal-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+    }
+
+    .btn-modal {
+        flex: 1;
+        padding: 0.75rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        font-size: 0.95rem;
+    }
+
+    .btn-modal-cancel {
+        background: rgba(0,0,0,0.05);
+        color: var(--text-main);
+    }
+
+    .btn-modal-cancel:hover {
+        background: rgba(0,0,0,0.1);
+    }
+
+    .btn-modal-confirm {
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-modal-confirm:hover {
+        background: #dc2626;
+    }
+</style>
 {{-- MODAL DE IMPORTACIÓN DE EXCEL --}}
 <div class="modal-overlay" id="modalImport"
      x-cloak

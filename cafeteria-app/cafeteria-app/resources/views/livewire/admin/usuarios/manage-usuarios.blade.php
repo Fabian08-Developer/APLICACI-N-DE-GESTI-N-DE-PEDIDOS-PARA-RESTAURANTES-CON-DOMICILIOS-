@@ -1,5 +1,10 @@
 @section('titulo', 'Usuarios')
-<div x-data="{ isOpen: {{ ($errors->any() || $editar) ? 'true' : 'false' }} }"
+<div x-data="{ 
+        isOpen: {{ ($errors->any() || $editar) ? 'true' : 'false' }},
+        showModalEliminar: false,
+        deleteUrl: '',
+        deleteName: ''
+     }"
      @open-sidebar.window="isOpen = true"
      @close-sidebar.window="isOpen = false">
     @vite(['resources/css/usuarios.css'])
@@ -21,8 +26,15 @@
             </button>
         </div>
 
-        <div class="drawer-cuerpo">
-            <div id="drawerFormContent"></div>
+        <div class="drawer-cuerpo" style="position: relative;">
+            <!-- Overlay de Carga -->
+            <div id="formLoadingOverlay" style="display: none; position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
+            </div>
+
+            <div id="drawerFormContent" style="transition: opacity 0.2s;"></div>
         </div>
 
         <div class="drawer-footer">
@@ -151,11 +163,11 @@
                         @if(auth()->user()->canManage($usuario))
                         <div class="acciones">
                             <button type="button" class="btn-editar"
-                                @click="isOpen = true; abrirDrawerEditar(
-                                    {{ $usuario->id }},
-                                    '{{ addslashes($usuario->nombre) }}',
-                                    '{{ addslashes($usuario->email) }}',
-                                    '{{ $usuario->rol->name }}',
+                                onclick="isOpen = true; abrirDrawerEditar(
+                                    '{{ $usuario->id }}',
+                                    {{ json_encode($usuario->nombre) }},
+                                    {{ json_encode($usuario->email) }},
+                                    {{ json_encode($usuario->rol_id ?? ($usuario->roles->first()?->name ?? '')) }},
                                     {{ $usuario->estado ? 'true' : 'false' }},
                                     '{{ route('admin.usuarios.store') }}'
                                 )">Editar</button>
@@ -172,14 +184,10 @@
                                 @endif
                             </form>
 
-                            <form method="POST" action="{{ route('admin.usuarios.destroy', $usuario->id) }}" style="display: inline;">
-                                @csrf
-                                @method('DELETE')
-                                <button type="submit" class="btn-eliminar"
-                                    onclick="return confirm('¿Estás seguro de que deseas eliminar permanentemente a {{ $usuario->nombre }}?')">
-                                    Eliminar
-                                </button>
-                            </form>
+                            <button type="button" class="btn-eliminar"
+                                @click.prevent.stop="deleteUrl = '{{ route('admin.usuarios.destroy', $usuario->id) }}'; deleteName = {{ json_encode($usuario->nombre) }}; showModalEliminar = true;">
+                                Eliminar
+                            </button>
                         </div>
                         @else
                         <span class="texto-gris" style="font-size: 0.85rem; font-style: italic; opacity: 0.7;">Solo lectura</span>
@@ -197,7 +205,7 @@
         document.addEventListener('DOMContentLoaded', function() {
             @if($editar)
             abrirDrawerEditar(
-                {{ $editar->id }},
+                '{{ $editar->id }}',
                 '{{ addslashes($editar->nombre) }}',
                 '{{ addslashes($editar->email) }}',
                 '{{ $editar->rol->name }}',
@@ -210,6 +218,145 @@
         });
     </script>
     @endif
+
+    {{-- FORMULARIO DE ELIMINACIÓN GLOBAL --}}
+    <form method="POST" :action="deleteUrl" style="display: none;" id="formEliminarUsuario">
+        @csrf
+        @method('DELETE')
+    </form>
+
+    {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
+    <div class="modal-eliminar-overlay" x-cloak x-show="showModalEliminar">
+        <div class="modal-eliminar-caja" @click.away="showModalEliminar = false">
+            <div class="modal-eliminar-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="modal-eliminar-titulo">¿Eliminar usuario?</h3>
+            <p class="modal-eliminar-mensaje">
+                Estás a punto de eliminar a <strong x-text="deleteName"></strong>. Esta acción no se puede deshacer.
+            </p>
+            
+            <div class="modal-eliminar-acciones">
+                <button type="button" class="btn-modal-cancelar" @click="showModalEliminar = false">Cancelar</button>
+                <button type="button" class="btn-modal-eliminar" @click="document.getElementById('formEliminarUsuario').submit()">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-eliminar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-eliminar-caja {
+            background: var(--surface);
+            width: 90%;
+            max-width: 400px;
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-eliminar-icono {
+            width: 60px;
+            height: 60px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .modal-eliminar-icono svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .modal-eliminar-titulo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .modal-eliminar-mensaje {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-eliminar-mensaje strong {
+            color: var(--text-main);
+        }
+
+        .modal-eliminar-acciones {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-modal-cancelar {
+            flex: 1;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        .btn-modal-cancelar:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .btn-modal-eliminar {
+            flex: 1;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.95rem;
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-modal-eliminar:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
 
     <script>
         const overlay = document.getElementById('drawerOverlay');
@@ -288,12 +435,25 @@
         `;
 
             titulo.innerHTML = `Editar usuario <span class="badge-editar">Editando</span>`;
-            submitBtn.textContent = '💾 Guardar cambios';
+            submitBtn.textContent = 'Guardar cambios';
             abrirDrawer();
-            setTimeout(() => {
-                const i = contenido.querySelector('input[type="text"]');
-                if (i) i.focus();
-            }, 350);
+            
+            const overlayLoader = document.getElementById('formLoadingOverlay');
+            if (overlayLoader) {
+                overlayLoader.style.display = 'flex';
+                contenido.style.opacity = '0';
+                setTimeout(() => {
+                    overlayLoader.style.display = 'none';
+                    contenido.style.opacity = '1';
+                    const i = contenido.querySelector('input[type="text"]');
+                    if (i) i.focus();
+                }, 400); // Simulamos 400ms de carga para mantener consistencia UI
+            } else {
+                setTimeout(() => {
+                    const i = contenido.querySelector('input[type="text"]');
+                    if (i) i.focus();
+                }, 350);
+            }
         }
 
         function escHtml(str) {

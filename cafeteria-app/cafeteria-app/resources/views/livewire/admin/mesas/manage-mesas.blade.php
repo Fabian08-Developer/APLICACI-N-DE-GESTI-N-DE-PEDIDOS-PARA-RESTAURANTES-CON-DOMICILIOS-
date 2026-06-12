@@ -1,5 +1,10 @@
 <div wire:key="manage-mesas-container"
-     x-data="{ isOpen: @entangle('showModal').live }"
+     x-data="{ 
+        isOpen: @entangle('showModal').live,
+        showModalEliminar: false,
+        deleteId: '',
+        deleteName: ''
+     }"
      @open-sidebar.window="isOpen = true"
      @close-sidebar.window="isOpen = false"
      @close-modal.window="window.dispatchEvent(new CustomEvent('close-sidebar'))">
@@ -127,16 +132,16 @@
                         </div>
                     @endif
 
-                    <div class="mesa-acciones" style="margin-top: 1.2rem; flex-wrap: wrap;">
+                    <div class="mesa-acciones">
                         <button type="button" class="btn-editar"
-                            wire:click="edit('{{ $mesa->id }}')" @click="isOpen = true">Editar</button>
+                            wire:click="edit('{{ $mesa->id }}')" @click.prevent.stop="isOpen = true">Editar</button>
 
                         <button type="button" class="btn-eliminar"
-                            @click="$dispatch('abrir-modal-eliminar', { id: '{{ $mesa->id }}', numero: '{{ $mesa->numero }}' })">
+                                @click.prevent.stop="deleteId = '{{ $mesa->id }}'; deleteName = '{{ addslashes($mesa->numero) }}'; showModalEliminar = true;">
                             Eliminar
                         </button>
 
-                        <button type="button" class="btn-editar" wire:click="openQrModal('{{ $mesa->id }}')" @click="$dispatch('abrir-modal-qr')">Ver QR</button>
+                        <button type="button" class="btn-editar" wire:click="openQrModal('{{ $mesa->id }}')" @click.prevent.stop="$dispatch('abrir-modal-qr')">Ver QR</button>
                     </div>
                 </div>
             @endforeach
@@ -149,43 +154,141 @@
     @endif
 </div>
 
-{{-- MODAL CONFIRMAR ELIMINAR --}}
-<div class="modal-overlay" id="modalEliminarOverlay" x-cloak
-     x-data="{ show: false, mesaId: '', mesaNumero: '' }"
-     @abrir-modal-eliminar.window="show = true; mesaId = $event.detail.id; mesaNumero = $event.detail.numero;"
-     @close-modal.window="show = false"
-     :class="{ 'activo': show }">
-    <div class="modal-caja" @click.away="show = false">
-        <div class="modal-icono">
-            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
-                stroke-width="1.75" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round"
-                    d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21
-                       c.342.052.682.107 1.022.166m-1.022-.165L18.16
-                       19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25
-                       2.25 0 0 1-2.244-2.077L4.772 5.79m14.456
-                       0a48.108 48.108 0 0 0-3.478-.397m-12 .562
-                       c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11
-                       0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164
-                       -2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18
-                       .037-2.09 1.022-2.09 2.201v.916m7.5
-                       0a48.667 48.667 0 0 0-7.5 0" />
+{{-- MODAL CONFIRMAR ELIMINAR CON ALPINE JS (SÚPER RÁPIDO) --}}
+<div class="modal-eliminar-overlay" x-cloak x-show="showModalEliminar">
+    <div class="modal-eliminar-caja" @click.away="showModalEliminar = false">
+        <div class="modal-eliminar-icono">
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.75" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="m14.74 9-.346 9m-4.788 0L9.26 9m9.968-3.21 c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 0 1-2.244 2.077H8.084a2.25 2.25 0 0 1-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 0 0-3.478-.397m-12 .562 c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 0 1 3.478-.397m7.5 0v-.916c0-1.18-.91-2.164 -2.09-2.201a51.964 51.964 0 0 0-3.32 0c-1.18 .037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 0 0-7.5 0" />
             </svg>
         </div>
-        <h2 class="modal-titulo">¿Eliminar mesa?</h2>
-        <p class="modal-mensaje">
-            ¿Seguro que deseas eliminar la mesa <strong x-text="mesaNumero"></strong>? Esta acción no se puede deshacer.
+        <h2 class="modal-eliminar-titulo">¿Eliminar mesa?</h2>
+        <p class="modal-eliminar-mensaje">
+            ¿Seguro que deseas eliminar la mesa <strong x-text="deleteName"></strong>? Esta acción no se puede deshacer.
         </p>
-        <div class="modal-acciones">
-            <button type="button" class="btn-modal-eliminar" @click="$wire.delete(mesaId)">
-                Sí, eliminar
-            </button>
-            <button type="button" class="btn-modal-cancelar" @click="show = false">
+        <div class="modal-eliminar-acciones">
+            <button type="button" class="btn-modal-cancelar" @click="showModalEliminar = false">
                 Cancelar
+            </button>
+            <button type="button" class="btn-modal-eliminar" @click="$wire.eliminarMesa(deleteId); showModalEliminar = false">
+                Sí, eliminar
             </button>
         </div>
     </div>
 </div>
+
+<style>
+    .modal-eliminar-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.6);
+        backdrop-filter: blur(5px);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.2s ease-out;
+    }
+
+    .modal-eliminar-caja {
+        background: var(--surface);
+        width: 90%;
+        max-width: 400px;
+        padding: 2.5rem 2rem;
+        border-radius: 1.5rem;
+        border: 1px solid var(--border);
+        text-align: center;
+        box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+        animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .modal-eliminar-icono {
+        width: 60px;
+        height: 60px;
+        background: rgba(239, 68, 68, 0.1);
+        color: #ef4444;
+        border-radius: 50%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin: 0 auto 1.5rem auto;
+    }
+
+    .modal-eliminar-icono svg {
+        width: 28px;
+        height: 28px;
+    }
+
+    .modal-eliminar-titulo {
+        font-family: 'DM Serif Display', serif;
+        font-size: 1.5rem;
+        margin-bottom: 0.75rem;
+        color: var(--text-main);
+    }
+
+    .modal-eliminar-mensaje {
+        font-size: 0.95rem;
+        color: var(--text-muted);
+        margin-bottom: 2rem;
+        line-height: 1.6;
+    }
+
+    .modal-eliminar-mensaje strong {
+        color: var(--text-main);
+    }
+
+    .modal-eliminar-acciones {
+        display: flex;
+        gap: 1rem;
+        justify-content: center;
+    }
+
+    .btn-modal-cancelar {
+        flex: 1;
+        padding: 0.875rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: 1px solid var(--border);
+        font-size: 0.95rem;
+        background: transparent;
+        color: var(--text-main);
+    }
+
+    .btn-modal-cancelar:hover {
+        background: rgba(0,0,0,0.05);
+    }
+
+    .btn-modal-eliminar {
+        flex: 1;
+        padding: 0.875rem;
+        border-radius: 0.75rem;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.2s;
+        border: none;
+        font-size: 0.95rem;
+        background: #ef4444;
+        color: white;
+    }
+
+    .btn-modal-eliminar:hover {
+        background: #dc2626;
+        transform: translateY(-1px);
+        box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; }
+        to { opacity: 1; }
+    }
+
+    @keyframes slideUp {
+        from { opacity: 0; transform: translateY(20px) scale(0.95); }
+        to { opacity: 1; transform: translateY(0) scale(1); }
+    }
+</style>
 
 {{-- MODAL VER QR --}}
 <div class="modal-overlay" id="modalQrOverlay" x-cloak

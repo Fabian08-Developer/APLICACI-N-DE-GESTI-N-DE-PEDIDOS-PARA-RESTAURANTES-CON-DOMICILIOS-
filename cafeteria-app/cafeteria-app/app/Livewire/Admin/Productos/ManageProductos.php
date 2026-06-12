@@ -35,6 +35,11 @@ class ManageProductos extends Component
     public $search = '';
     public $filterCategoria = 'todas';
 
+    // Para el modal de confirmación de eliminación (puramente Livewire)
+    public $showModalEliminarLivewire = false;
+    public $producto_eliminar_id;
+    public $producto_eliminar_nombre = '';
+
     protected $queryString = [
         'search' => ['except' => ''],
         'filterCategoria' => ['except' => 'todas']
@@ -232,7 +237,15 @@ class ManageProductos extends Component
         $this->dispatch('data-loaded');
     }
 
-    public function delete($id)
+    public function openEliminarModal($id)
+    {
+        $producto = Producto::findOrFail($id);
+        $this->producto_eliminar_id = $producto->id;
+        $this->producto_eliminar_nombre = $producto->nombre;
+        $this->showModalEliminarLivewire = true;
+    }
+
+    public function eliminarProducto($id)
     {
         $producto = Producto::findOrFail($id);
         if ($producto->sucursal_id !== Auth::user()->sucursal_id) {
@@ -240,6 +253,7 @@ class ManageProductos extends Component
         }
 
         $producto->delete();
+        $this->showModalEliminarLivewire = false;
         $this->dispatch('close-modal');
     }
 

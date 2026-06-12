@@ -2,7 +2,7 @@
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-            <h1 class="text-3xl font-black text-[#F5F5F4] uppercase tracking-tight">Panel de Control Global</h1>
+            <h1 class="text-3xl font-black text-[#2C241B] uppercase tracking-tight">Panel de Control Global</h1>
             <p class="text-[#5C5246] text-sm mt-1">Bienvenido al centro de mando de la plataforma.</p>
         </div>
         <div class="flex items-center gap-3">
@@ -24,7 +24,7 @@
                 </div>
                 <span class="text-[10px] font-black text-[#5C5246] uppercase tracking-widest">Tenants</span>
             </div>
-            <div class="text-4xl font-black text-[#F5F5F4] mb-1">{{ $totalEmpresas }}</div>
+            <div class="text-4xl font-black text-[#2C241B] mb-1">{{ $totalEmpresas }}</div>
             <div class="text-sm font-bold text-[#5C5246] uppercase tracking-tight">Empresas Registradas</div>
         </div>
 
@@ -36,7 +36,7 @@
                 </div>
                 <span class="text-[10px] font-black text-[#5C5246] uppercase tracking-widest">Sedes</span>
             </div>
-            <div class="text-4xl font-black text-[#F5F5F4] mb-1">{{ $totalSucursales }}</div>
+            <div class="text-4xl font-black text-[#2C241B] mb-1">{{ $totalSucursales }}</div>
             <div class="text-sm font-bold text-[#5C5246] uppercase tracking-tight">Sucursales Activas</div>
         </div>
 
@@ -48,7 +48,7 @@
                 </div>
                 <span class="text-[10px] font-black text-[#5C5246] uppercase tracking-widest">Comunidad</span>
             </div>
-            <div class="text-4xl font-black text-[#F5F5F4] mb-1">{{ $totalUsuarios }}</div>
+            <div class="text-4xl font-black text-[#2C241B] mb-1">{{ $totalUsuarios }}</div>
             <div class="text-sm font-bold text-[#5C5246] uppercase tracking-tight">Usuarios Totales</div>
         </div>
     </div>
@@ -58,7 +58,7 @@
         {{-- Empresas Recientes --}}
         <div class="bg-white rounded-[40px] border border-[#2C241B]/10 overflow-hidden shadow-sm">
             <div class="p-8 border-b border-[#2C241B]/10 flex items-center justify-between">
-                <h2 class="text-lg font-black text-[#F5F5F4] uppercase tracking-tighter">Empresas Recientes</h2>
+                <h2 class="text-lg font-black text-[#2C241B] uppercase tracking-tighter">Empresas Recientes</h2>
                 <a href="#" class="text-[10px] font-black text-[#E07A5F] uppercase tracking-widest hover:text-amber-400 transition-colors">Ver Todas</a>
             </div>
             <div class="p-4">
@@ -69,7 +69,7 @@
                                 <i class="fas fa-utensils"></i>
                             </div>
                             <div>
-                                <div class="font-bold text-[#F5F5F4]">{{ $empresa->nombre }}</div>
+                                <div class="font-bold text-[#2C241B]">{{ $empresa->nombre }}</div>
                                 <div class="text-[10px] text-[#5C5246] font-bold uppercase tracking-widest">NIT: {{ $empresa->nit }}</div>
                             </div>
                         </div>
@@ -96,7 +96,7 @@
         {{-- Soporte y Herramientas --}}
         <div class="space-y-6">
             <div class="bg-white p-8 rounded-[40px] border border-[#2C241B]/10 shadow-sm">
-                <h2 class="text-lg font-black text-[#F5F5F4] uppercase tracking-tighter mb-6">Herramientas Rápidas</h2>
+                <h2 class="text-lg font-black text-[#2C241B] uppercase tracking-tighter mb-6">Herramientas Rápidas</h2>
                 <div class="grid grid-cols-2 gap-4">
                     <a href="{{ route('super-admin.users') }}" wire:navigate class="flex flex-col items-center justify-center p-6 rounded-[32px] bg-[#FDFBF7] border border-[#2C241B]/10 hover:border-[#E07A5F]/40 transition-all group text-center">
                         <i class="fas fa-search text-[#E07A5F] mb-3 group-hover:scale-110 transition-transform"></i>
@@ -120,12 +120,12 @@
             {{-- Versión y Mantenimiento --}}
             <div class="bg-gradient-to-br from-[#E07A5F]/20 to-[#FDFBF7] p-8 rounded-[40px] border border-[#E07A5F]/20 relative overflow-hidden">
                 <div class="relative z-10">
-                    <h2 class="text-lg font-black text-[#F5F5F4] uppercase tracking-tighter mb-2">Estado de la Plataforma</h2>
+                    <h2 class="text-lg font-black text-[#2C241B] uppercase tracking-tighter mb-2">Estado de la Plataforma</h2>
                     <p class="text-[#8B8175] text-xs leading-relaxed mb-6 font-bold">
-                        Versión actual: <span class="text-[#F5F5F4] font-black">{{ $version_actual }}</span>. <br>
-                        Próximo mantenimiento: <span class="text-[#F5F5F4] font-black">{{ $mantenimiento_fecha }}</span>.
+                        Versión actual: <span class="text-[#2C241B] font-black">{{ $version_actual }}</span>. <br>
+                        Próximo mantenimiento: <span class="text-[#2C241B] font-black">{{ $mantenimiento_fecha }}</span>.
                     </p>
-                    <button wire:click="$set('showVersionesModal', true)" class="bg-[#F5F5F4] text-[#FDFBF7] px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-white transition-all shadow-xl">
+                    <button wire:click="$set('showVersionesModal', true)" class="bg-[#2C241B] text-white px-6 py-3 rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-[#5C5246] transition-all shadow-xl">
                         Gestionar Versiones
                     </button>
                 </div>

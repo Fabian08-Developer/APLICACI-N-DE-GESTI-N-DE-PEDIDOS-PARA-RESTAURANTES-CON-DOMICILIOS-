@@ -5,8 +5,6 @@
 <div>
 <!-- ApexCharts vía CDN -->
 <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
-<!-- AlpineJS para interactividad de modales y sidebar -->
-<script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js"></script>
 <!-- Flatpickr para selector de fechas -->
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/flatpickr.min.css">
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/flatpickr/dist/themes/dark.css">
@@ -1075,22 +1073,29 @@
             _reporteActualizadoHandler: null,
 
             init() {
-                // Initialize Flatpickr for custom date ranges
-                this.fpInstance = flatpickr(this.$refs.dateRangeInput, {
-                    mode: "range",
-                    locale: "es",
-                    dateFormat: "Y-m-d",
-                    altInput: true,
-                    altFormat: "d M Y",
-                    defaultDate: [this.start, this.end],
-                    onChange: (selectedDates, dateStr, instance) => {
-                        if (selectedDates.length === 2) {
-                            this.start = flatpickr.formatDate(selectedDates[0], "Y-m-d");
-                            this.end = flatpickr.formatDate(selectedDates[1], "Y-m-d");
-                            this.datePeriod = 'personalizado';
-                        }
+                // Wait for flatpickr to be available (CDN load delay)
+                const tryInitFp = () => {
+                    if (typeof flatpickr === 'undefined' || typeof flatpickr.l10ns === 'undefined' || !flatpickr.l10ns.es) {
+                        setTimeout(tryInitFp, 100);
+                        return;
                     }
-                });
+                    this.fpInstance = flatpickr(this.$refs.dateRangeInput, {
+                        mode: "range",
+                        locale: "es",
+                        dateFormat: "Y-m-d",
+                        altInput: true,
+                        altFormat: "d M Y",
+                        defaultDate: [this.start, this.end],
+                        onChange: (selectedDates, dateStr, instance) => {
+                            if (selectedDates.length === 2) {
+                                this.start = flatpickr.formatDate(selectedDates[0], "Y-m-d");
+                                this.end = flatpickr.formatDate(selectedDates[1], "Y-m-d");
+                                this.datePeriod = 'personalizado';
+                            }
+                        }
+                    });
+                };
+                tryInitFp();
 
                 // Watch start and end changes to sync back to flatpickr
                 this.$watch('start', (val) => {
@@ -1210,6 +1215,10 @@
             },
 
             initCharts() {
+                if (typeof ApexCharts === 'undefined') {
+                    setTimeout(() => this.initCharts(), 100);
+                    return;
+                }
                 const elTendencia = document.querySelector("#chart-tendencia");
                 const elCategorias = document.querySelector("#chart-categorias");
                 
@@ -1247,6 +1256,9 @@
                     },
                     dataLabels: { enabled: false },
                     stroke: { curve: 'smooth', width: 2 },
+                    markers: {
+                        size: trendData.length === 1 ? 5 : 0
+                    },
                     xaxis: {
                         categories: trendCats,
                         labels: { style: { colors: '#94A3B8', fontSize: '11px' } },

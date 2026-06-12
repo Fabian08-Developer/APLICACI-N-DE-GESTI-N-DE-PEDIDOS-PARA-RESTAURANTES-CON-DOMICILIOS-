@@ -18,7 +18,7 @@ class ComprobanteLiquidacion extends Mailable
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: '✅ Comprobante de Liquidación de Caja — ' . $this->liquidacion->perfil->nombre,
+            subject: 'Comprobante de Liquidación de Caja — ' . $this->liquidacion->perfil->nombre,
         );
     }
 

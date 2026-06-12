@@ -14,13 +14,30 @@ class RoleSeeder extends Seeder
     public function run(): void
     {
         // Roles principales
-        $superAdmin = Role::firstOrCreate(['name' => 'super-admin', 'guard_name' => 'web']);
-        $gerente = Role::firstOrCreate(['name' => 'gerente', 'guard_name' => 'web']);
-        $admin = Role::firstOrCreate(['name' => 'administrador', 'guard_name' => 'web']);
-        $staff = Role::firstOrCreate(['name' => 'staff', 'guard_name' => 'web']); // Cocina, Meseros, etc.
+        $roles = ['super-admin', 'gerente', 'administrador', 'cocina', 'mesero', 'domiciliario'];
+        foreach ($roles as $roleName) {
+            Role::firstOrCreate(['name' => $roleName, 'guard_name' => 'web']);
+        }
 
         // Permisos de ejemplo
+        $gerente = Role::where('name', 'gerente')->first();
+        $admin = Role::where('name', 'administrador')->first();
+
         Permission::firstOrCreate(['name' => 'gestionar-sucursales', 'guard_name' => 'web'])->assignRole($gerente);
         Permission::firstOrCreate(['name' => 'ver-reportes-sede', 'guard_name' => 'web'])->assignRole($admin);
+
+        // Migrar usuarios existentes
+        $users = \App\Models\User::all();
+        foreach($users as $user) {
+            $rolOriginal = $user->getRawOriginal('rol');
+            if ($rolOriginal) {
+                // Asegurarse de que el rol exista
+                Role::firstOrCreate(['name' => $rolOriginal, 'guard_name' => 'web']);
+                // Asignar rol de Spatie si no lo tiene
+                if (!$user->roles()->where('name', $rolOriginal)->exists()) {
+                    $user->assignRole($rolOriginal);
+                }
+            }
+        }
     }
 }

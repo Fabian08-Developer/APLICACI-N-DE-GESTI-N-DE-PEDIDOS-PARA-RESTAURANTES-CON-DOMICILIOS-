@@ -58,7 +58,7 @@ class DomiciliarioController extends Controller
 
     public function show($id)
     {
-        $dom = PerfilDomiciliario::with(['usuario', 'zona'])->find($id);
+        $dom = PerfilDomiciliario::with(['usuario', 'zona', 'liquidaciones.aprobador', 'calificaciones.cliente'])->find($id);
         if (!$dom) {
             return response()->json(['success' => false, 'message' => 'Domiciliario no encontrado']);
         }
@@ -72,6 +72,28 @@ class DomiciliarioController extends Controller
             'placa' => $dom->placa,
             'zona_id' => $dom->zona_id,
             'zona' => $dom->zona ? ['nombre' => $dom->zona->nombre] : null,
+            'pedidos_hoy' => $dom->pedidos_hoy,
+            'calificacion' => $dom->calificacion,
+            'efectivo_pendiente' => $dom->efectivo_pendiente,
+            'tiene_bloqueo' => $dom->tiene_bloqueo,
+            'liquidaciones' => $dom->liquidaciones->map(function($liq) {
+                return [
+                    'id' => $liq->id,
+                    'monto' => $liq->monto,
+                    'fecha' => \Carbon\Carbon::parse($liq->liquidado_en)->format('d/m/Y H:i'),
+                    'aprobador' => $liq->aprobador ? $liq->aprobador->nombre : 'Administrador',
+                    'notas' => $liq->notas
+                ];
+            }),
+            'calificaciones' => $dom->calificaciones->map(function($cal) {
+                return [
+                    'id' => $cal->id,
+                    'puntuacion' => $cal->puntuacion,
+                    'comentario' => $cal->comentario,
+                    'fecha' => \Carbon\Carbon::parse($cal->creado_en)->format('d/m/Y'),
+                    'cliente' => $cal->cliente ? $cal->cliente->nombre : 'Cliente Anónimo'
+                ];
+            })
         ];
 
         return response()->json([

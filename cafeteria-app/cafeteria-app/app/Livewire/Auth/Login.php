@@ -49,7 +49,7 @@ class Login extends Component
         // 4. Case A: Super Admin or Gerente -> Traditional PHP Session login
         if ($user->hasRole('super-admin') || $user->hasRole('gerente')) {
             Auth::login($user, $this->remember);
-            session()->regenerate();
+            // DO NOT regenerate session in Livewire, it breaks the session cookie
             return redirect()->intended('/dashboard');
         }
 
@@ -72,29 +72,36 @@ class Login extends Component
         ]);
 
         // Determine destination dashboard
-        $redirectUrl = $this->redirigirSegunRol($user);
-        $separator = str_contains($redirectUrl, '?') ? '&' : '?';
+        $redirectUrl = $this->redirigirSegunRol($user, $token);
+        // Redirect passing token in a secure HTTP-only cookie
+        $cookie = \Illuminate\Support\Facades\Cookie::make(
+            'staff_token', 
+            $token, 
+            60 * 24 * 7, // 7 días
+            '/', 
+            null, 
+            config('app.env') === 'production', 
+            true, 
+            false, 
+            'Lax'
+        );
 
-        // Redirect passing _token_init to be captured by sessionStorage
-        return redirect()->to($redirectUrl . $separator . '_token_init=' . $token);
+        \Illuminate\Support\Facades\Cookie::queue($cookie);
+        session(['staff_token' => $token]);
+        return redirect()->to($redirectUrl);
     }
 
-    private function redirigirSegunRol($user): string
+    private function redirigirSegunRol($user, $token): string
     {
-        if ($user->hasRole('administrador')) {
-            return route('admin.dashboard');
-        }
-        if ($user->hasRole('mesero')) {
-            return route('mesero.dashboard');
-        }
-        if ($user->hasRole('cocina')) {
-            return route('cocina.dashboard');
-        }
-        if ($user->hasRole('domiciliario')) {
-            return route('domiciliario.dashboard');
-        }
-        // Fallback for delivery or others if they access the panel
-        return route('admin.dashboard');
+        $redirectUrl = match($user->roles->first()->name ?? '') {
+            'administrador' => '/admin/dashboard',
+            'cocina' => '/cocina/dashboard',
+            'mesero' => '/mesero/dashboard',
+            'domiciliario' => '/domiciliario/dashboard',
+            default => '/dashboard'
+        };
+        
+        return $redirectUrl . '?_token_init=' . $token;
     }
 
     public function render()

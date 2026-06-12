@@ -27,7 +27,7 @@ class CheckRole
             $rolesArray = array_merge($rolesArray, explode('|', $roleGroup));
         }
 
-        if (!$user->hasRole($rolesArray)) {
+        if (!$user->hasAnyRole($rolesArray)) {
             abort(403, 'Acceso denegado. Se requiere uno de los siguientes roles: ' . implode(', ', $rolesArray));
         }
 

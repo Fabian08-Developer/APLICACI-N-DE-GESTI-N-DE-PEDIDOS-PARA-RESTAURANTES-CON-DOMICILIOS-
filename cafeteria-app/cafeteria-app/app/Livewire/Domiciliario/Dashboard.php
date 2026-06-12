@@ -111,8 +111,18 @@ class Dashboard extends Component
                 'cambiado_en' => now(),
             ]);
 
-            // Si entregamos, ver si hay más activos, de lo contrario marcarnos disponibles
+            // Si entregamos, actualizar efectivo pendiente y ver si hay más activos
             if ($nuevoEstado === EstadoPedido::ENTREGADO->value) {
+                // Sumar efectivo pendiente al domiciliario si pagaron en efectivo
+                $metodo = strtolower($pedido->metodo_pago ?? 'efectivo');
+                if (empty($metodo) || $metodo === 'efectivo' || $metodo === 'cash') {
+                    if ($user->perfilDomiciliario) {
+                        $monto_adeudado = max(0, $pedido->total - $pedido->costo_envio);
+                        $user->perfilDomiciliario->efectivo_pendiente += $monto_adeudado;
+                        $user->perfilDomiciliario->save();
+                    }
+                }
+
                 $tieneMasPedidos = Pedido::where('perfil_domiciliario_id', Auth::user()->perfilDomiciliario->id)
                     ->whereNotIn('estado', [EstadoPedido::ENTREGADO->value, EstadoPedido::CANCELADO->value])
                     ->exists();

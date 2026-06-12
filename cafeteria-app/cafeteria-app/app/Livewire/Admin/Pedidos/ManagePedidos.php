@@ -216,6 +216,19 @@ class ManagePedidos extends Component
 
         $pedido->update($updateData);
 
+        // Actualizar efectivo pendiente del domiciliario si la orden es entregada y pagada en efectivo
+        if ($nuevoEstado === EstadoPedido::ENTREGADO->value && $pedido->tipo === 'domicilio' && $pedido->perfil_domiciliario_id) {
+            $domiciliario = PerfilDomiciliario::find($pedido->perfil_domiciliario_id);
+            if ($domiciliario) {
+                $metodo = strtolower($pedido->metodo_pago ?? 'efectivo');
+                if (empty($metodo) || $metodo === 'efectivo' || $metodo === 'cash') {
+                    $monto_adeudado = max(0, $pedido->total - $pedido->costo_envio);
+                    $domiciliario->efectivo_pendiente += $monto_adeudado;
+                    $domiciliario->save();
+                }
+            }
+        }
+
         // Save history log
         HistorialEstadoPedido::create([
             'pedido_id'   => $pedido->id,

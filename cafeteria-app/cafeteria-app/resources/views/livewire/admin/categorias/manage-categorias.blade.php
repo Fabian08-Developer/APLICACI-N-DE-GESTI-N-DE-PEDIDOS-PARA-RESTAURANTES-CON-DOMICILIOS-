@@ -1,10 +1,19 @@
 <div wire:key="manage-categorias-container"
-     x-data="{ isOpen: @entangle('showModal').live }"
-     @open-sidebar.window="isOpen = true"
-     @close-sidebar.window="isOpen = false"
-     @close-modal.window="window.dispatchEvent(new CustomEvent('close-sidebar'))">
+    x-data="{ 
+        isOpen: @entangle('showModal').live,
+        showModalEliminar: false,
+        catId: '',
+        catNombre: ''
+    }"
+    @open-sidebar.window="isOpen = true"
+    @close-sidebar.window="isOpen = false"
+    @close-modal.window="showModalEliminar = false; window.dispatchEvent(new CustomEvent('close-sidebar'))">
     @vite(['resources/css/categorias.css'])
-    <style> [x-cloak] { display: none !important; } </style>
+    <style>
+        [x-cloak] {
+            display: none !important;
+        }
+    </style>
 
     {{-- OVERLAY PARA EL DRAWER MANUAL --}}
     <div class="drawer-overlay" id="drawerOverlay" x-cloak :class="{ 'activo': isOpen }" @click="isOpen = false"></div>
@@ -31,7 +40,13 @@
                     <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                     <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
                 </div>
-                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                <style>
+                    @keyframes spin {
+                        to {
+                            transform: rotate(360deg);
+                        }
+                    }
+                </style>
 
                 <div class="grupo">
                     <label for="nombre">Nombre</label>
@@ -133,9 +148,9 @@
                     <td class="texto-gris">{{ $categoria->descripcion ?? '—' }}</td>
                     <td>
                         <label class="toggle-switch-wrapper" wire:loading.attr="disabled" style="cursor: pointer;">
-                            <input type="checkbox" class="toggle-checkbox" 
-                                   wire:click="toggleActivo('{{ $categoria->id }}')" 
-                                   {{ $categoria->activo ? 'checked' : '' }}>
+                            <input type="checkbox" class="toggle-checkbox"
+                                wire:click="toggleActivo('{{ $categoria->id }}')"
+                                {{ $categoria->activo ? 'checked' : '' }}>
                             <div class="toggle-switch"></div>
                             <span class="badge-estado {{ $categoria->activo ? 'badge-estado--activo' : 'badge-estado--inactivo' }}">
                                 {{ $categoria->activo ? 'Activa' : 'Inactiva' }}
@@ -150,7 +165,9 @@
                             </button>
 
                             <button type="button" class="btn-eliminar"
-                                @click="$dispatch('abrir-modal-eliminar', { id: '{{ $categoria->id }}', nombre: '{{ addslashes($categoria->nombre) }}' })">
+                                data-id="{{ $categoria->id }}"
+                                data-nombre="{{ $categoria->nombre }}"
+                                @click="catId = $el.dataset.id; catNombre = $el.dataset.nombre; showModalEliminar = true;">
                                 Eliminar
                             </button>
                         </div>
@@ -170,24 +187,22 @@
 
     {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
     <div class="modal-overlay" id="modalEliminar" x-cloak
-         x-data="{ show: false, catId: '', catNombre: '' }"
-         @abrir-modal-eliminar.window="show = true; catId = $event.detail.id; catNombre = $event.detail.nombre;"
-         @close-modal.window="show = false"
-         :class="{ 'active': show }">
-        <div class="modal-confirm" @click.away="show = false">
-            <div class="modal-icon">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+         x-show="showModalEliminar"
+         x-transition.opacity>
+        <div class="modal-confirm" @click.away="showModalEliminar = false">
+            <div style="width: 50px; height: 50px; border-radius: 50%; background: rgba(239, 68, 68, 0.1); color: #ef4444; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem;">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 24px; height: 24px;">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
                 </svg>
             </div>
-            <h3 class="modal-title">¿Eliminar categoría?</h3>
-            <p class="modal-desc">
+            <h3 style="font-size: 1.25rem; font-weight: 700; color: var(--text-main); margin-bottom: 0.5rem; font-family: 'DM Serif Display', serif;">¿Eliminar categoría?</h3>
+            <p style="color: var(--text-muted); font-size: 0.95rem; margin-bottom: 1.5rem; line-height: 1.5;">
                 Estás a punto de eliminar la categoría <strong x-text="catNombre"></strong>. Esta acción no se puede deshacer.
             </p>
-
+            
             <div class="modal-actions">
-                <button type="button" class="btn-modal btn-modal-cancel" @click="show = false">Cancelar</button>
-                <button type="button" class="btn-modal btn-modal-confirm" @click="$wire.delete(catId)">Sí, eliminar</button>
+                <button type="button" class="btn-modal btn-modal-cancel" @click="showModalEliminar = false">Cancelar</button>
+                <button type="button" class="btn-modal btn-modal-confirm" @click="$wire.eliminarCategoria(catId)">Sí, eliminar</button>
             </div>
         </div>
     </div>
@@ -198,14 +213,10 @@
             inset: 0;
             background: rgba(0, 0, 0, 0.5);
             backdrop-filter: blur(4px);
-            display: none;
+            display: flex;
             align-items: center;
             justify-content: center;
-            z-index: 1000;
-        }
-
-        .modal-overlay.active {
-            display: flex;
+            z-index: 2500;
         }
 
         .modal-confirm {
@@ -219,72 +230,39 @@
             box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
         }
 
-        .modal-icon {
-            width: 50px;
-            height: 50px;
-            background: rgba(248, 113, 113, 0.1);
-            color: #f87171;
-            border-radius: 50%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            margin: 0 auto 1.5rem auto;
-        }
-
-        .modal-icon svg {
-            width: 24px;
-            height: 24px;
-        }
-
-        .modal-title {
-            font-family: 'DM Serif Display', serif;
-            font-size: 1.4rem;
-            margin-bottom: 0.5rem;
-            color: var(--text-main);
-        }
-
-        .modal-desc {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            margin-bottom: 2rem;
-            line-height: 1.5;
-        }
-
         .modal-actions {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 1rem;
+            display: flex;
+            gap: 0.75rem;
+            justify-content: center;
         }
 
         .btn-modal {
+            flex: 1;
             padding: 0.75rem;
-            border-radius: 0.5rem;
+            border-radius: 0.75rem;
             font-weight: 600;
             cursor: pointer;
-            border: none;
-            font-family: inherit;
-            font-size: 0.9rem;
             transition: all 0.2s;
+            border: none;
+            font-size: 0.95rem;
         }
 
         .btn-modal-cancel {
-            background: transparent;
-            border: 1px solid var(--border);
+            background: rgba(0,0,0,0.05);
             color: var(--text-main);
         }
 
         .btn-modal-cancel:hover {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0,0,0,0.1);
         }
 
         .btn-modal-confirm {
-            background: #f87171;
+            background: #ef4444;
             color: white;
         }
 
         .btn-modal-confirm:hover {
-            background: #ef4444;
+            background: #dc2626;
         }
     </style>
-
 </div>

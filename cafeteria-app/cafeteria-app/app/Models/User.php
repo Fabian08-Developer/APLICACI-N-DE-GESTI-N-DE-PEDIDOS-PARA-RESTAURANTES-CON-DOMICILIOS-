@@ -8,10 +8,11 @@ use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasUuid;
+use Spatie\Permission\Traits\HasRoles;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
-    use Notifiable, HasUuid, SoftDeletes;
+    use Notifiable, HasUuid, SoftDeletes, HasRoles;
 
     protected $table = 'usuarios';
 
@@ -69,29 +70,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasOne(\App\Models\PerfilDomiciliario::class, 'usuario_id');
     }
 
-    // ── REEMPLAZO MAGICO PARA SPATIE ──
-    // Este método analiza si el rol coincide. Al soportar arrays, no rompe nada del código existente.
-    public function hasRole($role): bool
-    {
-        $userRole = $this->attributes['rol'] ?? null;
-        if (is_array($role)) {
-            return in_array($userRole, $role);
-        }
-        return $userRole === $role;
-    }
-
-    // Para asignar un rol de forma sencilla
-    public function assignRole($role)
-    {
-        $roleName = is_string($role) ? $role : $role->name;
-        $this->update(['rol' => $roleName]);
-    }
-
     // Mantiene la compatibilidad con las vistas que llamaban a $user->rol->nombre
     public function getRolAttribute()
     {
-        $roleName = $this->attributes['rol'] ?? 'mesero';
-        $nombre = $roleName === 'cocina' ? 'cocina' : ($roleName === 'mesero' ? 'Mesero' : ($roleName === 'administrador' ? 'Administrador' : ucfirst(str_replace('-', ' ', $roleName))));
+        $role = $this->roles->first();
+        $roleName = $role ? $role->name : 'mesero';
+        $nombre = $roleName === 'cocina' ? 'Cocina' : ($roleName === 'mesero' ? 'Mesero' : ($roleName === 'administrador' ? 'Administrador' : ucfirst(str_replace('-', ' ', $roleName))));
 
         return (object)[
             'name' => $roleName,

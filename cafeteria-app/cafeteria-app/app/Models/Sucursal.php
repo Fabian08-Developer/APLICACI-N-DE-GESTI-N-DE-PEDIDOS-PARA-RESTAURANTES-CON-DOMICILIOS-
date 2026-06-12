@@ -6,7 +6,9 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use App\Traits\HasUuid;
+use Carbon\Carbon;
 
 class Sucursal extends Model
 {
@@ -14,7 +16,6 @@ class Sucursal extends Model
 
     protected $table = 'sucursales';
 
-    // Configuración para usar los timestamps en español según las migraciones
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
     const DELETED_AT = 'eliminado_en';
@@ -32,30 +33,77 @@ class Sucursal extends Model
         'hora_apertura',
         'hora_cierre',
         'latitud',
-        'longitud'
+        'longitud',
     ];
 
-    /**
-     * Relación: La sucursal pertenece a una Empresa
-     */
+    protected $casts = [
+        'activo'  => 'boolean',
+        'latitud' => 'decimal:8',
+        'longitud' => 'decimal:8',
+    ];
+
+    // ─── Relaciones ──────────────────────────────────────────────
+
+    /** La sucursal pertenece a una Empresa */
     public function empresa(): BelongsTo
     {
         return $this->belongsTo(Empresa::class);
     }
 
-    /**
-     * Relación: Una sucursal tiene muchos usuarios asignados
-     */
+    /** Usuarios asignados a esta sucursal */
     public function usuarios(): HasMany
     {
         return $this->hasMany(User::class);
     }
 
-    /**
-     * Relación: Una sucursal tiene muchos pedidos
-     */
+    /** Pedidos de esta sucursal */
     public function pedidos(): HasMany
     {
         return $this->hasMany(Pedido::class);
     }
+
+    /** Zonas de cobertura de esta sucursal */
+    public function zonasCobertura(): HasMany
+    {
+        return $this->hasMany(ZonaCobertura::class);
+    }
+
+    /** Tarifas por barrio (tabla pivote) */
+    public function tarifasBarrio(): HasMany
+    {
+        return $this->hasMany(SucursalBarrioTarifa::class);
+    }
+
+    /** Barrios que cubre esta sucursal (many-to-many via pivote) */
+    public function barrios(): BelongsToMany
+    {
+        return $this->belongsToMany(Barrio::class, 'sucursal_barrio_tarifas', 'sucursal_id', 'barrio_id')
+                    ->withPivot(['costo_envio', 'tiempo_estimado', 'activo'])
+                    ->withTimestamps('creado_en', 'actualizado_en');
+    }
+
+    // ─── Helpers ─────────────────────────────────────────────────
+
+    /**
+     * Indica si la sucursal está abierta en este momento.
+     */
+    public function estaAbierta(): bool
+    {
+        if (!$this->hora_apertura || !$this->hora_cierre) {
+            return true; // Sin horario configurado → siempre abierta
+        }
+
+        $ahora    = Carbon::now()->format('H:i:s');
+        $apertura = $this->hora_apertura;
+        $cierre   = $this->hora_cierre;
+
+        // Soporte para horarios que cruzan medianoche
+        if ($apertura <= $cierre) {
+            return $ahora >= $apertura && $ahora <= $cierre;
+        }
+
+        // Horario nocturno: ej. 22:00 – 04:00
+        return $ahora >= $apertura || $ahora <= $cierre;
+    }
 }
+

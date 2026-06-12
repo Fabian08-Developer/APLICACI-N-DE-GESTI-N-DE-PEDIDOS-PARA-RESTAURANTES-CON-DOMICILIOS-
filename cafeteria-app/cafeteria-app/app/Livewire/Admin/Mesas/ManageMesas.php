@@ -29,6 +29,11 @@ class ManageMesas extends Component
     public $sesionACerrarMesa = '';
     public $showCerrarSesionModal = false;
 
+    // Propiedades para Modal Eliminar
+    public $showModalEliminarLivewire = false;
+    public $mesa_eliminar_id;
+    public $mesa_eliminar_numero = '';
+
     protected $rules = [
         'numero' => 'required|integer|min:1',
         'capacidad' => 'nullable|integer|min:1',
@@ -174,7 +179,15 @@ class ManageMesas extends Component
         $this->dispatch('data-loaded');
     }
 
-    public function delete($id)
+    public function openEliminarModal($id)
+    {
+        $mesa = Mesa::findOrFail($id);
+        $this->mesa_eliminar_id = $mesa->id;
+        $this->mesa_eliminar_numero = $mesa->numero;
+        $this->showModalEliminarLivewire = true;
+    }
+
+    public function eliminarMesa($id)
     {
         $mesa = Mesa::findOrFail($id);
         if ($mesa->sucursal_id !== Auth::user()->sucursal_id) {
@@ -187,6 +200,7 @@ class ManageMesas extends Component
         }
 
         $mesa->delete();
+        $this->showModalEliminarLivewire = false;
         $this->dispatch('close-modal');
     }
 

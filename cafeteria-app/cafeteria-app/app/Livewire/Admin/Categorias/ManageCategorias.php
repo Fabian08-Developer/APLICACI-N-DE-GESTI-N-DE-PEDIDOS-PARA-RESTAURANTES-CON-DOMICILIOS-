@@ -48,7 +48,7 @@ class ManageCategorias extends Component
         $total = Categoria::where('sucursal_id', $sucursal_id)->count();
 
         return view('livewire.admin.categorias.manage-categorias', compact('categorias', 'total'))
-               ->layout('layouts.admin');
+            ->layout('layouts.admin');
     }
 
     public function openCreateModal()
@@ -69,12 +69,12 @@ class ManageCategorias extends Component
             if ($categoria->sucursal_id !== $sucursal_id) {
                 abort(403);
             }
-            
+
             $exists = Categoria::where('sucursal_id', $sucursal_id)
                 ->whereRaw('LOWER(nombre) = ?', [mb_strtolower($this->nombre, 'UTF-8')])
                 ->where('id', '!=', $this->categoria_id)
                 ->first();
-                
+
             if ($exists) {
                 $this->addError('nombre', 'Ya existe una categoría con ese nombre en esta sucursal.');
                 return;
@@ -89,7 +89,7 @@ class ManageCategorias extends Component
             $exists = Categoria::where('sucursal_id', $sucursal_id)
                 ->whereRaw('LOWER(nombre) = ?', [mb_strtolower($this->nombre, 'UTF-8')])
                 ->first();
-                
+
             if ($exists) {
                 $this->addError('nombre', 'Ya existe una categoría con ese nombre en esta sucursal.');
                 return;
@@ -121,7 +121,7 @@ class ManageCategorias extends Component
         $this->activo = $categoria->activo;
         $this->isEditing = true;
         $this->showModal = true;
-        
+
         $this->dispatch('data-loaded');
     }
 
@@ -135,11 +135,11 @@ class ManageCategorias extends Component
         $categoria->update([
             'activo' => !$categoria->activo
         ]);
-        
+
         $this->dispatch('categoria-actualizada');
     }
 
-    public function delete($id)
+    public function eliminarCategoria($id)
     {
         $categoria = Categoria::findOrFail($id);
         if ($categoria->sucursal_id !== Auth::user()->sucursal_id) {
@@ -147,7 +147,8 @@ class ManageCategorias extends Component
         }
 
         if ($categoria->productos()->count() > 0) {
-            $this->addError('general', 'No se puede eliminar la categoría porque tiene productos asociados.');
+            $this->addError('general', "No se puede eliminar la categoría '{$categoria->nombre}' porque tiene productos asociados.");
+            $this->dispatch('close-modal');
             return;
         }
 

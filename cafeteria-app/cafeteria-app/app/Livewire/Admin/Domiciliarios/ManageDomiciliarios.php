@@ -12,6 +12,8 @@ use Illuminate\Support\Facades\Log;
 
 class ManageDomiciliarios extends Component
 {
+    public string $activeTab = 'domiciliarios';
+
     // RF-135: Búsqueda por nombre o teléfono
     public string $busqueda = '';
 
@@ -23,11 +25,21 @@ class ManageDomiciliarios extends Component
     public string $notasLiquidacion = '';
     public float $montoLiquidacion = 0.0;
 
+    // Propiedades para Modal Eliminar
+    public $showModalEliminarLivewire = false;
+    public $domiciliario_eliminar_id;
+    public $domiciliario_eliminar_nombre = '';
+
     public function mount()
     {
         if (!auth()->user()->sucursal_id) {
             return redirect()->route('sucursales');
         }
+    }
+
+    public function setTab(string $tab): void
+    {
+        $this->activeTab = $tab;
     }
 
     // RF-136: Actualizar filtro de estado
@@ -68,7 +80,7 @@ class ManageDomiciliarios extends Component
             'sucursal_id'            => $dom->sucursal_id,
             'aprobado_por'           => auth()->id(),
             'monto'                  => $dom->efectivo_pendiente,
-            'estado'                 => 'completada',
+            'estado'                 => 'completado',
             'notas'                  => $this->notasLiquidacion ?: null,
             'liquidado_en'           => now(),
         ]);
@@ -114,8 +126,17 @@ class ManageDomiciliarios extends Component
         }
     }
 
-    // Eliminar domiciliario y su usuario
-    public function delete($id)
+    public function openEliminarModal($id)
+    {
+        $dom = PerfilDomiciliario::with('usuario')->find($id);
+        if ($dom) {
+            $this->domiciliario_eliminar_id = $dom->id;
+            $this->domiciliario_eliminar_nombre = $dom->usuario ? $dom->usuario->nombre : 'Desconocido';
+            $this->showModalEliminarLivewire = true;
+        }
+    }
+
+    public function eliminarDomiciliario($id)
     {
         $dom = PerfilDomiciliario::find($id);
         if ($dom) {
@@ -125,6 +146,7 @@ class ManageDomiciliarios extends Component
                 $usuario->delete();
             }
             session()->flash('success', 'Domiciliario y su cuenta de usuario eliminados correctamente.');
+            $this->showModalEliminarLivewire = false;
         }
     }
 
@@ -166,11 +188,20 @@ class ManageDomiciliarios extends Component
             ? PerfilDomiciliario::with('usuario')->find($this->liquidandoId)
             : null;
 
+        $todasLiquidaciones = [];
+        if ($this->activeTab === 'liquidaciones') {
+            $todasLiquidaciones = LiquidacionDomiciliario::with(['perfil.usuario', 'aprobador'])
+                ->where('sucursal_id', $sucursal_id)
+                ->orderByDesc('liquidado_en')
+                ->get();
+        }
+
         return view('livewire.admin.domiciliarios.manage-domiciliarios', [
             'stats'         => $stats,
             'domiciliarios' => $domiciliarios,
             'zonas'         => $zonas,
             'liquidandoDom' => $liquidandoDom,
+            'todasLiquidaciones' => $todasLiquidaciones,
         ])->layout('layouts.admin');
     }
 }

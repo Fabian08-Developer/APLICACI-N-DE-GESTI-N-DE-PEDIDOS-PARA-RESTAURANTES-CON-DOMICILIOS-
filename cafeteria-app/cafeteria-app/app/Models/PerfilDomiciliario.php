@@ -53,6 +53,12 @@ class PerfilDomiciliario extends Model
                     ->latest('creado_en');
     }
 
+    public function calificaciones(): HasMany
+    {
+        return $this->hasMany(CalificacionDomiciliario::class, 'perfil_domiciliario_id')
+                    ->latest('creado_en');
+    }
+
     public function pedidosActivos(): HasMany
     {
         return $this->hasMany(Pedido::class, 'perfil_domiciliario_id')
@@ -92,5 +98,12 @@ class PerfilDomiciliario extends Model
             }
         }
         return substr($initials, 0, 2);
+    }
+
+    public function recalcularPromedio()
+    {
+        $promedio = $this->calificaciones()->avg('puntuacion');
+        $this->calificacion = $promedio ? round($promedio, 2) : 5.00;
+        $this->save();
     }
 }

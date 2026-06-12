@@ -1,5 +1,10 @@
 @section('titulo', 'Domiciliarios')
-<div x-data="{ isOpen: {{ $errors->any() ? 'true' : 'false' }} }"
+<div x-data="{ 
+        isOpen: {{ $errors->any() ? 'true' : 'false' }},
+        showModalEliminar: false,
+        deleteId: '',
+        deleteName: ''
+     }"
      @open-sidebar.window="isOpen = true"
      @close-sidebar.window="isOpen = false">
     <style>
@@ -27,6 +32,42 @@
         .page-subtitle {
             color: var(--text-sec);
             font-size: 0.875rem;
+        }
+
+        /* Tabs Nav (Estilo unificado con Pedidos) */
+        .tabs-container {
+            display: flex;
+            gap: 0.5rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 1px solid rgba(44, 36, 27, 0.07);
+            flex-wrap: wrap;
+        }
+
+        .tab-btn {
+            background: transparent;
+            border: none;
+            color: rgba(44, 36, 27, 0.6);
+            padding: 0.75rem 1.25rem;
+            font-size: 0.875rem;
+            font-weight: 600;
+            cursor: pointer;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.2s;
+        }
+
+        .tab-btn:hover {
+            color: #2C241B;
+            background: rgba(255, 255, 255, 1);
+        }
+
+        .tab-btn.active {
+            color: #E07A5F;
+            background: rgba(201, 168, 76, 0.08);
+            border-bottom: 2px solid #E07A5F;
+            border-radius: 8px 8px 0 0;
         }
 
         /* Stats Grid */
@@ -264,14 +305,7 @@
             display: flex;
         }
 
-        .modal-content-d {
-            background-color: #0B1120;
-            width: 100%;
-            max-width: 500px;
-            border-radius: 1.5rem;
-            padding: 2rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
+
 
         /* Sidebar */
         .sidebar-form-overlay {
@@ -361,20 +395,24 @@
 
         /* Modal Detalle Premium Styles */
         .modal-content-d {
-            background-color: #0F172A;
-            border: 1px solid rgba(255, 255, 255, 0.1);
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            background-color: #FFFFFF;
+            border: 1px solid var(--border);
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.15);
+            width: 90%;
+            max-width: 460px;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
         }
 
         .modal-header-d {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1rem;
         }
 
         .modal-close {
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.05);
             border: none;
             color: var(--text-sec);
             padding: 0.5rem;
@@ -384,38 +422,37 @@
         }
 
         .modal-close:hover {
-            background: rgba(255, 255, 255, 0.1);
-            color: #fff;
+            background: rgba(0, 0, 0, 0.1);
+            color: var(--text-main);
         }
 
         .detail-profile {
             display: flex;
-            flex-direction: column;
             align-items: center;
-            text-align: center;
-            margin-bottom: 2rem;
+            gap: 1rem;
+            margin-bottom: 1rem;
         }
 
         .avatar-lg {
-            width: 80px;
-            height: 80px;
-            background: linear-gradient(135deg, var(--status-info), #3b82f6);
-            border-radius: 1.5rem;
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--d-primary), #d97706);
+            border-radius: 1rem;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 2rem;
+            font-size: 1.25rem;
             font-weight: 700;
             color: #fff;
-            margin-bottom: 1rem;
-            box-shadow: 0 10px 15px -3px rgba(59, 130, 246, 0.3);
+            box-shadow: 0 10px 15px -3px rgba(224, 122, 95, 0.3);
+            flex-shrink: 0;
         }
 
         .detail-name {
             font-family: 'DM Serif Display', serif;
-            font-size: 1.5rem;
-            color: #fff;
-            margin-bottom: 0.5rem;
+            font-size: 1.1rem;
+            color: var(--text-main);
+            margin-bottom: 0.25rem;
         }
 
         .badge-status {
@@ -424,31 +461,33 @@
             font-size: 0.75rem;
             font-weight: 700;
             text-transform: uppercase;
-            background: rgba(255, 255, 255, 0.05);
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
         }
 
         .info-card {
-            background: rgba(255, 255, 255, 0.03);
-            border-radius: 1rem;
-            padding: 1.25rem;
-            margin-bottom: 2rem;
+            background: var(--surface);
+            border-radius: 0.75rem;
+            padding: 0.75rem;
+            margin-bottom: 1rem;
+            border: 1px solid var(--border);
         }
 
         .info-row {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 0.75rem 0;
+            gap: 0.75rem;
+            padding: 0.5rem 0;
             color: var(--text-sec);
-            font-size: 0.9rem;
+            font-size: 0.85rem;
         }
 
         .info-row:not(:last-child) {
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            border-bottom: 1px solid var(--border);
         }
 
         .info-row svg {
-            color: var(--status-info);
+            color: var(--d-primary);
             opacity: 0.8;
         }
 
@@ -460,9 +499,9 @@
 
         .btn-close-modal {
             padding: 0.75rem;
-            background: rgba(255, 255, 255, 0.05);
-            color: #fff;
-            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: transparent;
+            color: var(--text-sec);
+            border: 1px solid var(--border);
             border-radius: 0.75rem;
             cursor: pointer;
             font-weight: 600;
@@ -470,13 +509,14 @@
         }
 
         .btn-close-modal:hover {
-            background: rgba(255, 255, 255, 0.1);
+            background: rgba(0, 0, 0, 0.05);
+            color: var(--text-main);
         }
 
         .btn-edit-modal {
             padding: 0.75rem;
             background: var(--d-primary);
-            color: #0f0f0f;
+            color: #FFFFFF;
             border: none;
             border-radius: 0.75rem;
             cursor: pointer;
@@ -485,8 +525,9 @@
         }
 
         .btn-edit-modal:hover {
+            background: #D4694D;
             transform: translateY(-2px);
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);
+            box-shadow: 0 4px 6px -1px rgba(224, 122, 95, 0.2);
         }
 
         /* Barrios Selector Styles */
@@ -565,7 +606,6 @@
         </button>
     </div>
 
-
     <!-- Stats Dinámicos -->
     <div class="stats-grid">
         <div class="card-d stat-card">
@@ -599,6 +639,28 @@
             </div>
         </div>
     </div>
+
+    <!-- Tabs Nav -->
+    <div class="tabs-container">
+        <button class="tab-btn {{ $activeTab === 'domiciliarios' ? 'active' : '' }}" wire:click="setTab('domiciliarios')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path>
+                <circle cx="9" cy="7" r="4"></circle>
+                <path d="M23 21v-2a4 4 0 0 0-3-3.87"></path>
+                <path d="M16 3.13a4 4 0 0 1 0 7.75"></path>
+            </svg>
+            Domiciliarios
+        </button>
+        <button class="tab-btn {{ $activeTab === 'liquidaciones' ? 'active' : '' }}" wire:click="setTab('liquidaciones')">
+            <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="1" x2="12" y2="23"></line>
+                <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+            </svg>
+            Liquidaciones
+        </button>
+    </div>
+
+    @if($activeTab === 'domiciliarios')
 
     {{-- RF-135: Barra de búsqueda + RF-136: Filtros de estado --}}
     <div class="card-d" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
@@ -634,8 +696,8 @@
                         <th>Contacto</th>
                         <th>Vehículo</th>
                         <th>Zona</th>
-                        <th>Pedidos Hoy</th>
-                        <th>Calificación</th>
+                        <th style="text-align: center;">Pedidos Hoy</th>
+                        <th style="text-align: center;">Calificación</th>
                         <th>Efectivo Pend.</th>
                         <th>Estado</th>
                         <th></th>
@@ -658,7 +720,7 @@
                         <td>{{ $dom->zona->nombre ?? 'N/A' }}</td>
                         <td style="text-align: center;">{{ $dom->pedidos_hoy }}</td>
                         {{-- RF-133: Columna Calificación --}}
-                        <td>
+                        <td style="text-align: center;">
                             <span style="color: #f59e0b; font-weight: 700;">★</span>
                             <span style="color: var(--text-main); font-weight: 600;">{{ number_format($dom->calificacion, 1) }}</span>
                         </td>
@@ -696,7 +758,9 @@
                                     💰
                                 </button>
                                 @endif
-                                <button type="button" class="btn-acciones btn-eliminar" wire:click="delete('{{ $dom->id }}')" wire:confirm="¿Eliminar domiciliario y su cuenta de usuario?" title="Eliminar">
+                                <button type="button" class="btn-acciones btn-eliminar" 
+                                        @click.prevent.stop="deleteId = '{{ $dom->id }}'; deleteName = '{{ addslashes($dom->nombre) }}'; showModalEliminar = true;" 
+                                        title="Eliminar">
                                     <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg>
                                 </button>
                             </div>
@@ -712,29 +776,87 @@
         </div>
     </div>
 
+    @elseif($activeTab === 'liquidaciones')
+    <div class="card-d">
+        <div style="padding: 1.5rem; border-bottom: 1px solid rgba(0,0,0,0.05);">
+            <h3 style="font-family: 'DM Serif Display', serif; font-size: 1.4rem; color: var(--text-main); margin: 0;">Historial General de Liquidaciones</h3>
+            <p style="color: var(--text-sec); font-size: 0.85rem; margin-top: 4px;">Todas las liquidaciones de efectivo realizadas a los domiciliarios.</p>
+        </div>
+        <div class="table-wrapper">
+            <table class="table-d">
+                <thead>
+                    <tr>
+                        <th>ID / Fecha</th>
+                        <th>Domiciliario</th>
+                        <th>Monto Liquidado</th>
+                        <th>Aprobador</th>
+                        <th>Notas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($todasLiquidaciones as $liq)
+                    <tr>
+                        <td>
+                            <div style="font-weight: 600; color: var(--text-main);">#{{ substr($liq->id, 0, 8) }}</div>
+                            <div style="font-size: 0.8rem; color: var(--text-sec);">{{ \Carbon\Carbon::parse($liq->liquidado_en)->format('d/m/Y H:i') }}</div>
+                        </td>
+                        <td>
+                            <div style="display: flex; align-items: center; gap: 0.75rem;">
+                                <div class="driver-avatar" style="width: 32px; height: 32px; font-size: 0.8rem;">{{ $liq->perfil->iniciales ?? '?' }}</div>
+                                <span style="font-weight: 600; color: var(--text-main);">{{ $liq->perfil->nombre ?? 'N/A' }}</span>
+                            </div>
+                        </td>
+                        <td>
+                            <span style="color: #22c55e; font-weight: 700;">${{ number_format($liq->monto, 0, ',', '.') }}</span>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.9rem; color: var(--text-main);">{{ $liq->aprobador->nombre ?? 'Administrador' }}</div>
+                        </td>
+                        <td>
+                            <div style="font-size: 0.85rem; color: var(--text-sec); max-width: 250px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" title="{{ $liq->notas }}">
+                                {{ $liq->notas ?: '--' }}
+                            </div>
+                        </td>
+                    </tr>
+                    @empty
+                    <tr>
+                        <td colspan="5" style="text-align: center; padding: 3rem; color: var(--text-sec);">No hay liquidaciones registradas en esta sucursal.</td>
+                    </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </div>
+    @endif
+
     {{-- RF-138: Modal de confirmación de Liquidación --}}
     @if($liquidandoDom)
     <div class="modal-overlay show" wire:ignore.self>
-        <div class="modal-content-d" style="max-width: 420px;">
+        <div class="modal-content-d" style="max-width: 360px;">
             <div class="modal-header-d">
-                <h2 style="color: #fff; font-size: 1.1rem;">💰 Liquidación de Caja</h2>
+                <h2 style="color: var(--text-main); font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; font-family: 'DM Serif Display', serif;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="color: var(--d-primary);"><rect x="2" y="6" width="20" height="12" rx="2"></rect><circle cx="12" cy="12" r="2"></circle><path d="M6 12h.01M18 12h.01"></path></svg>
+                    Liquidación de Caja
+                </h2>
                 <button class="modal-close" wire:click="cancelarLiquidacion">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
                 </button>
             </div>
 
             <div style="text-align: center; margin-bottom: 1.5rem;">
-                <div style="width: 60px; height: 60px; background: linear-gradient(135deg, #f59e0b, #d97706); border-radius: 1rem; display: flex; align-items: center; justify-content: center; font-size: 1.5rem; margin: 0 auto 1rem;">💵</div>
+                <div style="width: 60px; height: 60px; background: rgba(224, 122, 95, 0.1); border-radius: 1rem; display: flex; align-items: center; justify-content: center; margin: 0 auto 1rem; color: var(--d-primary);">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                </div>
                 <p style="color: var(--text-sec); font-size: 0.9rem;">Registrar entrega de efectivo de</p>
                 <p style="color: var(--text-main); font-weight: 700; font-size: 1.1rem; margin-top: 4px;">{{ $liquidandoDom->nombre }}</p>
             </div>
 
-            <div style="background: rgba(245, 158, 11, 0.1); border: 1px solid rgba(245, 158, 11, 0.3); border-radius: 1rem; padding: 1.25rem; text-align: center; margin-bottom: 1.5rem;">
-                <p style="font-size: 0.75rem; color: #f59e0b; text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Monto a liquidar</p>
-                <p style="font-size: 2rem; font-weight: 800; color: #fff; margin-top: 4px;">
+            <div style="background: rgba(224, 122, 95, 0.05); border: 1px solid rgba(224, 122, 95, 0.2); border-radius: 1rem; padding: 1rem; text-align: center; margin-bottom: 1rem;">
+                <p style="font-size: 0.7rem; color: var(--d-primary); text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;">Monto a liquidar</p>
+                <p style="font-size: 1.75rem; font-weight: 800; color: var(--text-main); margin-top: 2px;">
                     ${{ number_format($montoLiquidacion, 0, ',', '.') }}
                 </p>
-                <p style="font-size: 0.75rem; color: var(--text-sec); margin-top: 4px;">COP · Efectivo pendiente actual</p>
+                <p style="font-size: 0.7rem; color: var(--text-sec); margin-top: 2px;">COP · Efectivo pdte.</p>
             </div>
 
             <div class="form-group">
@@ -745,26 +867,160 @@
             </div>
 
             <p style="font-size: 0.8rem; color: var(--text-sec); margin-bottom: 1.25rem; text-align: center;">
-                Al confirmar, el saldo quedará en <strong style="color: #22c55e;">$0</strong> y se enviará un comprobante por email.
+                Al confirmar, el saldo quedará en <strong style="color: var(--d-success);">$0</strong> y se enviará un comprobante por email.
             </p>
 
             <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <button class="btn-close-modal" wire:click="cancelarLiquidacion">Cancelar</button>
-                <button class="btn-edit-modal" wire:click="confirmarLiquidacion" style="background: #22c55e;">
-                    ✓ Confirmar Liquidación
+                <button class="btn-edit-modal" wire:click="confirmarLiquidacion" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    Confirmar Liquidación
                 </button>
             </div>
         </div>
     </div>
     @endif
 
+    {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN CON ALPINE JS (SÚPER RÁPIDO) --}}
+    <div class="modal-eliminar-overlay" x-cloak x-show="showModalEliminar">
+        <div class="modal-eliminar-caja" @click.away="showModalEliminar = false">
+            <div class="modal-eliminar-icono">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+            </div>
+            <h3 class="modal-eliminar-titulo">¿Eliminar domiciliario?</h3>
+            <p class="modal-eliminar-mensaje">
+                Estás a punto de eliminar a <strong x-text="deleteName"></strong> y su cuenta de usuario. Esta acción no se puede deshacer.
+            </p>
+            
+            <div class="modal-eliminar-acciones">
+                <button type="button" class="btn-modal-cancelar" @click="showModalEliminar = false">Cancelar</button>
+                <button type="button" class="btn-modal-eliminar" @click="$wire.eliminarDomiciliario(deleteId); showModalEliminar = false">Sí, eliminar</button>
+            </div>
+        </div>
+    </div>
+
+    <style>
+        .modal-eliminar-overlay {
+            position: fixed;
+            inset: 0;
+            background: rgba(0, 0, 0, 0.6);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            animation: fadeIn 0.2s ease-out;
+        }
+
+        .modal-eliminar-caja {
+            background: var(--surface);
+            width: 90%;
+            max-width: 400px;
+            padding: 2.5rem 2rem;
+            border-radius: 1.5rem;
+            border: 1px solid var(--border);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+        }
+
+        .modal-eliminar-icono {
+            width: 60px;
+            height: 60px;
+            background: rgba(239, 68, 68, 0.1);
+            color: #ef4444;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 1.5rem auto;
+        }
+
+        .modal-eliminar-icono svg {
+            width: 28px;
+            height: 28px;
+        }
+
+        .modal-eliminar-titulo {
+            font-family: 'DM Serif Display', serif;
+            font-size: 1.5rem;
+            margin-bottom: 0.75rem;
+            color: var(--text-main);
+        }
+
+        .modal-eliminar-mensaje {
+            font-size: 0.95rem;
+            color: var(--text-muted);
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-eliminar-mensaje strong {
+            color: var(--text-main);
+        }
+
+        .modal-eliminar-acciones {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
+
+        .btn-modal-cancelar {
+            flex: 1;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: 1px solid var(--border);
+            font-size: 0.95rem;
+            background: transparent;
+            color: var(--text-main);
+        }
+
+        .btn-modal-cancelar:hover {
+            background: rgba(0,0,0,0.05);
+        }
+
+        .btn-modal-eliminar {
+            flex: 1;
+            padding: 0.875rem;
+            border-radius: 0.75rem;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            border: none;
+            font-size: 0.95rem;
+            background: #ef4444;
+            color: white;
+        }
+
+        .btn-modal-eliminar:hover {
+            background: #dc2626;
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(239, 68, 68, 0.3);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(20px) scale(0.95); }
+            to { opacity: 1; transform: translateY(0) scale(1); }
+        }
+    </style>
+
     <!-- Modal Detalle -->
     <div class="modal-overlay" id="detailModal" wire:ignore>
         <div class="modal-content-d">
             <div class="modal-header-d">
-                <h2 style="color: #fff; font-size: 1.25rem;">Detalle del Domiciliario</h2>
+                <h2 style="color: var(--text-main); font-size: 1.1rem; font-family: 'DM Serif Display', serif;">Detalle del Domiciliario</h2>
                 <button class="modal-close" onclick="closeDetailModal()">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
                         <line x1="18" y1="6" x2="6" y2="18"></line>
                         <line x1="6" y1="6" x2="18" y2="18"></line>
                     </svg>
@@ -777,13 +1033,46 @@
                     <span class="badge-status" id="detBadge">--</span>
                 </div>
             </div>
+            <!-- Nuevos datos añadidos -->
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; margin-bottom: 1rem;">
+                <div style="background: var(--surface); padding: 0.75rem 0.5rem; border-radius: 0.75rem; text-align: center; border: 1px solid var(--border);">
+                    <div style="font-size: 0.65rem; color: var(--text-sec); margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Pedidos Hoy</div>
+                    <div style="font-size: 1.1rem; color: var(--text-main); font-weight: 700;" id="detOrders">--</div>
+                </div>
+                <div style="background: var(--surface); padding: 0.75rem 0.5rem; border-radius: 0.75rem; text-align: center; border: 1px solid var(--border);">
+                    <div style="font-size: 0.65rem; color: var(--text-sec); margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Calificación</div>
+                    <div style="font-size: 1.1rem; color: #f59e0b; font-weight: 700;"><span style="font-size: 0.9rem; margin-right: 2px;">★</span><span id="detRating">--</span></div>
+                </div>
+                <div style="background: var(--surface); padding: 0.75rem 0.5rem; border-radius: 0.75rem; text-align: center; border: 1px solid var(--border);">
+                    <div style="font-size: 0.65rem; color: var(--text-sec); margin-bottom: 0.25rem; text-transform: uppercase; font-weight: 600; letter-spacing: 0.05em;">Efectivo Pend.</div>
+                    <div style="font-size: 1.1rem; color: var(--d-success); font-weight: 700;" id="detCash">--</div>
+                </div>
+            </div>
+
             <div class="info-card">
                 <div class="info-row"><svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;">
                         <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0122 16.92z"></path>
                     </svg> <span id="detPhone">--</span></div>
                 <div class="info-row" id="detVehicle">--</div>
                 <div class="info-row" id="detZone">--</div>
+            </div>
 
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem; margin-top: 1rem;">
+                <!-- Historial de Liquidaciones -->
+                <div>
+                    <h3 style="color: var(--text-main); font-family: 'DM Serif Display', serif; font-size: 0.95rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border);">Historial Liquidaciones</h3>
+                    <div id="detLiquidaciones" style="max-height: 110px; overflow-y: auto; padding-right: 0.25rem; font-size: 0.85rem;">
+                        <!-- Se llenará vía JS -->
+                    </div>
+                </div>
+
+                <!-- Últimas Calificaciones -->
+                <div>
+                    <h3 style="color: var(--text-main); font-family: 'DM Serif Display', serif; font-size: 0.95rem; margin-bottom: 0.5rem; padding-bottom: 0.25rem; border-bottom: 1px solid var(--border);">Últimas Calificaciones</h3>
+                    <div id="detCalificaciones" style="max-height: 110px; overflow-y: auto; padding-right: 0.25rem; font-size: 0.85rem;">
+                        <!-- Se llenará vía JS -->
+                    </div>
+                </div>
             </div>
             <div class="modal-footer-d">
                 <button class="btn-close-modal" onclick="closeDetailModal()">Cerrar</button>
@@ -798,7 +1087,12 @@
         <div class="sidebar-form-header">
             <h2 id="formTitle" style="color: var(--text-main); font-family: 'DM Serif Display', serif;">Nuevo Domiciliario</h2>
         </div>
-        <div class="sidebar-form-content">
+        <div class="sidebar-form-content" style="position: relative;">
+            <div id="formLoadingOverlay" style="display: none; position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
+                <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+                <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+                <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
+            </div>
             <form id="mainForm" method="POST">
                 @csrf
                 <div id="methodField"></div>
@@ -872,7 +1166,68 @@
                         document.getElementById('detVehicle').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><rect x="1" y="3" width="15" height="13"></rect><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"></polygon><circle cx="5.5" cy="18.5" r="2.5"></circle><circle cx="18.5" cy="18.5" r="2.5"></circle></svg> ${dom.vehiculo_tipo.charAt(0).toUpperCase() + dom.vehiculo_tipo.slice(1)} ${dom.placa ? '(' + dom.placa + ')' : ''}`;
                         document.getElementById('detZone').innerHTML = `<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 10px;"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path><circle cx="12" cy="10" r="3"></circle></svg> ${dom.zona ? dom.zona.nombre : 'Sin zona'}`;
 
+                        document.getElementById('detOrders').innerText = dom.pedidos_hoy || '0';
+                        document.getElementById('detRating').innerText = dom.calificacion ? Number(dom.calificacion).toFixed(1) : '0.0';
+                        
+                        const formatCurrency = new Intl.NumberFormat('es-CO', { style: 'currency', currency: 'COP', minimumFractionDigits: 0 }).format;
+                        document.getElementById('detCash').innerText = formatCurrency(dom.efectivo_pendiente || 0);
+                        
+                        if (dom.efectivo_pendiente > 0) {
+                            document.getElementById('detCash').style.color = dom.tiene_bloqueo ? '#ef4444' : '#f59e0b';
+                        } else {
+                            document.getElementById('detCash').style.color = '#10b981';
+                        }
 
+                        // Poblar historial de liquidaciones
+                        const liqContainer = document.getElementById('detLiquidaciones');
+                        if (dom.liquidaciones && dom.liquidaciones.length > 0) {
+                            let liqHtml = '';
+                            dom.liquidaciones.forEach(liq => {
+                                liqHtml += `
+                                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.05); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem;">
+                                        <span style="color: #22c55e; font-weight: 600;">${formatCurrency(liq.monto)}</span>
+                                        <span style="color: #94A3B8; font-size: 0.8rem;">${liq.fecha}</span>
+                                    </div>
+                                    <div style="color: #cbd5e1; font-size: 0.8rem; margin-bottom: 0.25rem;">Aprobado por: ${liq.aprobador}</div>
+                                    ${liq.notas ? `<div style="color: #94A3B8; font-size: 0.75rem; font-style: italic;">Notas: ${liq.notas}</div>` : ''}
+                                </div>`;
+                            });
+                            liqContainer.innerHTML = liqHtml;
+                        } else {
+                            liqContainer.innerHTML = '<div style="color: #94A3B8; font-size: 0.85rem; text-align: center; padding: 1rem 0;">No hay liquidaciones registradas.</div>';
+                        }
+
+                        // Poblar historial de calificaciones
+                        const califContainer = document.getElementById('detCalificaciones');
+                        if (dom.calificaciones && dom.calificaciones.length > 0) {
+                            let califHtml = '';
+                            dom.calificaciones.forEach(cal => {
+                                let starsHtml = '';
+                                for (let i = 1; i <= 5; i++) {
+                                    if (i <= cal.puntuacion) {
+                                        starsHtml += '<span style="color: #f59e0b; font-size: 1rem; margin-right: 2px;">★</span>';
+                                    } else {
+                                        starsHtml += '<span style="color: #e2e8f0; font-size: 1rem; margin-right: 2px;">★</span>';
+                                    }
+                                }
+
+                                califHtml += `
+                                <div style="background: var(--surface); border: 1px solid var(--border); border-radius: 0.5rem; padding: 0.75rem; margin-bottom: 0.5rem;">
+                                    <div style="display: flex; justify-content: space-between; margin-bottom: 0.25rem; align-items: center;">
+                                        <div style="color: var(--text-main); font-weight: 600; font-size: 0.85rem;">${cal.cliente}</div>
+                                        <div style="color: var(--text-sec); font-size: 0.75rem;">${cal.fecha}</div>
+                                    </div>
+                                    <div style="margin-bottom: 0.25rem;">
+                                        ${starsHtml}
+                                    </div>
+                                    ${cal.comentario ? `<div style="color: var(--text-sec); font-size: 0.8rem; font-style: italic; margin-top: 0.25rem;">"${cal.comentario}"</div>` : ''}
+                                </div>`;
+                            });
+                            califContainer.innerHTML = califHtml;
+                        } else {
+                            califContainer.innerHTML = '<div style="color: #94A3B8; font-size: 0.85rem; text-align: center; padding: 1rem 0;">Aún no hay calificaciones.</div>';
+                        }
 
                         document.getElementById('btnEditFromDetail').onclick = () => {
                             window.dispatchEvent(new CustomEvent('open-sidebar'));
@@ -894,14 +1249,20 @@
             document.getElementById('mainForm').action = "{{ '#' }}";
             document.getElementById('methodField').innerHTML = '';
             document.getElementById('mainForm').reset();
+            if(document.getElementById('formLoadingOverlay')) document.getElementById('formLoadingOverlay').style.display = 'none';
             window.dispatchEvent(new CustomEvent('open-sidebar'));
         }
 
         function openEditForm(id) {
             closeDetailModal();
+            document.getElementById('formTitle').innerText = "Editar Domiciliario";
+            if(document.getElementById('formLoadingOverlay')) document.getElementById('formLoadingOverlay').style.display = 'flex';
+            window.dispatchEvent(new CustomEvent('open-sidebar'));
+
             fetch(`/admin/domiciliarios/${id}`)
                 .then(res => res.json())
                 .then(res => {
+                    if(document.getElementById('formLoadingOverlay')) document.getElementById('formLoadingOverlay').style.display = 'none';
                     if (res.success) {
                         const dom = res.data;
                         document.getElementById('formTitle').innerText = "Editar Domiciliario";
@@ -912,9 +1273,11 @@
                         document.getElementById('inZoneId').value = dom.zona_id;
                         document.getElementById('inVehicleType').value = dom.vehiculo_tipo;
                         document.getElementById('inPlate').value = dom.placa || '';
-
-                        window.dispatchEvent(new CustomEvent('open-sidebar'));
                     }
+                })
+                .catch(() => {
+                    if(document.getElementById('formLoadingOverlay')) document.getElementById('formLoadingOverlay').style.display = 'none';
+                    document.getElementById('formTitle').innerText = "Error al cargar";
                 });
         }
 
