@@ -5,6 +5,16 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Admin' }}</title>
+    {{-- Meta tags de contexto de autenticación para Echo y PWA --}}
+    @auth
+    <meta name="auth-user-id"      content="{{ auth()->id() }}">
+    <meta name="auth-sucursal-id" content="{{ auth()->user()->sucursal_id }}">
+    @endauth
+    <meta name="theme-color" content="#E07A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SGPD">
+    <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
     @vite(['resources/css/admin.css', 'resources/js/admin.js'])
     @livewireStyles
@@ -56,6 +66,12 @@
             <small>Panel administrador</small>
         </div>
         <div class="topbar-spacer"></div>
+        {{-- Campanilla de notificaciones en tiempo real --}}
+        @auth
+        @if(auth()->user()->sucursal_id)
+        <livewire:shared.campanilla-notificaciones />
+        @endif
+        @endauth
         <div class="topbar-usuario">
             <strong>{{ auth()->user()->nombre }}</strong>
             {{ auth()->user()->rol->nombre }} @if(auth()->user()->sucursal_id) (Sucursal: {{ auth()->user()->sucursal->nombre }}) @endif
@@ -157,6 +173,41 @@
         @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocina') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
             @include('partials.staff-token')
         @endif
+    @endauth
+
+    {{-- Echo → Livewire bridge: conecta Reverb con la campanilla --}}
+    @auth
+    @if(auth()->user()->sucursal_id)
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Esperar a que Echo esté listo (inicializado en echo-setup.js)
+        const initEcho = () => {
+            if (!window.Echo || !window.__SGPD_ECHO?.ready) {
+                setTimeout(initEcho, 300);
+                return;
+            }
+
+            const { sucursalId } = window.__SGPD_ECHO;
+
+            window.Echo.private(`sucursal.${sucursalId}`)
+                .listen('.pedido.creado', (e) => {
+                    Livewire.dispatch('nuevaNotificacion', e);
+                })
+                .listen('.pedido.estado_cambiado', (e) => {
+                    Livewire.dispatch('nuevaNotificacion', e);
+                })
+                .listen('.pedido.asignado', (e) => {
+                    Livewire.dispatch('nuevaNotificacion', e);
+                })
+                .listen('.pedido.cancelado', (e) => {
+                    Livewire.dispatch('nuevaNotificacion', e);
+                });
+        };
+
+        initEcho();
+    });
+    </script>
+    @endif
     @endauth
 </body>
 </html>

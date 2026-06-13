@@ -6,6 +6,7 @@ use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasUuid;
 use Spatie\Permission\Traits\HasRoles;
@@ -68,6 +69,11 @@ class User extends Authenticatable implements MustVerifyEmail
     public function perfilDomiciliario()
     {
         return $this->hasOne(\App\Models\PerfilDomiciliario::class, 'usuario_id');
+    }
+
+    public function notificaciones(): HasMany
+    {
+        return $this->hasMany(Notificacion::class, 'usuario_id')->latest('creado_en');
     }
 
     // Mantiene la compatibilidad con las vistas que llamaban a $user->rol->nombre

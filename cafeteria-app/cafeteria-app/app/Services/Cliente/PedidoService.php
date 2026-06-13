@@ -10,6 +10,9 @@ use App\Models\User;
 use App\Models\PerfilDomiciliario;
 use App\Enums\EstadoPedido;
 use App\Enums\EstadoPago;
+use App\Events\PedidoCreado;
+use App\Events\PedidoCancelado;
+use App\Jobs\DispararNotificacion;
 use App\Services\SucursalAssignmentService;
 use Illuminate\Support\Facades\DB;
 use App\Traits\OrderEmailNotifications;
@@ -140,6 +143,22 @@ class PedidoService
 
             DB::commit();
 
+            // Notificar al equipo de la sucursal que hay un nuevo pedido
+            PedidoCreado::dispatch(
+                sucursal_id: $pedido->sucursal_id,
+                pedido_id:   $pedido->id,
+                tipo:        $pedido->tipo,
+                short_id:    $pedido->short_id,
+            );
+
+            DispararNotificacion::paraSucursal(
+                sucursal_id: $pedido->sucursal_id,
+                tipo:        'pedido_creado',
+                titulo:      '\u{1F6D2} Nuevo pedido recibido',
+                mensaje:     "Pedido #{$pedido->short_id} ({$pedido->tipo}) — $" . number_format($pedido->total, 2),
+                datos:       ['pedido_id' => $pedido->id, 'tipo' => $pedido->tipo],
+            )->dispatch();
+
             return $pedido;
 
         } catch (\Exception $e) {
@@ -190,6 +209,23 @@ class PedidoService
             $this->enviarEmailCancelacion($pedido);
 
             DB::commit();
+
+            // Notificar al equipo que el cliente canceló
+            PedidoCancelado::dispatch(
+                sucursal_id: $pedido->sucursal_id,
+                pedido_id:   $pedido->id,
+                short_id:    $pedido->short_id,
+                tipo:        $pedido->tipo,
+                motivo:      'Cancelado por el cliente.',
+            );
+
+            DispararNotificacion::paraSucursal(
+                sucursal_id: $pedido->sucursal_id,
+                tipo:        'pedido_cancelado',
+                titulo:      "Pedido #{$pedido->short_id} cancelado por cliente",
+                mensaje:     'El cliente canceló su propio pedido.',
+                datos:       ['pedido_id' => $pedido->id],
+            )->dispatch();
 
             return true;
         } catch (\Exception $e) {

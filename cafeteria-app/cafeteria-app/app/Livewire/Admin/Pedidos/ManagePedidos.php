@@ -10,6 +10,10 @@ use App\Models\PerfilDomiciliario;
 use App\Models\ZonaCobertura;
 use App\Models\HistorialEstadoPedido;
 use App\Enums\EstadoPedido;
+use App\Events\PedidoCambioEstado;
+use App\Events\PedidoAsignadoDomiciliario;
+use App\Events\PedidoCancelado;
+use App\Jobs\DispararNotificacion;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\Log;
 
@@ -121,6 +125,23 @@ class ManagePedidos extends Component
             $domiciliario->update(['estado' => 'en_ruta']);
         }
 
+        // R-02: Solo se agrega dispatch al final, sin tocar la lógica de negocio.
+        PedidoAsignadoDomiciliario::dispatch(
+            sucursal_id:           $pedido->sucursal_id,
+            pedido_id:             $pedido->id,
+            short_id:              $pedido->short_id,
+            domiciliario_nombre:   $domiciliario->nombre,
+            domiciliario_user_id:  $domiciliario->usuario_id,
+        );
+
+        DispararNotificacion::paraSucursal(
+            sucursal_id: $pedido->sucursal_id,
+            tipo:        'pedido_asignado',
+            titulo:      "Pedido #{$pedido->short_id} asignado",
+            mensaje:     "Asignado a {$domiciliario->nombre}",
+            datos:       ['pedido_id' => $pedido->id],
+        )->dispatch();
+
         session()->flash('success', 'Domiciliario asignado correctamente.');
         $this->closeAsignarModal();
     }
@@ -191,6 +212,23 @@ class ManagePedidos extends Component
 
         $elegido->update(['estado' => 'en_ruta']);
 
+        // R-02: Dispatch al final, misma lógica que asignarDomiciliario()
+        PedidoAsignadoDomiciliario::dispatch(
+            sucursal_id:          $pedido->sucursal_id,
+            pedido_id:            $pedido->id,
+            short_id:             $pedido->short_id,
+            domiciliario_nombre:  $elegido->nombre,
+            domiciliario_user_id: $elegido->usuario_id,
+        );
+
+        DispararNotificacion::paraSucursal(
+            sucursal_id: $pedido->sucursal_id,
+            tipo:        'pedido_asignado',
+            titulo:      "Pedido #{$pedido->short_id} auto-asignado",
+            mensaje:     "Auto-asignado a {$elegido->nombre} (Zona: {$elegido->zona?->nombre})",
+            datos:       ['pedido_id' => $pedido->id],
+        )->dispatch();
+
         session()->flash('success', "Auto-asignado correctamente a {$elegido->nombre} (Zona: {$elegido->zona?->nombre}, Pedidos hoy: {$elegido->pedidos_hoy}).");
     }
 
@@ -238,6 +276,24 @@ class ManagePedidos extends Component
             'cambiado_en' => now(),
         ]);
 
+        // R-02: Dispatch al final, preservando toda la lógica existente.
+        PedidoCambioEstado::dispatch(
+            sucursal_id:    $pedido->sucursal_id,
+            pedido_id:      $pedido->id,
+            short_id:       $pedido->short_id,
+            estado_anterior: $pedido->getOriginal('estado') ?? $pedido->estado,
+            estado_nuevo:   $nuevoEstado,
+            tipo_pedido:    $pedido->tipo,
+        );
+
+        DispararNotificacion::paraSucursal(
+            sucursal_id: $pedido->sucursal_id,
+            tipo:        'estado_cambiado',
+            titulo:      "Pedido #{$pedido->short_id}: {$nuevoEstado}",
+            mensaje:     "El estado del pedido cambió a {$nuevoEstado}",
+            datos:       ['pedido_id' => $pedido->id, 'estado' => $nuevoEstado],
+        )->dispatch();
+
         session()->flash('success', "El estado del pedido #{$pedido->id} se actualizó a {$nuevoEstado}.");
     }
 
@@ -262,6 +318,23 @@ class ManagePedidos extends Component
                 'usuario_id'  => auth()->id(),
                 'cambiado_en' => now(),
             ]);
+
+            // R-02: Dispatch al final.
+            PedidoCancelado::dispatch(
+                sucursal_id: $pedido->sucursal_id,
+                pedido_id:   $pedido->id,
+                short_id:    $pedido->short_id,
+                tipo:        $pedido->tipo,
+                motivo:      $this->motivoCancelacion,
+            );
+
+            DispararNotificacion::paraSucursal(
+                sucursal_id: $pedido->sucursal_id,
+                tipo:        'pedido_cancelado',
+                titulo:      "Pedido #{$pedido->short_id} cancelado",
+                mensaje:     $this->motivoCancelacion,
+                datos:       ['pedido_id' => $pedido->id],
+            )->dispatch();
 
             session()->flash('success', "Pedido #{$pedido->id} cancelado correctamente.");
             $this->closeDetailModal();

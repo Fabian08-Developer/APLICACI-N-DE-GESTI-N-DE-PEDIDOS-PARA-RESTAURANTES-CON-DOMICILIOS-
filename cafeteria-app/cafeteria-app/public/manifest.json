@@ -1,0 +1,35 @@
+{
+    "name": "SGPD - Sistema de Gestión de Pedidos",
+    "short_name": "SGPD",
+    "description": "Sistema de gestión de pedidos y domicilios para restaurantes",
+    "start_url": "/dashboard",
+    "display": "standalone",
+    "background_color": "#FAF7F2",
+    "theme_color": "#E07A5F",
+    "orientation": "portrait-primary",
+    "lang": "es",
+    "categories": ["business", "productivity"],
+    "icons": [
+        {
+            "src": "/icons/icon-192.png",
+            "sizes": "192x192",
+            "type": "image/png"
+        },
+        {
+            "src": "/icons/icon-512.png",
+            "sizes": "512x512",
+            "type": "image/png",
+            "purpose": "maskable any"
+        }
+    ],
+    "screenshots": [],
+    "shortcuts": [
+        {
+            "name": "Pedidos",
+            "short_name": "Pedidos",
+            "description": "Ver pedidos activos",
+            "url": "/admin/pedidos",
+            "icons": [{ "src": "/icons/icon-192.png", "sizes": "192x192" }]
+        }
+    ]
+}

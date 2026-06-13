@@ -7,6 +7,17 @@
 
     <title>{{ $title ?? config('app.name') }}</title>
 
+    {{-- Meta tags PWA y contexto de autenticación --}}
+    <meta name="theme-color" content="#E07A5F">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="default">
+    <meta name="apple-mobile-web-app-title" content="SGPD">
+    <link rel="manifest" href="/manifest.json">
+    @auth
+    <meta name="auth-user-id"      content="{{ auth()->id() }}">
+    <meta name="auth-sucursal-id" content="{{ auth()->user()->sucursal_id }}">
+    @endauth
+
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
@@ -87,6 +98,13 @@
                 <strong class="text-[12px] text-[#2C241B] uppercase tracking-tighter">{{ $userName }}</strong>
                 <span class="text-[10px] text-[#5C5246] uppercase tracking-wider">{{ $userRole }}</span>
             </div>
+
+            {{-- Campanilla de notificaciones (solo usuarios con sucursal asignada) --}}
+            @auth
+            @if(auth()->user()->sucursal_id)
+            <livewire:shared.campanilla-notificaciones />
+            @endif
+            @endauth
 
             <form method="POST" action="{{ route('logout') }}">
                 @csrf
@@ -248,6 +266,29 @@
         @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocinero') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
             @include('partials.staff-token')
         @endif
+    @endauth
+
+    {{-- Echo → Livewire bridge para app.blade.php (Gerente / Super-admin con sucursal) --}}
+    @auth
+    @if(auth()->user()->sucursal_id)
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        const initEcho = () => {
+            if (!window.Echo || !window.__SGPD_ECHO?.ready) {
+                setTimeout(initEcho, 300);
+                return;
+            }
+            const { sucursalId } = window.__SGPD_ECHO;
+            window.Echo.private(`sucursal.${sucursalId}`)
+                .listen('.pedido.creado',         (e) => Livewire.dispatch('nuevaNotificacion', e))
+                .listen('.pedido.estado_cambiado',(e) => Livewire.dispatch('nuevaNotificacion', e))
+                .listen('.pedido.asignado',       (e) => Livewire.dispatch('nuevaNotificacion', e))
+                .listen('.pedido.cancelado',      (e) => Livewire.dispatch('nuevaNotificacion', e));
+        };
+        initEcho();
+    });
+    </script>
+    @endif
     @endauth
 </body>
 </html>

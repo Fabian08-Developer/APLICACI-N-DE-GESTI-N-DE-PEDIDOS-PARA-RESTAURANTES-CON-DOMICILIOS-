@@ -34,6 +34,7 @@ export default defineConfig({
                 'resources/js/categorias.js',
                 'resources/js/cocina.js',
                 'resources/js/confirmacion.js',
+                'resources/js/echo-setup.js',
                 'resources/js/login.js',
                 'resources/js/menu.js',
                 'resources/js/mesas.js',

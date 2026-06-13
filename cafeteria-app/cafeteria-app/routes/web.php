@@ -81,6 +81,21 @@ Route::post('/email/verification-notification', function (Illuminate\Http\Reques
     return back()->with('message', 'Enlace de verificación enviado.');
 })->middleware(['auth', 'throttle:6,1'])->name('verification.send');
 
+// ─── Notificaciones (API JSON para campanilla) ─────────────────────────────
+Route::prefix('api/notificaciones')
+    ->middleware('auth.custom')
+    ->name('notificaciones.')
+    ->group(function () {
+        Route::get('/', [\App\Http\Controllers\NotificacionesController::class, 'index'])
+            ->name('index');
+        Route::post('/{id}/leida', [\App\Http\Controllers\NotificacionesController::class, 'marcarLeida'])
+            ->name('leida');
+        Route::post('/todas-leidas', [\App\Http\Controllers\NotificacionesController::class, 'marcarTodasLeidas'])
+            ->name('todas-leidas');
+    });
+
+// ─── Broadcasting auth (requerido por Reverb para canales privados) ─────────
+require __DIR__ . '/channels.php';
 
 // Modularized routes
 require __DIR__ . '/admin.php';
@@ -88,3 +103,4 @@ require __DIR__ . '/mesero.php';
 require __DIR__ . '/cocina.php';
 require __DIR__ . '/cliente.php';
 require __DIR__ . '/superadmin.php';
+
