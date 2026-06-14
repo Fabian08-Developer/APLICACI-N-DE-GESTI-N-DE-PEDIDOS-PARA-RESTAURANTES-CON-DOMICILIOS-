@@ -1,5 +1,5 @@
 <?php
-// @test: Provocando una revisión del auditor de IA
+// @test: Provocando una revisión del auditor de IA 2.0
 namespace App\Http\Controllers\Cliente;
 
 use App\Http\Controllers\Controller;
