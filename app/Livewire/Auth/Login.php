@@ -5,6 +5,7 @@ namespace App\Livewire\Auth;
 use Livewire\Component;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Validation\ValidationException;
+use App\Enums\RolUsuario;
 
 class Login extends Component
 {
@@ -40,14 +41,14 @@ class Login extends Component
         }
 
         // 3. Verify company is active (except for super-admins)
-        if (!$user->hasRole('super-admin') && $user->empresa && !$user->empresa->activo) {
+        if (!$user->hasRole(RolUsuario::SUPER_ADMIN->value) && $user->empresa && !$user->empresa->activo) {
             throw ValidationException::withMessages([
                 'correo' => 'Tu empresa ha sido suspendida o está inactiva. Contacta al administrador.',
             ]);
         }
 
         // 4. Case A: Super Admin or Gerente -> Traditional PHP Session login
-        if ($user->hasRole('super-admin') || $user->hasRole('gerente')) {
+        if ($user->hasRole(RolUsuario::SUPER_ADMIN->value) || $user->hasRole(RolUsuario::GERENTE->value)) {
             Auth::login($user, $this->remember);
             // DO NOT regenerate session in Livewire, it breaks the session cookie
             return redirect()->intended('/dashboard');
@@ -93,12 +94,12 @@ class Login extends Component
 
     private function redirigirSegunRol($user, $token): string
     {
-        $redirectUrl = match($user->roles->first()->name ?? '') {
-            'administrador' => '/admin/dashboard',
-            'cocina' => '/cocina/dashboard',
-            'mesero' => '/mesero/dashboard',
-            'domiciliario' => '/domiciliario/dashboard',
-            default => '/dashboard'
+        $redirectUrl = match ($user->roles->first()->name ?? '') {
+            RolUsuario::ADMINISTRADOR->value => '/admin/dashboard',
+            RolUsuario::COCINA->value        => '/cocina/dashboard',
+            RolUsuario::MESERO->value        => '/mesero/dashboard',
+            RolUsuario::DOMICILIARIO->value  => '/domiciliario/dashboard',
+            default                          => '/dashboard',
         };
         
         return $redirectUrl . '?_token_init=' . $token;

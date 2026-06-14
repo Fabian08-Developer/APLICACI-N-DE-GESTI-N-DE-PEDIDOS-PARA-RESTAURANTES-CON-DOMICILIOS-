@@ -5,6 +5,7 @@ namespace App\Scopes;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Scope;
+use App\Enums\RolUsuario;
 
 class TenantScope implements Scope
 {
@@ -51,14 +52,14 @@ class TenantScope implements Scope
     public function apply(Builder $builder, Model $model): void
     {
         // Bypass scoping for super-admins
-        if (auth()->check() && auth()->user()->hasRole('super-admin')) {
+        if (auth()->check() && auth()->user()->hasRole(RolUsuario::SUPER_ADMIN->value)) {
             return;
         }
 
         // Bypass scoping for managers (gerente) on models they need to see globally,
         // but normally Operational Models will be scoped once they select a branch.
         // Wait, if a gerente doesn't have a sucursal selected yet, they shouldn't be blocked.
-        if (auth()->check() && auth()->user()->hasRole('gerente') && !self::getTenantId()) {
+        if (auth()->check() && auth()->user()->hasRole(RolUsuario::GERENTE->value) && !self::getTenantId()) {
             return;
         }
 

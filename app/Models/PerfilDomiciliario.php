@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\BelongsToSucursal;
 use App\Traits\HasUuid;
+use App\Enums\EstadoPedido;
 
 class PerfilDomiciliario extends Model
 {
@@ -61,8 +62,13 @@ class PerfilDomiciliario extends Model
 
     public function pedidosActivos(): HasMany
     {
+        // BUGFIX: los valores correctos del Enum son UPPERCASE ('ENTREGADO', 'CANCELADO'),
+        // no lowercase como estaban previamente ('entregado', 'cancelado').
         return $this->hasMany(Pedido::class, 'perfil_domiciliario_id')
-                    ->whereNotIn('estado', ['entregado', 'cancelado']);
+                    ->whereNotIn('estado', [
+                        EstadoPedido::ENTREGADO->value,
+                        EstadoPedido::CANCELADO->value,
+                    ]);
     }
 
     // RF-140: Bloqueo si tiene liquidaciones pendientes o superó el límite de efectivo

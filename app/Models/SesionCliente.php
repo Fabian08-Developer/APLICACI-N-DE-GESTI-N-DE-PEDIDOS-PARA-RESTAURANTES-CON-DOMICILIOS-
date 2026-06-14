@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use App\Traits\HasUuid;
+use App\Enums\EstadoPedido;
 
 class SesionCliente extends Model
 {
@@ -66,8 +67,11 @@ class SesionCliente extends Model
     public function cerrar(): void
     {
         // Cancelar pedidos activos de esta sesión para evitar "zombies"
-        $this->pedidos()->whereNotIn('estado', ['ENTREGADO', 'CANCELADO'])->update([
-            'estado'             => 'CANCELADO',
+        $this->pedidos()->whereNotIn('estado', [
+            EstadoPedido::ENTREGADO->value,
+            EstadoPedido::CANCELADO->value,
+        ])->update([
+            'estado'             => EstadoPedido::CANCELADO->value,
             'motivo_cancelacion' => 'Sesión de mesa cerrada (manual)',
         ]);
 

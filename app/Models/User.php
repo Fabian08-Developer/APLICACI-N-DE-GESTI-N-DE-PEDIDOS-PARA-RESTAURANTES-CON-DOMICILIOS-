@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use App\Traits\HasUuid;
 use Spatie\Permission\Traits\HasRoles;
+use App\Enums\RolUsuario;
 
 class User extends Authenticatable implements MustVerifyEmail
 {
@@ -124,17 +125,17 @@ class User extends Authenticatable implements MustVerifyEmail
             return false;
         }
 
-        $myRole = $this->rol->name;
+        $myRole     = $this->rol->name;
         $targetRole = $targetUser->rol->name;
 
-        if ($myRole === 'super-admin') {
+        if ($myRole === RolUsuario::SUPER_ADMIN->value) {
             return true;
         }
 
-        if ($myRole === 'gerente') {
-            return in_array($targetRole, ['administrador', 'cocina', 'mesero', 'domiciliario']);
-        } elseif ($myRole === 'administrador') {
-            return in_array($targetRole, ['cocina', 'mesero', 'domiciliario']);
+        if ($myRole === RolUsuario::GERENTE->value) {
+            return in_array($targetRole, RolUsuario::gestionablesPorGerente());
+        } elseif ($myRole === RolUsuario::ADMINISTRADOR->value) {
+            return in_array($targetRole, RolUsuario::gestionablesPorAdministrador());
         }
 
         return false;

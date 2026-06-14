@@ -5,6 +5,7 @@ namespace App\Http\Middleware;
 use Closure;
 use Illuminate\Http\Request;
 use Symfony\Component\HttpFoundation\Response;
+use App\Enums\RolUsuario;
 
 class SetActiveTenant
 {
@@ -20,7 +21,7 @@ class SetActiveTenant
             
             // Si el usuario es Super Admin, limpiamos cualquier tenant previo de la sesión
             // para que pueda ver todo el sistema sin filtros.
-            if ($user->hasRole('super-admin')) {
+            if ($user->hasRole(RolUsuario::SUPER_ADMIN->value)) {
                 session()->forget('active_tenant_id');
                 return $next($request);
             }

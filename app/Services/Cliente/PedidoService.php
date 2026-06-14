@@ -10,6 +10,7 @@ use App\Models\User;
 use App\Models\PerfilDomiciliario;
 use App\Enums\EstadoPedido;
 use App\Enums\EstadoPago;
+use App\Enums\TipoPedido;
 use App\Events\PedidoCreado;
 use App\Events\PedidoCancelado;
 use App\Jobs\DispararNotificacion;
@@ -35,7 +36,7 @@ class PedidoService
             $costoEnvio = 0.00;
             $tiempoEstimado = 30;
 
-            if ($sesion->tipo === 'domicilio') {
+            if ($sesion->tipo === TipoPedido::DOMICILIO->value) {
                 // Tarifa dinámica: si hay barrio_id usar la pivote sede-barrio
                 if ($sesion->barrio_id) {
                     $assignmentService = app(SucursalAssignmentService::class);
@@ -61,28 +62,28 @@ class PedidoService
                 'tipo'              => $sesion->tipo,
                 'estado'            => EstadoPedido::PENDIENTE_PAGO->value,
                 'estado_pago'       => EstadoPago::PENDIENTE->value,
-                'direccion_entrega' => $sesion->tipo === 'domicilio' ? $sesion->direccion_cliente : null,
-                'latitud_entrega'   => $sesion->tipo === 'domicilio' ? $sesion->latitud : null,
-                'longitud_entrega'  => $sesion->tipo === 'domicilio' ? $sesion->longitud : null,
+                'direccion_entrega' => $sesion->tipo === TipoPedido::DOMICILIO->value ? $sesion->direccion_cliente : null,
+                'latitud_entrega'   => $sesion->tipo === TipoPedido::DOMICILIO->value ? $sesion->latitud : null,
+                'longitud_entrega'  => $sesion->tipo === TipoPedido::DOMICILIO->value ? $sesion->longitud : null,
                 'subtotal'          => $subtotal,
                 'costo_envio'       => $costoEnvio,
                 'total'             => $subtotal + $costoEnvio,
             ]);
 
             // Auto-asignación inteligente de Mesero para pedidos locales (RF-C36)
-            if ($sesion->tipo === 'local') {
+            // FIX: reemplaza el N+1 (map + count por cada mesero) con withCount() directo en SQL.
+            if ($sesion->tipo === TipoPedido::LOCAL->value) {
                 $mesero = User::where('sucursal_id', $sesion->sucursal_id)
-                    ->where('rol', 'mesero')
+                    ->whereHas('roles', fn ($q) => $q->where('name', 'mesero'))
                     ->where('activo', true)
-                    ->lockForUpdate() // Asegurar no race conditions en la auto asignación
-                    ->get()
-                    ->map(function ($m) {
-                        $m->pedidos_activos_count = Pedido::where('mesero_id', $m->id)
-                            ->whereNotIn('estado', ['ENTREGADO', 'CANCELADO'])
-                            ->count();
-                        return $m;
-                    })
-                    ->sortBy('pedidos_activos_count')
+                    ->withCount(['pedidos as pedidos_activos_count' => function ($q) {
+                        $q->whereNotIn('estado', [
+                            EstadoPedido::ENTREGADO->value,
+                            EstadoPedido::CANCELADO->value,
+                        ]);
+                    }])
+                    ->orderBy('pedidos_activos_count', 'asc')
+                    ->lockForUpdate() // Prevenir race conditions en la auto-asignación
                     ->first();
 
                 if ($mesero) {
@@ -92,22 +93,22 @@ class PedidoService
             }
 
             // Auto-asignación de Domiciliario para pedidos domicilio
-            if ($sesion->tipo === 'domicilio') {
+            if ($sesion->tipo === TipoPedido::DOMICILIO->value) {
                 $candidatos = PerfilDomiciliario::with(['liquidaciones', 'pedidosActivos'])
                     ->where('sucursal_id', $sesion->sucursal_id)
                     ->where('estado', 'disponible')
                     ->lockForUpdate() // Prevenir asignación simultánea
                     ->get()
-                    ->filter(fn($d) => !$d->tiene_bloqueo);
+                    ->filter(fn ($d) => !$d->tiene_bloqueo);
 
                 if ($candidatos->isNotEmpty()) {
-                    $mismaZona = $candidatos->where('zona_id', $sesion->zona_id);
+                    $mismaZona  = $candidatos->where('zona_id', $sesion->zona_id);
                     $candidatos = $mismaZona->isNotEmpty() ? $mismaZona : $candidatos;
 
                     $elegido = $candidatos
                         ->sortBy([
                             ['pedidos_hoy', 'asc'],
-                            [fn($d) => $d->pedidosActivos->count(), 'asc'],
+                            [fn ($d) => $d->pedidosActivos->count(), 'asc'],
                         ])
                         ->first();
 
@@ -119,24 +120,24 @@ class PedidoService
 
             foreach ($items as $item) {
                 DetallePedido::create([
-                    'pedido_id' => $pedido->id,
-                    'producto_id' => $item->producto_id,
-                    'sucursal_id' => $item->sucursal_id,
-                    'nombre_producto' => $item->nombre_producto,
-                    'precio_unitario' => $item->precio_unitario,
-                    'cantidad' => $item->cantidad,
-                    'subtotal' => $item->subtotal,
+                    'pedido_id'          => $pedido->id,
+                    'producto_id'        => $item->producto_id,
+                    'sucursal_id'        => $item->sucursal_id,
+                    'nombre_producto'    => $item->nombre_producto,
+                    'precio_unitario'    => $item->precio_unitario,
+                    'cantidad'           => $item->cantidad,
+                    'subtotal'           => $item->subtotal,
                     'variantes_elegidas' => $item->variantes_elegidas,
                     'adiciones_elegidas' => $item->adiciones_elegidas,
-                    'notas' => $item->notas,
-                    'estado' => 'activo',
+                    'notas'              => $item->notas,
+                    'estado'             => 'activo',
                 ]);
             }
 
             HistorialEstadoPedido::create([
-                'pedido_id' => $pedido->id,
+                'pedido_id'   => $pedido->id,
                 'sucursal_id' => $sesion->sucursal_id,
-                'estado' => EstadoPedido::PENDIENTE_PAGO->value,
+                'estado'      => EstadoPedido::PENDIENTE_PAGO->value,
             ]);
 
             $sesion->itemsCarrito()->delete();
@@ -154,7 +155,7 @@ class PedidoService
             DispararNotificacion::paraSucursal(
                 sucursal_id: $pedido->sucursal_id,
                 tipo:        'pedido_creado',
-                titulo:      '\u{1F6D2} Nuevo pedido recibido',
+                titulo:      '🛒 Nuevo pedido recibido',
                 mensaje:     "Pedido #{$pedido->short_id} ({$pedido->tipo}) — $" . number_format($pedido->total, 2),
                 datos:       ['pedido_id' => $pedido->id, 'tipo' => $pedido->tipo],
             )->dispatch();
@@ -167,10 +168,18 @@ class PedidoService
         }
     }
 
+    /**
+     * Cancela un pedido iniciado por el cliente.
+     *
+     * Se usa withoutGlobalScope porque los clientes no tienen sucursal_id en la
+     * sesión de Auth (no son staff). Se añade ->where('sucursal_id') explícito
+     * para preservar el aislamiento multi-tenant sin contaminar el scope global.
+     */
     public function cancelarPedido($sesion, $pedidoId)
     {
         $pedido = Pedido::withoutGlobalScope(\App\Scopes\TenantScope::class)
             ->where('sesion_cliente_id', $sesion->id)
+            ->where('sucursal_id', $sesion->sucursal_id) // Doble validación: propiedad + tenant
             ->lockForUpdate() // Lock para prevenir pagos u otros cambios mientras se cancela
             ->find($pedidoId);
 
@@ -182,14 +191,14 @@ class PedidoService
             DB::beginTransaction();
 
             $pedido->update([
-                'estado' => EstadoPedido::CANCELADO->value,
+                'estado'             => EstadoPedido::CANCELADO->value,
                 'motivo_cancelacion' => 'Cancelado por el cliente.',
             ]);
 
             HistorialEstadoPedido::create([
-                'pedido_id' => $pedido->id,
+                'pedido_id'   => $pedido->id,
                 'sucursal_id' => $pedido->sucursal_id,
-                'estado' => EstadoPedido::CANCELADO->value,
+                'estado'      => EstadoPedido::CANCELADO->value,
             ]);
 
             $pagoCompletado = $pedido->pagos()
@@ -198,11 +207,11 @@ class PedidoService
 
             if ($pagoCompletado) {
                 $pagoCompletado->update([
-                    'estado' => EstadoPago::REEMBOLSADO->value,
+                    'estado'         => EstadoPago::REEMBOLSADO->value,
                     'reembolsado_en' => now(),
                 ]);
                 $pedido->update(['estado_pago' => EstadoPago::REEMBOLSADO->value]);
-                
+
                 $this->enviarEmailReembolso($pedido);
             }
 
@@ -232,5 +241,90 @@ class PedidoService
             DB::rollBack();
             throw $e;
         }
+    }
+
+    /**
+     * Cambia el estado de un pedido aplicando todas las reglas de negocio asociadas.
+     *
+     * Incluye: registro de historial, acreditación de efectivo_pendiente al domiciliario
+     * cuando el pedido es entregado y pagado en efectivo.
+     *
+     * @throws \ValueError si $nuevoEstado no es un valor válido del Enum EstadoPedido.
+     */
+    public function cambiarEstado(Pedido $pedido, string $nuevoEstado): void
+    {
+        // Validación de tipo: lanza ValueError automáticamente si el valor no existe en el Enum
+        EstadoPedido::from($nuevoEstado);
+
+        $updateData = ['estado' => $nuevoEstado];
+
+        if ($nuevoEstado === EstadoPedido::LISTO->value) {
+            $updateData['listo_en'] = now();
+        } elseif ($nuevoEstado === EstadoPedido::ENTREGADO->value) {
+            $updateData['entregado_en'] = now();
+        }
+
+        $pedido->update($updateData);
+
+        // Regla de negocio: acreditar efectivo al domiciliario cuando el pedido es entregado en efectivo
+        if (
+            $nuevoEstado === EstadoPedido::ENTREGADO->value
+            && $pedido->tipo === TipoPedido::DOMICILIO->value
+            && $pedido->perfil_domiciliario_id
+        ) {
+            $domiciliario = PerfilDomiciliario::find($pedido->perfil_domiciliario_id);
+            if ($domiciliario) {
+                $metodo = strtolower($pedido->metodo_pago ?? 'efectivo');
+                if (empty($metodo) || in_array($metodo, ['efectivo', 'cash'])) {
+                    $monto = max(0, $pedido->total - $pedido->costo_envio);
+                    // increment() es atómico en BD, evita race conditions vs. += + save()
+                    $domiciliario->increment('efectivo_pendiente', $monto);
+                }
+            }
+        }
+
+        HistorialEstadoPedido::create([
+            'pedido_id'   => $pedido->id,
+            'sucursal_id' => $pedido->sucursal_id,
+            'estado'      => $nuevoEstado,
+            'usuario_id'  => auth()->id(),
+            'cambiado_en' => now(),
+        ]);
+    }
+
+    /**
+     * Asigna manualmente un domiciliario a un pedido.
+     *
+     * Valida el bloqueo por efectivo/liquidaciones pendientes antes de asignar.
+     * Actualiza el estado del domiciliario a 'en_ruta' si estaba 'disponible'.
+     *
+     * @throws \DomainException si el domiciliario tiene bloqueo activo.
+     * @throws \Illuminate\Database\Eloquent\ModelNotFoundException si no se encuentra el domiciliario.
+     */
+    public function asignarDomiciliario(Pedido $pedido, string $domiciliarioId): PerfilDomiciliario
+    {
+        $domiciliario = PerfilDomiciliario::findOrFail($domiciliarioId);
+
+        if ($domiciliario->tiene_bloqueo) {
+            throw new \DomainException(
+                'No se puede asignar: el domiciliario tiene efectivo pendiente por liquidar o superó el límite de efectivo permitido.'
+            );
+        }
+
+        $pedido->update(['perfil_domiciliario_id' => $domiciliarioId]);
+
+        if ($domiciliario->estado === 'disponible') {
+            $domiciliario->update(['estado' => 'en_ruta']);
+        }
+
+        HistorialEstadoPedido::create([
+            'pedido_id'   => $pedido->id,
+            'sucursal_id' => $pedido->sucursal_id,
+            'estado'      => $pedido->estado,
+            'usuario_id'  => auth()->id(),
+            'cambiado_en' => now(),
+        ]);
+
+        return $domiciliario;
     }
 }

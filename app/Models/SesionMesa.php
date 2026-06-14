@@ -5,6 +5,7 @@ namespace App\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Traits\BelongsToSucursal;
+use App\Enums\EstadoPedido;
 
 class SesionMesa extends Model
 {
@@ -52,8 +53,11 @@ class SesionMesa extends Model
     public function cerrar(string $motivo): void
     {
         // Cancelar pedidos activos de esta sesión para evitar "zombies"
-        $this->pedidos()->whereNotIn('estado', ['ENTREGADO', 'CANCELADO'])->update([
-            'estado'             => 'CANCELADO',
+        $this->pedidos()->whereNotIn('estado', [
+            EstadoPedido::ENTREGADO->value,
+            EstadoPedido::CANCELADO->value,
+        ])->update([
+            'estado'             => EstadoPedido::CANCELADO->value,
             'motivo_cancelacion' => 'Sesión de mesa cerrada (' . $motivo . ')',
             'fecha_cancelacion'  => now(),
         ]);

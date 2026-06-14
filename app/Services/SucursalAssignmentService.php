@@ -5,6 +5,7 @@ namespace App\Services;
 use App\Models\Sucursal;
 use App\Models\Barrio;
 use App\Models\SucursalBarrioTarifa;
+use App\Enums\EstadoPedido;
 
 class SucursalAssignmentService
 {
@@ -67,8 +68,11 @@ class SucursalAssignmentService
         } else {
             // 4b. Sin coordenadas → ordenar por pedidos activos (menor carga)
             $mejor = $tarifasAbiertas
-                ->sortBy(fn($t) => $t->sucursal->pedidos()
-                    ->whereNotIn('estado', ['ENTREGADO', 'CANCELADO'])
+                ->sortBy(fn ($t) => $t->sucursal->pedidos()
+                    ->whereNotIn('estado', [
+                        EstadoPedido::ENTREGADO->value,
+                        EstadoPedido::CANCELADO->value,
+                    ])
                     ->count()
                 )
                 ->first();
