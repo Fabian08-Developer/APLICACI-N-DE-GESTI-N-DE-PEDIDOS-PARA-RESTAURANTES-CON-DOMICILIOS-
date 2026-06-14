@@ -52,7 +52,7 @@ jobs:
 
           Analiza el siguiente bloque de código modificado (Git Diff) correspondiente a la aplicación Laravel 13 / Livewire 4 de gestión de pedidos para restaurantes con domicilios en Neiva.
 
-          Debes estructurar tu respuesta usando OBLIGATORIAMENGE los siguientes títulos y pautas exactas del documento original:
+          Debes estructurar tu respuesta usando OBLIGATORIAMENTE los siguientes títulos y pautas exactas del documento original:
 
           # INFORME DE REVISIÓN PROFESIONAL
 
@@ -95,7 +95,7 @@ jobs:
           fs.writeFileSync("body.json", JSON.stringify(body));
           '
 
-          # Petición a la API de Gemini 1.5 Pro
+          # Petición a la API usando el identificador global del modelo
           RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}" \
             -H "Content-Type: application/json" \
             -d @body.json)
