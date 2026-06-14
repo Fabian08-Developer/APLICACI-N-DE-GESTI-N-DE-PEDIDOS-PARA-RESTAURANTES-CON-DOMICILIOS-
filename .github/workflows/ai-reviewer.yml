@@ -21,102 +21,49 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Configurar Node.js
-        uses: actions/setup-node@v4
+      - name: Auditoria de Codigo con Gemini Pro
+        uses: google-github-actions/run-gemini-pro-action@v1
         with:
-          node-version: "20"
+          api_key: ${{ secrets.AI_API_KEY }}
+          model: "gemini-1.5-pro-latest"
+          prompt: |
+            Actúa como un Arquitecto de Software Senior y Auditor de Ciberseguridad. Tu tarea es generar un "Informe de revisión profesional" clonando exactamente la estructura, el tono clínico-técnico y la profundidad analítica del documento de referencia.
 
-      - name: Obtener cambios del codigo (Diff)
-        run: |
-          if [ "${{ github.event_name }}" = "pull_request" ]; then
-            git diff origin/${{ github.base_ref }} HEAD > diff.txt
-          else
-            git diff HEAD~1 HEAD > diff.txt
-          fi
+            Analiza los cambios de código introducidos en este commit correspondientes a la aplicación Laravel 13 / Livewire 4 de gestión de pedidos para restaurantes con domicilios en Neiva.
 
-      - name: Enviar a Gemini y Generar Reporte Estilo Word
-        env:
-          GEMINI_API_KEY: ${{ secrets.AI_API_KEY }}
-        run: |
-          if [ ! -s diff.txt ]; then
-            echo "No hay cambios significativos en el codigo para analizar."
-            exit 0
-          fi
+            Debes estructurar tu respuesta usando OBLIGATORIAMENTE los siguientes títulos y pautas exactas:
 
-          # Procesamiento seguro del texto con Node
-          node -e '
-          const fs = require("fs");
-          const diff = fs.readFileSync("diff.txt", "utf8");
+            # INFORME DE REVISIÓN PROFESIONAL
 
-          const prompt = `Actúa como un Arquitecto de Software Senior y Auditor de Ciberseguridad. Tu tarea es generar un "Informe de revisión profesional" clonando exactamente la estructura, el tono clínico-técnico y la profundidad analítica del documento de referencia "Fabian - 1-2- Revisión de repositorio Git.docx".
+            ## INFORMACIÓN GENERAL
+            - **Repositorio revisado**: Fabian08-Developer/APLICACI-N-DE-GESTI-N-DE-PEDIDOS-PARA-RESTAURANTES-CON-DOMICILIOS-
+            - **Tecnologías principales**: (Identifica si los cambios afectan a PHP 8.3, Laravel 13, Livewire 4, Sanctum, Reverb, Spatie, Predis, etc.)
+            - **Estructura general**: (Evalúa cómo se posiciona el cambio dentro de la estructura de carpetas cafeteria-app/cafeteria-app)
 
-          Analiza el siguiente bloque de código modificado (Git Diff) correspondiente a la aplicación Laravel 13 / Livewire 4 de gestión de pedidos para restaurantes con domicilios en Neiva.
+            ## ARQUITECTURA Y ESTRUCTURA DE CÓDIGO
+            - **Archivo composer.json**: (Analiza si hay cambios en dependencias o scripts)
+            - **Configuración de entorno**: (Evalúa si se modifican archivos .env.example, variables de PostgreSQL, drivers de Redis, o exposición de credenciales)
+            - **Rutas y lógica de negocio (web.php)**: (Audita si el código añade rutas masivas, closures innecesarios, o rompe la división por roles)
+            - **Modelos y autenticación**: (Monitorea cambios en el Modelo User, contrasena, SoftDeletes, HasUuid o la granularidad con spatie/laravel-permission)
+            - **Controladores destacados**: (Analiza si los cambios añaden complejidad en componentes como ZonaCoberturaController o ClienteController)
 
-          Debes estructurar tu respuesta usando OBLIGATORIAMENTE los siguientes títulos y pautas exactas del documento original:
+            ## FORTALEZAS
+            (Lista detalladamente los puntos fuertes observados en el diff basándote en: Arquitectura sólida, Validaciones, Seguridad, Soporte multitenant, Automatización o Roles)
 
-          # INFORME DE REVISIÓN PROFESIONAL
+            ## PROBLEMAS DETECTADOS Y OPORTUNIDADES DE MEJORA
+            (Busca problemas del tipo: Gestión de roles ambigua, Sobrecarga de rutas, Desactivación de verificaciones como isSucursalOpen, Complejidad en controladores, Gestión insegura de tokens, Ausencia de pruebas o falta de transacciones en operaciones críticas)
 
-          ## INFORMACIÓN GENERAL
-          - **Repositorio revisado**: Fabian08-Developer/APLICACI-N-DE-GESTI-N-DE-PEDIDOS-PARA-RESTAURANTES-CON-DOMICILIOS-
-          - **Tecnologías principales**: (Identifica si los cambios afectan a PHP 8.3, Laravel 13, Livewire 4, Sanctum, Reverb, Spatie, Predis, etc.)
-          - **Estructura general**: (Evalúa cómo se posiciona el cambio dentro de la estructura de carpetas cafeteria-app/cafeteria-app)
+            ## RECOMENDACIONES
+            (Proporciona soluciones directas: Adoptar permisos robustos con Spatie, Refactorizar rutas, Separar lógica en servicios, Activar verificaciones o Revisar seguridad de tokens)
 
-          ## ARQUITECTURA Y ESTRUCTURA DE CÓDIGO
-          - **Archivo composer.json**: (Analiza únicamente si hay cambios en dependencias o scripts de instalación/entorno)
-          - **Configuración de entorno**: (Evalúa si se modifican archivos .env.example, variables de PostgreSQL, drivers de Redis, o exposición de credenciales)
-          - **Rutas y lógica de negocio (web.php)**: (Audita si el código añade rutas masivas, closures innecesarios, o rompe la división por roles de usuario)
-          - **Modelos y autenticación**: (Monitorea cambios en el Modelo User, nombres de columnas personalizados como contrasena, SoftDeletes, HasUuid o la granularidad con spatie/laravel-permission)
-          - **Controladores destacados**: (Analiza exhaustivamente si los cambios añaden complejidad o violan el Principio de Responsabilidad Única en componentes como ZonaCoberturaController o ClienteController)
-
-          ## FORTALEZAS
-          (Lista detalladamente los puntos fuertes observados en el diff basándote en: Arquitectura sólida y modular, Validaciones robustas, Seguridad en contraseñas, Soporte multitenant, Automatización de procesos o Roles bien definidos)
-
-          ## PROBLEMAS DETECTADOS Y OPORTUNIDADES DE MEJORA
-          (Sé implacable y sumamente descriptivo al buscar problemas del tipo: Gestión de roles ambigua, Sobrecarga en la clase de rutas, Desactivación de verificaciones críticas como isSucursalOpen para pruebas, Complejidad en controladores, Gestión insegura de tokens transmitidos en URL, Ausencia de pruebas o falta de control de concurrencia en operaciones críticas)
-
-          ## RECOMENDACIONES
-          (Proporciona soluciones directas con el mismo nivel técnico del documento original: Adoptar gestión de permisos robusta, Refactorizar las rutas, Separar lógica en servicios, Activar verificaciones en producción o Revisar la seguridad de tokens de sesión mediante cookies seguras/HTTPS)
-
-          ## CONCLUSIÓN
-          (Cierra con un párrafo corporativo de alto nivel técnico evaluando la escalabilidad, mantenibilidad y seguridad del sistema tras estos cambios)
-
-          Aquí está el Git Diff para analizar:
-          \n\n${diff}`;
-
-          const body = {
-            contents: [{ parts: [{ text: prompt }] }],
-            safetySettings: [
-              { category: "HARM_CATEGORY_HARASSMENT", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_HATE_SPEECH", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_SEXUALLY_EXPLICIT", threshold: "BLOCK_NONE" },
-              { category: "HARM_CATEGORY_DANGEROUS_CONTENT", threshold: "BLOCK_NONE" }
-            ]
-          };
-          fs.writeFileSync("body.json", JSON.stringify(body));
-          '
-
-          # Petición a la API usando el identificador global del modelo
-          RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro-latest:generateContent?key=${GEMINI_API_KEY}" \
-            -H "Content-Type: application/json" \
-            -d @body.json)
-
-          # Imprimir en consola y guardar en archivo Markdown para la descarga física
-          echo "$RESPONSE" | node -e '
-          const fs = require("fs");
-          const res = JSON.parse(fs.readFileSync(0, "utf-8"));
-          if (res.candidates && res.candidates[0].content.parts[0].text) {
-            const reportText = res.candidates[0].content.parts[0].text;
-            console.log(reportText);
-            fs.writeFileSync("Informe-Revision-Profesional.md", reportText);
-          } else {
-            console.log("Error al procesar el reporte con Gemini:", JSON.stringify(res));
-            process.exit(1);
-          }
-          '
+            ## CONCLUSIÓN
+            (Cierra con un párrafo corporativo de alto nivel técnico evaluando la escalabilidad, mantenibilidad y seguridad del sistema tras estos cambios)
 
       - name: Guardar Reporte como Archivo Descargable
         if: success()
         uses: actions/upload-artifact@v4
         with:
           name: Informe-Revision-Profesional
-          path: Informe-Revision-Profesional.md
+          path: |
+            *.md
+            *.txt
