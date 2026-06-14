@@ -1,0 +1,106 @@
+name: Auditor de Codigo - Estilo Reporte Profesional
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Obtener cambios del codigo (Diff)
+        run: |
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            git diff origin/${{ github.base_ref }} HEAD > diff.txt
+          else
+            git diff HEAD~1 HEAD > diff.txt
+          fi
+
+      - name: Enviar a Gemini y Generar Reporte Estilo Word
+        env:
+          GEMINI_API_KEY: ${{ secrets.AI_API_KEY }}
+        run: |
+          if [ ! -s diff.txt ]; then
+            echo "No hay cambios significativos en el codigo para analizar."
+            exit 0
+          fi
+          
+          # Procesamiento seguro del texto con Node
+          node -e '
+          const fs = require("fs");
+          const diff = fs.readFileSync("diff.txt", "utf8");
+          
+          const prompt = `Actúa como un Arquitecto de Software Senior y Auditor de Ciberseguridad. Tu tarea es generar un "Informe de revisión profesional" clonando exactamente la estructura, el tono clínico-técnico y la profundidad analítica del documento de referencia "Fabian - 1-2- Revisión de repositorio Git.docx".
+
+          Analiza el siguiente bloque de código modificado (Git Diff) correspondiente a la aplicación Laravel 13 / Livewire 4 de gestión de pedidos para restaurantes con domicilios en Neiva.
+          
+          Debes estructurar tu respuesta usando OBLIGATORIAMENTE los siguientes títulos y pautas exactas del documento original:
+
+          # INFORME DE REVISIÓN PROFESIONAL
+          
+          ## INFORMACIÓN GENERAL
+          - **Repositorio revisado**: Fabian08-Developer/APLICACI-N-DE-GESTI-N-DE-PEDIDOS-PARA-RESTAURANTES-CON-DOMICILIOS-
+          - **Tecnologías principales**: (Identifica si los cambios afectan a PHP 8.3, Laravel 13, Livewire 4, Sanctum, Reverb, Spatie, Predis, etc.)
+          - **Estructura general**: (Evalúa cómo se posiciona el cambio dentro de la estructura de carpetas cafeteria-app/cafeteria-app)
+
+          ## ARQUITECTURA Y ESTRUCTURA DE CÓDIGO
+          - **Archivo composer.json**: (Analiza únicamente si hay cambios en dependencias o scripts de instalación/entorno)
+          - **Configuración de entorno**: (Evalúa si se modifican archivos .env.example, variables de PostgreSQL, drivers de Redis, o exposición de credenciales)
+          - **Rutas y lógica de negocio (web.php)**: (Audita si el código añade rutas masivas, closures innecesarios, o rompe la división por roles de usuario)
+          - **Modelos y autenticación**: (Monitorea cambios en el Modelo User, nombres de columnas personalizados como contrasena, SoftDeletes, HasUuid o la granularidad con spatie/laravel-permission)
+          - **Controladores destacados**: (Analiza exhaustivamente si los cambios añaden complejidad o violan el Principio de Responsabilidad Única en componentes como ZonaCoberturaController o ClienteController)
+
+          ## FORTALEZAS
+          (Lista detalladamente los puntos fuertes observados en el diff basándote en: Arquitectura sólida y modular, Validaciones exhaustivas, Seguridad en contraseñas, Soporte multitenant, Automatización de procesos o Roles bien definidos)
+
+          ## PROBLEMAS DETECTADOS Y OPORTUNIDADES DE MEJORA
+          (Sé implacable y sumamente descriptivo al buscar problemas del tipo: Gestión de roles ambigua, Sobrecarga en la clase de rutas, Desactivación de verificaciones críticas como isSucursalOpen para pruebas, Complejidad en controladores, Gestión insegura de tokens transmitidos en URL, Ausencia de pruebas o falta de control de concurrencia en operaciones críticas)
+
+          ## RECOMENDACIONES
+          (Proporciona soluciones directas con el mismo nivel técnico del documento original: Adoptar gestión de permisos robusta, Refactorizar las rutas, Separar lógica en servicios, Activar verificaciones en producción o Revisar la seguridad de tokens de sesión mediante cookies seguras/HTTPS)
+
+          ## CONCLUSIÓN
+          (Cierra con un párrafo corporativo de alto nivel técnico evaluando la escalabilidad, mantenibilidad y seguridad del sistema tras estos cambios)
+
+          Aquí está el Git Diff para analizar:
+          \n\n${diff}`;
+          
+          const body = {
+            contents: [{ parts: [{ text: prompt }] }]
+          };
+          fs.writeFileSync("body.json", JSON.stringify(body));
+          '
+          
+          # Petición a la API de Gemini 1.5 Pro
+          RESPONSE=$(curl -s -X POST "https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${GEMINI_API_KEY}" \
+            -H "Content-Type: application/json" \
+            -d @body.json)
+          
+          # Imprimir el resultado formateado directamente en los registros de GitHub Actions
+          echo "$RESPONSE" | node -e '
+          const fs = require("fs");
+          const res = JSON.parse(fs.readFileSync(0, "utf-8"));
+          if (res.candidates && res.candidates[0].content.parts[0].text) {
+            console.log(res.candidates[0].content.parts[0].text);
+          } else {
+            console.log("Error al procesar el reporte con Gemini:", JSON.stringify(res));
+          }
+          '
