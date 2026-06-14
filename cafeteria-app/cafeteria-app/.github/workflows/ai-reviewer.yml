@@ -1,0 +1,39 @@
+name: Auditor de Código - Gemini Pro
+
+on:
+  pull_request:
+    types: [opened, synchronize]
+  push:
+    branches:
+      - main
+      - master
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      pull-requests: write
+
+    steps:
+      - name: Clonar el repositorio
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Ejecutar Auditoría de Código con Gemini
+        uses: google-github-actions/run-gemini-pro-action@v1 # Acción optimizada para revisiones
+        with:
+          api_key: ${{ secrets.AI_API_KEY }}
+          model: "gemini-1.5-pro" # Usamos Pro porque tu app maneja lógica compleja de multitenancy y colas
+          prompt: |
+            Actúa como un Arquitecto de Software Senior y Auditor de Ciberseguridad experto en PHP 8.3 y Laravel 13.
+            Analiza los cambios de código introducidos en este commit/pull request para mi aplicación de gestión de pedidos de restaurantes en Neiva.
+            
+            Evalúa minuciosamente y genera un informe estructurado con los siguientes módulos exactos:
+            1. ARQUITECTURA Y LÓGICA DE NEGOCIO: Verifica la estructura de rutas, controladores (evitando lógica saturada en ClienteController o closures en web.php) y consistencia en el patrón multitenant.
+            2. SEGURIDAD Y CONCURRENCIA: Revisa la protección de tokens de sesión del personal, hasheo de contraseñas, aislamiento de datos por inquilino y control de concurrencia mediante transacciones de base de datos.
+            3. PROBLEMAS DETECTADOS Y OPORTUNIDADES DE MEJORA: Identifica configuraciones de prueba activas por error (como la validación de horarios isSucursalOpen), código duplicado, consultas ineficientes a la base de datos o falta de pruebas automatizadas.
+            4. RECOMENDACIONES ACCIONABLES: Proporciona soluciones claras y ejemplos de código estructurados para corregir los problemas encontrados.
+            
+            Mantén un tono estrictamente profesional, crítico, preciso y constructivo.
