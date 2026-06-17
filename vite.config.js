@@ -12,7 +12,7 @@ export default defineConfig({
                 'resources/css/auth.css',
                 'resources/css/acceso.css',
                 'resources/css/admin.css',
-                'resources/css/canceelacion_exitosa.css',
+                'resources/css/cancelacion-exitosa.css',
                 'resources/css/categorias.css',
                 'resources/css/cerrar_sesion.css',
                 'resources/css/cocina.css',
