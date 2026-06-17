@@ -77,7 +77,7 @@
             {{ auth()->user()->rol->nombre }} @if(auth()->user()->sucursal_id) (Sucursal: {{ auth()->user()->sucursal->nombre }}) @endif
             <br>
             @if(auth()->user()->hasRole('gerente'))
-            <a href="{{ route('sucursales') }}" style="color:var(--primary); font-size:0.7rem; text-decoration:underline;" wire:navigate>Cambiar sucursal</a>
+            <a href="{{ route('sucursales') }}" style="color:var(--primary); font-size:0.7rem; text-decoration:underline;">Cambiar sucursal</a>
             @endif
         </div>
         <form method="POST" action="{{ route('logout') }}" class="topbar-logout-form" style="margin-left: 0.5rem; display: flex; align-items: center;">

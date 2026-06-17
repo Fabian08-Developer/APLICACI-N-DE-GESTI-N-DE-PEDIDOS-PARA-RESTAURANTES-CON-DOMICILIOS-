@@ -105,5 +105,16 @@ class Sucursal extends Model
         // Horario nocturno: ej. 22:00 – 04:00
         return $ahora >= $apertura || $ahora <= $cierre;
     }
+
+    /**
+     * Determina si la sucursal tiene las reservas de mesas activadas en su configuración.
+     */
+    public function tieneReservasActivas(): bool
+    {
+        $config = is_string($this->configuracion)
+            ? json_decode($this->configuracion, true)
+            : ($this->configuracion ?? []);
+        return ($config['reservas_activas'] ?? true) !== false;
+    }
 }
 

@@ -40,7 +40,19 @@
             box-shadow: 0 0 12px rgba(193, 127, 62, 0.25);
         }
         .form-control::placeholder { color: rgba(242, 232, 217, 0.3); }
-        select.form-control option { background: #1a0a04; color: var(--crema); }
+        select.form-control {
+            background-color: #1a0a04;
+            color: var(--crema);
+        }
+        select.form-control option {
+            background-color: #1a0a04;
+            color: var(--crema);
+        }
+        select.form-control optgroup {
+            background-color: #2a1208;
+            color: var(--caramelo);
+            font-weight: 700;
+        }
 
         .btn-submit {
             width: 100%;
