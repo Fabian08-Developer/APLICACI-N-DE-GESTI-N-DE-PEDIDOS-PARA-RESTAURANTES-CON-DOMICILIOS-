@@ -60,6 +60,7 @@ Route::get('/sucursales', ManageSucursales::class)->name('sucursales')->middlewa
 Route::get('/configuracion', Settings::class)->name('configuracion')->middleware('auth.custom');
 Route::get('/reportes-globales', \App\Livewire\Gerente\GlobalReports::class)->name('gerente.reportes-globales')->middleware(['auth.custom', 'role:gerente']);
 Route::get('/mapa-sedes', \App\Livewire\Gerente\MapaSedes::class)->name('gerente.mapa-sedes')->middleware(['auth.custom', 'role:gerente']);
+Route::get('/mi-pagina', \App\Livewire\Admin\MiPagina::class)->name('gerente.mi-pagina')->middleware(['auth.custom', 'role:gerente']);
 
 // Domiciliario route
 Route::prefix('domiciliario')->name('domiciliario.')->middleware(['auth.custom', 'role:domiciliario'])->group(function () {
@@ -103,4 +104,10 @@ require __DIR__ . '/mesero.php';
 require __DIR__ . '/cocina.php';
 require __DIR__ . '/cliente.php';
 require __DIR__ . '/superadmin.php';
+require __DIR__ . '/reservas.php';
 
+// ─── Tienda online pública por empresa (DEBE IR AL FINAL) ────────────────
+// Captura /{empresa_slug}; se declara después de todas las rutas del sistema
+// para no interferir con /login, /dashboard, etc.
+Route::get('/{empresa_slug}', \App\Http\Controllers\Cliente\EmpresaHomeController::class)
+    ->name('empresa.home');

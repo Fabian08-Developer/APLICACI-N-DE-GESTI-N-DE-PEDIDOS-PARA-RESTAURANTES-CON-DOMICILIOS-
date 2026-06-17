@@ -22,6 +22,8 @@ class Empresa extends Model
         'nit',
         'tipo_nit',
         'nombre',
+        'slug',
+        'apariencia',
         'direccion',
         'ciudad',
         'telefono',
@@ -29,6 +31,19 @@ class Empresa extends Model
         'documento_path',
         'documento_pendiente_path'
     ];
+
+    protected $casts = [
+        'activo'     => 'boolean',
+        'apariencia' => 'array',
+    ];
+
+    /**
+     * Obtiene un valor de la apariencia con fallback seguro.
+     */
+    public function aparienciaValor(string $clave, mixed $defecto = null): mixed
+    {
+        return $this->apariencia[$clave] ?? $defecto;
+    }
 
     /**
      * Relación: Una empresa tiene muchas sucursales (sedes)

@@ -202,6 +202,12 @@
                             </svg></span>
                         Mapa de Sedes
                     </a>
+                    <a href="{{ route('gerente.mi-pagina') }}" class="flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all font-bold text-[12px] tracking-wide {{ request()->routeIs('gerente.mi-pagina') ? 'bg-[#E07A5F]/10 text-[#E07A5F] border-l-2 border-[#E07A5F]' : 'text-[#5C5246] hover:text-[#2C241B] hover:bg-[#F5F2ED] border-l-2 border-transparent' }}" @click="sidebarOpen = false" wire:navigate>
+                        <span class="text-current"><svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                <path stroke-linecap="round" stroke-linejoin="round" d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" /><polyline points="9 22 9 12 15 12 15 22" stroke-linecap="round" stroke-linejoin="round"/>
+                            </svg></span>
+                        Mi Página
+                    </a>
                 @endif
             @endif
             

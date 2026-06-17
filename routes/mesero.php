@@ -21,4 +21,15 @@ Route::prefix('mesero')->name('mesero.')
         Route::put('/tomar-pedido/mesa/{mesa}/carrito/{id}', [\App\Http\Controllers\Mesero\PedidoController::class, 'actualizarCantidadCarrito'])->name('tomar-pedido.carrito.actualizar');
         Route::delete('/tomar-pedido/mesa/{mesa}/carrito/{id}', [\App\Http\Controllers\Mesero\PedidoController::class, 'eliminarDelCarrito'])->name('tomar-pedido.carrito.eliminar');
         Route::post('/tomar-pedido/mesa/{mesa}/confirmar', [\App\Http\Controllers\Mesero\PedidoController::class, 'confirmarPedido'])->name('tomar-pedido.confirmar');
+
+        // ─── Reservas (NUEVO) ───────────────────────────────────────────
+        Route::prefix('reservas')->name('reservas.')->group(function () {
+            Route::get('/',                    [\App\Http\Controllers\Mesero\ReservaController::class, 'index'])->name('index');
+            Route::get('/crear',               [\App\Http\Controllers\Mesero\ReservaController::class, 'crear'])->name('crear');
+            Route::post('/',                   [\App\Http\Controllers\Mesero\ReservaController::class, 'store'])->name('store');
+            Route::post('/{id}/confirmar',     [\App\Http\Controllers\Mesero\ReservaController::class, 'confirmar'])->name('confirmar');
+            Route::post('/{id}/check-in',      [\App\Http\Controllers\Mesero\ReservaController::class, 'checkIn'])->name('check-in');
+            Route::post('/{id}/cancelar',      [\App\Http\Controllers\Mesero\ReservaController::class, 'cancelar'])->name('cancelar');
+            Route::post('/{id}/aprobar-deposito', [\App\Http\Controllers\Mesero\ReservaController::class, 'aprobarDeposito'])->name('aprobar-deposito');
+        });
     });

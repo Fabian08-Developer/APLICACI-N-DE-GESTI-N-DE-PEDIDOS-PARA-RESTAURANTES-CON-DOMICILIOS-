@@ -2,9 +2,10 @@
 
 use Illuminate\Support\Facades\Route;
 
-Route::get('/s/{sucursal_slug}/mesa/{codigo}', [\App\Http\Controllers\Cliente\ClienteController::class, 'escanearQR'])->name('cliente.qr');
-Route::get('/s/{sucursal_slug}/domicilio', [\App\Http\Controllers\Cliente\ClienteController::class, 'accesoDomicilio'])->name('cliente.domicilio');
-Route::post('/s/{sucursal_slug}/domicilio/registro', [\App\Http\Controllers\Cliente\ClienteController::class, 'crearSesionDomicilio'])->name('cliente.domicilio.registro');
+Route::get('/{empresa_slug}/{sucursal_slug}/mesa/{codigo}', [\App\Http\Controllers\Cliente\ClienteController::class, 'escanearQR'])->name('cliente.qr');
+Route::get('/{empresa_slug}/{sucursal_slug}/domicilio', [\App\Http\Controllers\Cliente\ClienteController::class, 'accesoDomicilio'])->name('cliente.domicilio');
+Route::get('/{empresa_slug}/{sucursal_slug}/domicilio/verificar-barrio', [\App\Http\Controllers\Cliente\ClienteController::class, 'verificarBarrioDomicilio'])->name('cliente.domicilio.verificar-barrio');
+Route::post('/{empresa_slug}/{sucursal_slug}/domicilio/registro', [\App\Http\Controllers\Cliente\ClienteController::class, 'crearSesionDomicilio'])->name('cliente.domicilio.registro');
 
 Route::prefix('cliente')->name('cliente.')->group(function () {
     Route::post('/sesion/individual', [\App\Http\Controllers\Cliente\ClienteController::class, 'crearSesionIndividual'])->name('sesion.individual');

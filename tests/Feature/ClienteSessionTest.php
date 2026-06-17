@@ -78,6 +78,7 @@ class ClienteSessionTest extends TestCase
     public function test_escanear_qr_crea_nueva_sesion_y_ocupa_mesa_rf_c04_rf_c05_rf_c06()
     {
         $response = $this->get(route('cliente.qr', [
+            'empresa_slug' => $this->sucursal->empresa->slug,
             'sucursal_slug' => $this->sucursal->slug,
             'codigo' => $this->mesa->codigo_qr
         ]));
@@ -112,6 +113,7 @@ class ClienteSessionTest extends TestCase
 
         // Escanear de nuevo el mismo QR por otro cliente/pestaña
         $response = $this->get(route('cliente.qr', [
+            'empresa_slug' => $this->sucursal->empresa->slug,
             'sucursal_slug' => $this->sucursal->slug,
             'codigo' => $this->mesa->codigo_qr
         ]));
@@ -130,6 +132,7 @@ class ClienteSessionTest extends TestCase
         $this->mesa->update(['qr_activo' => false]);
 
         $response = $this->get(route('cliente.qr', [
+            'empresa_slug' => $this->sucursal->empresa->slug,
             'sucursal_slug' => $this->sucursal->slug,
             'codigo' => $this->mesa->codigo_qr
         ]));
@@ -139,6 +142,7 @@ class ClienteSessionTest extends TestCase
 
         // Código QR inexistente
         $responseInexistente = $this->get(route('cliente.qr', [
+            'empresa_slug' => $this->sucursal->empresa->slug,
             'sucursal_slug' => $this->sucursal->slug,
             'codigo' => 'qr-inexistente'
         ]));
@@ -152,7 +156,7 @@ class ClienteSessionTest extends TestCase
         // Congelar tiempo a las 12:00:00 (sucursal abre de 08:00 a 22:00)
         Carbon::setTestNow(Carbon::createFromTimeString('12:00:00'));
 
-        $response = $this->get(route('cliente.domicilio', ['sucursal_slug' => $this->sucursal->slug]));
+        $response = $this->get(route('cliente.domicilio', ['empresa_slug' => $this->sucursal->empresa->slug, 'sucursal_slug' => $this->sucursal->slug]));
 
         $response->assertStatus(200);
         $response->assertViewIs('cliente.acceso-domicilio');
@@ -164,7 +168,7 @@ class ClienteSessionTest extends TestCase
         // Congelar tiempo a las 23:00:00 (sucursal cerrada)
         Carbon::setTestNow(Carbon::createFromTimeString('23:00:00'));
 
-        $response = $this->get(route('cliente.domicilio', ['sucursal_slug' => $this->sucursal->slug]));
+        $response = $this->get(route('cliente.domicilio', ['empresa_slug' => $this->sucursal->empresa->slug, 'sucursal_slug' => $this->sucursal->slug]));
 
         $response->assertRedirect(route('cliente.sin-sesion'));
         $response->assertSessionHas('error');
@@ -181,7 +185,7 @@ class ClienteSessionTest extends TestCase
             'direccion_cliente' => 'Calle 123 #45-67',
         ];
 
-        $response = $this->post(route('cliente.domicilio.registro', ['sucursal_slug' => $this->sucursal->slug]), $data);
+        $response = $this->post(route('cliente.domicilio.registro', ['empresa_slug' => $this->sucursal->empresa->slug, 'sucursal_slug' => $this->sucursal->slug]), $data);
 
         $sesion = SesionCliente::latest()->first();
 
@@ -207,7 +211,7 @@ class ClienteSessionTest extends TestCase
             // dirección faltante
         ];
 
-        $response = $this->post(route('cliente.domicilio.registro', ['sucursal_slug' => $this->sucursal->slug]), $dataIncompleta);
+        $response = $this->post(route('cliente.domicilio.registro', ['empresa_slug' => $this->sucursal->empresa->slug, 'sucursal_slug' => $this->sucursal->slug]), $dataIncompleta);
 
         $response->assertSessionHasErrors(['nombre_cliente', 'direccion_cliente']);
         $this->assertEquals(0, SesionCliente::count());

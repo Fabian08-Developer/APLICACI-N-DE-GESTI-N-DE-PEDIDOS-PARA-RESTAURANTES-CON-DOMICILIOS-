@@ -4,6 +4,7 @@ namespace App\Http\Controllers\Cliente;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
+use App\Models\Empresa;
 use App\Models\Sucursal;
 use App\Models\Mesa;
 use App\Models\SesionCliente;
@@ -37,9 +38,14 @@ class ClienteController extends Controller
         $this->pagoService = $pagoService;
     }
 
-    public function escanearQR($sucursal_slug, $codigo)
+    public function escanearQR($empresa_slug, $sucursal_slug, $codigo)
     {
-        $sucursal = Sucursal::where('slug', $sucursal_slug)->first();
+        $empresa = Empresa::where('slug', $empresa_slug)->first();
+        if (!$empresa) {
+            return redirect()->route('cliente.sin-sesion')->with('error', 'La empresa especificada no existe.');
+        }
+
+        $sucursal = Sucursal::where('empresa_id', $empresa->id)->where('slug', $sucursal_slug)->first();
         if (!$sucursal) {
             return redirect()->route('cliente.sin-sesion')->with('error', 'La sucursal especificada no existe.');
         }
@@ -85,12 +91,45 @@ class ClienteController extends Controller
 
     public function crearSesionIndividual(Request $request) { return back(); }
 
-    public function accesoDomicilio($sucursal_slug)
+    public function verificarBarrioDomicilio(Request $request, $empresa_slug, $sucursal_slug)
     {
-        // La ruta con slug de sucursal ya no es el único punto de entrada,
-        // pero se mantiene para compatibilidad con QR fijos.
-        // El slug sirve como empresa referencia para obtener los barrios disponibles.
-        $sucursal = Sucursal::where('slug', $sucursal_slug)->first();
+        $barrioId = $request->query('barrio_id');
+
+        if (!$barrioId) {
+            return response()->json(['tiene_cobertura' => false, 'mensaje' => 'Selecciona un barrio.']);
+        }
+
+        $assignmentService = app(SucursalAssignmentService::class);
+        $resultado = $assignmentService->resolver($barrioId);
+
+        if (!$resultado['tiene_cobertura']) {
+            return response()->json([
+                'tiene_cobertura' => false,
+                'mensaje'         => $resultado['mensaje'],
+            ]);
+        }
+
+        $sucursal = $resultado['sucursal'];
+
+        return response()->json([
+            'tiene_cobertura'  => true,
+            'sucursal_nombre'  => $sucursal->nombre,
+            'sucursal_dir'     => $sucursal->direccion,
+            'sucursal_tel'     => $sucursal->telefono,
+            'costo_envio'      => $resultado['costo_envio'],
+            'tiempo_estimado'  => $resultado['tiempo_estimado'],
+        ]);
+    }
+
+    public function accesoDomicilio($empresa_slug, $sucursal_slug)
+    {
+        // La ruta con slugs de empresa y sucursal es el punto de entrada.
+        $empresa = Empresa::where('slug', $empresa_slug)->first();
+        if (!$empresa) {
+            return redirect()->route('cliente.sin-sesion')->with('error', 'La empresa especificada no existe.');
+        }
+
+        $sucursal = Sucursal::where('empresa_id', $empresa->id)->where('slug', $sucursal_slug)->first();
         if (!$sucursal) {
             return redirect()->route('cliente.sin-sesion')->with('error', 'La sucursal especificada no existe.');
         }
@@ -111,9 +150,14 @@ class ClienteController extends Controller
         return view('cliente.acceso-domicilio', compact('sucursal', 'barrios'));
     }
 
-    public function crearSesionDomicilio(Request $request, $sucursal_slug)
+    public function crearSesionDomicilio(Request $request, $empresa_slug, $sucursal_slug)
     {
-        $sucursal = Sucursal::where('slug', $sucursal_slug)->first();
+        $empresa = Empresa::where('slug', $empresa_slug)->first();
+        if (!$empresa) {
+            return redirect()->route('cliente.sin-sesion')->with('error', 'La empresa especificada no existe.');
+        }
+
+        $sucursal = Sucursal::where('empresa_id', $empresa->id)->where('slug', $sucursal_slug)->first();
         if (!$sucursal) {
             return redirect()->route('cliente.sin-sesion')->with('error', 'La sucursal especificada no existe.');
         }

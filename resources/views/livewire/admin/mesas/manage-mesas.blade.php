@@ -316,6 +316,7 @@
         @if($selectedMesa)
             @php
                 $url = route('cliente.qr', [
+                    'empresa_slug' => Auth::user()->empresa->slug,
                     'sucursal_slug' => Auth::user()->sucursal->slug,
                     'codigo' => $selectedMesa->codigo_qr
                 ]);

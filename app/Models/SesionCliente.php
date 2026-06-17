@@ -82,7 +82,8 @@ class SesionCliente extends Model
 
         // Si es una sesión de mesa, verificar si se debe liberar
         if ($this->mesa_id) {
-            $otrasActivas = self::where('mesa_id', $this->mesa_id)
+            $otrasActivas = self::withoutGlobalScope(\App\Scopes\TenantScope::class)
+                ->where('mesa_id', $this->mesa_id)
                 ->where('activo', true)
                 ->where('id', '!=', $this->id)
                 ->count();

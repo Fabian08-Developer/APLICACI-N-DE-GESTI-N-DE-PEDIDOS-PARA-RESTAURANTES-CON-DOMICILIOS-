@@ -74,6 +74,41 @@
                 Tomar Pedido
             </a>
 
+
+            {{-- ── Reservas (NUEVO) ── --}}
+            <a href="{{ route('mesero.reservas.index') }}"
+               class="nav-item {{ request()->routeIs('mesero.reservas.*') ? 'activo' : '' }}">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
+                    <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
+                    <line x1="16" y1="2" x2="16" y2="6"/>
+                    <line x1="8"  y1="2" x2="8"  y2="6"/>
+                    <line x1="3"  y1="10" x2="21" y2="10"/>
+                    <line x1="8"  y1="14" x2="8.01" y2="14" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="12" y1="14" x2="12.01" y2="14" stroke-width="2.5" stroke-linecap="round"/>
+                    <line x1="16" y1="14" x2="16.01" y2="14" stroke-width="2.5" stroke-linecap="round"/>
+                </svg>
+                Reservas
+                {{-- Badge con reservas de hoy pendientes (opcional) --}}
+                @php
+                    $reservasHoyPendientes = \App\Models\ReservaMesa::where('sucursal_id', auth()->user()->sucursal_id)
+                        ->where('fecha_reserva', today())
+                        ->whereIn('estado', ['pendiente_pago', 'pendiente'])
+                        ->count();
+                @endphp
+                @if($reservasHoyPendientes > 0)
+                <span style="
+                    background: #C48B57;
+                    color: #fff;
+                    font-size: 0.65rem;
+                    font-weight: 700;
+                    padding: 1px 6px;
+                    border-radius: 100px;
+                    margin-left: auto;
+                    line-height: 1.6;
+                ">{{ $reservasHoyPendientes }}</span>
+                @endif
+            </a>
+
             <a href="{{ route('mesero.historial') }}"
                class="nav-item {{ request()->routeIs('mesero.historial') ? 'activo' : '' }}">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">
@@ -84,6 +119,7 @@
                 </svg>
                 Historial
             </a>
+
         </nav>
 
         <div class="sidebar-footer">

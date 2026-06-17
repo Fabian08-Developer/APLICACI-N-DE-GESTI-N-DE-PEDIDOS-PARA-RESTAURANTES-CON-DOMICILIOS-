@@ -11,6 +11,7 @@ use App\Livewire\Admin\Zonas\ManageZonas;
 use App\Livewire\Admin\Reportes\ManageReportes;
 use App\Livewire\Admin\Usuarios\ManageUsuarios;
 use App\Livewire\Admin\MapaSede;
+use App\Livewire\Admin\Reservas\ManageReservas;
 
 Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:administrador|gerente'])->group(function() {
     
@@ -20,6 +21,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:adminis
     
     Route::get('/mesas', ManageMesas::class)->name('mesas');
     Route::get('/mesas/{id}/imprimir-qr', [\App\Http\Controllers\Admin\MesaController::class, 'imprimirQr'])->name('mesas.imprimir-qr');
+    
+    Route::get('/reservas', ManageReservas::class)->name('reservas.index');
     
     Route::get('/productos', ManageProductos::class)->name('productos');
     Route::get('/productos/exportar', [\App\Http\Controllers\Admin\ExcelProductosController::class, 'exportar'])->name('productos.exportar');

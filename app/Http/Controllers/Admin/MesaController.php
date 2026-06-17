@@ -25,6 +25,7 @@ class MesaController extends Controller
 
         // Generar la URL que escanea el cliente
         $url = route('cliente.qr', [
+            'empresa_slug' => $mesa->sucursal->empresa->slug,
             'sucursal_slug' => $mesa->sucursal->slug,
             'codigo' => $mesa->codigo_qr
         ]);
