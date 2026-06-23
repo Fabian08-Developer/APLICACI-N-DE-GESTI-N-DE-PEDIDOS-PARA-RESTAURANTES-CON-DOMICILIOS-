@@ -20,23 +20,21 @@
 
     <!-- Header Premium -->
     <div class="order-card-header">
-        <div style="display:flex; justify-content: space-between; align-items: center;">
-            <div style="display:flex; align-items:center; gap: 0.6rem;">
-                <span style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.05);">#{{ $pedido->short_id }}</span>
-                <span style="color: #34D399; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:0.25rem;">
-                    @if(strtolower($pedido->tipo) === 'domicilio')
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-                        Domicilio
-                    @else
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="14" width="18" height="8" rx="2"/><path d="M3 14V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"/></svg>
-                        Mesa {{ $pedido->sesionMesa?->mesa?->numero ?? '—' }}
-                    @endif
-                </span>
-            </div>
-            
-            <div class="order-timer {{ $timerCls }}" data-creado="{{ $creadoEn->toIso8601String() }}">
-                <span style="font-size: 0.6rem; opacity: 0.8; font-weight: 600; margin-right: 0.2rem;">HACE</span><span class="timer-value">{{ $minutos }}</span> min
-            </div>
+        <div style="display:flex; align-items:center; gap: 0.6rem;">
+            <span style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.05);">#{{ $pedido->short_id }}</span>
+            <span style="color: #34D399; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:0.25rem;">
+                @if(strtolower($pedido->tipo) === 'domicilio')
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+                    Domicilio
+                @else
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="14" width="18" height="8" rx="2"/><path d="M3 14V6a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v8"/></svg>
+                    Mesa {{ $pedido->sesionMesa?->mesa?->numero ?? '—' }}
+                @endif
+            </span>
+        </div>
+        
+        <div class="order-timer {{ $timerCls }}" data-creado="{{ $creadoEn->toIso8601String() }}">
+            <span style="font-size: 0.6rem; opacity: 0.8; font-weight: 600; margin-right: 0.2rem;">HACE</span><span class="timer-value">{{ $minutos }}</span> min
         </div>
     </div>
 

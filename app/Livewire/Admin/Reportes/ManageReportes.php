@@ -68,12 +68,29 @@ class ManageReportes extends Component
 
     /**
      * Centralized report data generation that applies all active filters.
+     * OPTIMIZADO: cacheado 2 minutos por combinación de filtros.
      */
     private function obtenerDatosReporte()
     {
-        $user = auth()->user();
+        $user        = auth()->user();
         $sucursal_id = $user->sucursal_id;
 
+        // Clave de caché única por sucursal + combinación de filtros activos
+        $cacheKey = "reporte_v2_{$sucursal_id}_{$this->period}_{$this->start}_{$this->end}_"
+            . md5(implode(',', $this->categorias ?? []))
+            . '_' . md5(implode(',', $this->metodos_pago ?? []))
+            . '_' . md5(implode(',', $this->productos_top ?? []));
+
+        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($user, $sucursal_id) {
+            return $this->calcularDatosReporte($user, $sucursal_id);
+        });
+    }
+
+    /**
+     * Lógica interna de generación de datos del reporte (sin caché).
+     */
+    private function calcularDatosReporte($user, $sucursal_id)
+    {
         // Parse and calculate Date range based on selected Period
         $period = $this->period ?: request('period', 'mes');
         $startVal = $this->start ?: request('start');
@@ -356,8 +373,8 @@ class ManageReportes extends Component
         }
 
         return [
-            'start' => $start,
-            'end' => $end,
+            'start' => $start->format('Y-m-d H:i:s'),
+            'end' => $end->format('Y-m-d H:i:s'),
             'period' => $period,
             'changes' => $changes,
             'currentMetrics' => $currentMetrics,
@@ -417,13 +434,13 @@ class ManageReportes extends Component
             'trendTotals' => $reportData['trendTotals'],
             'catNames' => $reportData['catNames'],
             'catTotals' => $reportData['catTotals'],
-            'start' => $reportData['start']->format('Y-m-d'),
-            'end' => $reportData['end']->format('Y-m-d'),
+            'start' => Carbon::parse($reportData['start'])->format('Y-m-d'),
+            'end' => Carbon::parse($reportData['end'])->format('Y-m-d'),
         ]);
 
         return view('livewire.admin.reportes.manage-reportes', [
-            'start' => $reportData['start']->format('Y-m-d'),
-            'end' => $reportData['end']->format('Y-m-d'),
+            'start' => Carbon::parse($reportData['start'])->format('Y-m-d'),
+            'end' => Carbon::parse($reportData['end'])->format('Y-m-d'),
             'period' => $reportData['period'],
             'changes' => $reportData['changes'],
             'currentMetrics' => $reportData['currentMetrics'],

@@ -112,8 +112,9 @@ class ManageProductos extends Component
         }
 
         $productos = $query->paginate(10);
-        $total = Producto::where('sucursal_id', $sucursal_id)->count();
-        $categorias = Categoria::where('sucursal_id', $sucursal_id)->orderBy('nombre')->get();
+        // Usar $productos->total() en la vista en lugar de hacer otra query separada
+        $total = $productos->total();
+        $categorias = Categoria::where('sucursal_id', $sucursal_id)->select('id', 'nombre')->orderBy('nombre')->get();
 
         return view('livewire.admin.productos.manage-productos', compact('productos', 'total', 'categorias'))
                ->layout('layouts.admin');

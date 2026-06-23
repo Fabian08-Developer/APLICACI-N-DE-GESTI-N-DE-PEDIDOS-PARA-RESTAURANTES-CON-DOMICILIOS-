@@ -63,7 +63,7 @@
                 </div>
 
                 <div style="margin-top: 1.5rem; font-size: 0.8rem; color: var(--text-sec); padding: 0.75rem; background: rgba(230, 181, 102, 0.1); border-radius: 0.5rem; line-height: 1.4;">
-                    💡 Para agregar barrios al mapa, ve a <strong>Gestión de Zonas</strong> y edita cada barrio para asignarle coordenadas.
+                    Para agregar barrios al mapa, ve a <strong>Gestión de Zonas</strong> y edita cada barrio para asignarle coordenadas.
                 </div>
             </div>
         </aside>

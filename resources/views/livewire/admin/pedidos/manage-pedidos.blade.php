@@ -160,8 +160,9 @@
                 <label>DOMICILIARIO</label>
                 <select wire:model.live="filtroDomiciliario">
                     <option value="">Todos los domiciliarios</option>
+                    @dump(gettype($domiciliarios))
                     @foreach($domiciliarios as $dom)
-                        <option value="{{ $dom->id }}">{{ $dom->nombre }}</option>
+                        <option value="{{ is_object($dom) ? $dom->id : 'error' }}">{{ is_object($dom) ? $dom->nombre : 'error' }}</option>
                     @endforeach
                 </select>
             </div>
@@ -186,7 +187,7 @@
 {{-- TABLA DE RESULTADOS --}}
 <div class="tarjeta">
     <div class="tarjeta-header">
-        Resultados: {{ $pedidos->count() }} pedidos encontrados
+        Resultados: {{ $pedidos->total() }} pedidos encontrados (página {{ $pedidos->currentPage() }} de {{ $pedidos->lastPage() }})
     </div>
 
     @if($pedidos->isEmpty())
@@ -270,6 +271,11 @@
                 @endforeach
             </tbody>
         </table>
+
+        {{-- PAGINACIÓN --}}
+        <div style="padding: 1rem 1.5rem; border-top: 1px solid rgba(0,0,0,0.06);">
+            {{ $pedidos->links() }}
+        </div>
     @endif
 </div>
 
@@ -478,34 +484,39 @@
             <button type="button" class="btn-close-modal" wire:click="closeAsignarModal">✕</button>
         </div>
         <div class="modal-body">
-            @if($domiciliarios->isEmpty())
+            @if($domiciliarios && (is_array($domiciliarios) || is_object($domiciliarios)) && (is_object($domiciliarios) ? $domiciliarios->isEmpty() : empty($domiciliarios)))
                 <p class="texto-gris text-center py-4">No hay domiciliarios disponibles registrados en esta sucursal.</p>
             @else
                 <div class="drivers-list">
+                    @dump('Modal gettype:', gettype($domiciliarios))
                     @foreach($domiciliarios as $dom)
-                        @php
-                            $claseEstadoDriver = match($dom->estado) {
-                                'disponible' => 'driver-disponible',
-                                'en_ruta' => 'driver-en-ruta',
-                                'ocupado' => 'driver-ocupado',
-                                default => 'driver-no-disponible',
-                            };
-                        @endphp
-                        <div class="driver-card">
-                            <div class="driver-info">
-                                <div class="driver-avatar">{{ $dom->iniciales }}</div>
-                                <div>
-                                    <div class="driver-name">{{ $dom->nombre }}</div>
-                                    <div class="driver-meta">
-                                        <span>Vehículo: {{ ucfirst($dom->tipo_vehiculo) }} ({{ $dom->placa ?? 'N/A' }})</span> • 
-                                        <span class="driver-status {{ $claseEstadoDriver }}">{{ ucfirst($dom->estado) }}</span>
+                        @if(is_object($dom))
+                            @php
+                                $claseEstadoDriver = match($dom->estado) {
+                                    'disponible' => 'driver-disponible',
+                                    'en_ruta' => 'driver-en-ruta',
+                                    'ocupado' => 'driver-ocupado',
+                                    default => 'driver-no-disponible',
+                                };
+                            @endphp
+                            <div class="driver-card">
+                                <div class="driver-info">
+                                    <div class="driver-avatar">{{ $dom->iniciales }}</div>
+                                    <div>
+                                        <div class="driver-name">{{ $dom->nombre }}</div>
+                                        <div class="driver-meta">
+                                            <span>Vehículo: {{ ucfirst($dom->tipo_vehiculo) }} ({{ $dom->placa ?? 'N/A' }})</span> • 
+                                            <span class="driver-status {{ $claseEstadoDriver }}">{{ ucfirst($dom->estado) }}</span>
+                                        </div>
                                     </div>
                                 </div>
+                                <button type="button" class="btn-assign-driver" wire:click="asignarDomiciliario('{{ $dom->id }}')">
+                                    Asignar
+                                </button>
                             </div>
-                            <button type="button" class="btn-assign-driver" wire:click="asignarDomiciliario('{{ $dom->id }}')">
-                                Asignar
-                            </button>
-                        </div>
+                        @else
+                            @dump('Error: Element is not an object', $dom)
+                        @endif
                     @endforeach
                 </div>
             @endif

@@ -97,56 +97,54 @@ class GlobalReports extends Component
 
     /**
      * Obtiene los datos comparativos de las sucursales (RF-G67 y RF-G69)
+     * OPTIMIZADO: 1 query GROUP BY en lugar de 2 queries por cada sucursal
      */
     public function getSucursalesDataProperty()
     {
         $empresaId = Auth::user()->empresa_id;
 
-        // Consultar sucursales
         $sucursalesQuery = Sucursal::where('empresa_id', $empresaId);
-        
         if ($this->sucursalFilter && $this->sucursalFilter !== 'all') {
             $sucursalesQuery->where('id', $this->sucursalFilter);
         }
+        $sucursales = $sucursalesQuery->select('id', 'nombre', 'activo')->get();
 
-        $sucursales = $sucursalesQuery->get();
         $totalSucursales = Sucursal::where('empresa_id', $empresaId)->where('activo', true)->count();
 
-        $data = $sucursales->map(function ($sucursal) {
-            // Ventas y pedidos por sucursal en el rango de fechas
-            $query = Pedido::where('sucursal_id', $sucursal->id)
-                ->where('estado', '!=', 'cancelado');
+        // 1 sola query con GROUP BY en lugar de 2 queries por sucursal
+        $pedidosQuery = Pedido::whereIn('sucursal_id', $sucursales->pluck('id'))
+            ->where('estado', '!=', 'cancelado');
 
-            if ($this->startDate) {
-                $query->whereDate('creado_en', '>=', $this->startDate);
-            }
-            if ($this->endDate) {
-                $query->whereDate('creado_en', '<=', $this->endDate);
-            }
+        if ($this->startDate) {
+            $pedidosQuery->whereDate('creado_en', '>=', $this->startDate);
+        }
+        if ($this->endDate) {
+            $pedidosQuery->whereDate('creado_en', '<=', $this->endDate);
+        }
 
-            $ventas = $query->sum('total');
-            $pedidos = $query->count();
+        // Una sola query agrupada por sucursal_id
+        $agrupados = $pedidosQuery
+            ->selectRaw('sucursal_id, SUM(total) as ventas, COUNT(*) as pedidos')
+            ->groupBy('sucursal_id')
+            ->get()
+            ->keyBy('sucursal_id');
 
+        $data = $sucursales->map(function ($sucursal) use ($agrupados) {
+            $row = $agrupados->get($sucursal->id);
             return [
-                'id' => $sucursal->id,
+                'id'     => $sucursal->id,
                 'nombre' => $sucursal->nombre,
                 'activo' => $sucursal->activo,
-                'ventas' => (float) $ventas,
-                'pedidos' => (int) $pedidos,
+                'ventas' => (float) ($row->ventas ?? 0),
+                'pedidos'=> (int)   ($row->pedidos ?? 0),
             ];
         });
 
-        // Suma total de ventas de todas las filas mostradas para calcular el porcentaje
         $totalVentasMostradas = $data->sum('ventas');
 
-        // Calcular porcentajes y ordenar
         return $data->map(function ($item) use ($totalVentasMostradas, $totalSucursales) {
-            // % de ventas para RF-G67
-            $item['porcentaje_ventas'] = $totalVentasMostradas > 0 ? ($item['ventas'] / $totalVentasMostradas) * 100 : 0;
-            
-            // % dividido entre la cantidad de sucursales para RF-G69 (equitativo)
+            $item['porcentaje_ventas']   = $totalVentasMostradas > 0 ? ($item['ventas'] / $totalVentasMostradas) * 100 : 0;
             $item['porcentaje_dividido'] = $totalSucursales > 0 ? (1 / $totalSucursales) * 100 : 0;
-            
             return $item;
         })->sortByDesc('ventas')->values();
     }

@@ -14,8 +14,6 @@ use App\Notifications\OtpActualizacionNit;
 class Settings extends Component
 {
     use WithFileUploads;
-
-    public $activeTab = 'perfil';
     
     // Profile Fields
     public $nombre_usuario;
@@ -61,11 +59,6 @@ class Settings extends Component
             $this->documento_path = $empresa->documento_path;
             $this->documento_pendiente_path = $empresa->documento_pendiente_path;
         }
-    }
-
-    public function setTab($tab)
-    {
-        $this->activeTab = $tab;
     }
 
     public function saveProfile()

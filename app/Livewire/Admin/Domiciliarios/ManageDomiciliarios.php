@@ -156,7 +156,7 @@ class ManageDomiciliarios extends Component
         $sucursal_id = $user->sucursal_id;
 
         // RF-135: Búsqueda + RF-136: Filtro por estado
-        $query = PerfilDomiciliario::with(['usuario', 'zona', 'liquidaciones'])
+        $query = PerfilDomiciliario::with(['usuario:id,nombre,telefono,correo', 'zona:id,nombre', 'liquidaciones'])
             ->where('sucursal_id', $sucursal_id)
             ->when($this->filtroEstado !== '', fn($q) => $q->where('estado', $this->filtroEstado))
             ->when($this->busqueda !== '', function ($q) {
@@ -169,38 +169,48 @@ class ManageDomiciliarios extends Component
 
         $domiciliarios = $query->get();
 
-        // RF-132: Estadísticas (sobre el total, no los filtrados)
-        $todos = PerfilDomiciliario::where('sucursal_id', $sucursal_id)->get();
+        // RF-132: Estadísticas — 1 sola query agrupada en lugar de cargar toda la tabla de nuevo
+        $statsRaw = PerfilDomiciliario::where('sucursal_id', $sucursal_id)
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN estado = 'disponible' THEN 1 ELSE 0 END) as disponibles,
+                SUM(CASE WHEN estado = 'en_ruta' THEN 1 ELSE 0 END) as en_ruta,
+                SUM(CASE WHEN estado = 'ocupado' THEN 1 ELSE 0 END) as ocupados,
+                SUM(CASE WHEN estado IN ('no_disponible', 'fuera_servicio') THEN 1 ELSE 0 END) as fuera_servicio
+            ")
+            ->first();
+
         $stats = [
-            'total'          => $todos->count(),
-            'disponibles'    => $todos->where('estado', 'disponible')->count(),
-            'en_ruta'        => $todos->where('estado', 'en_ruta')->count(),
-            'ocupados'       => $todos->where('estado', 'ocupado')->count(),
-            'fuera_servicio' => $todos->whereIn('estado', ['no_disponible', 'fuera_servicio'])->count(),
+            'total'          => $statsRaw->total ?? 0,
+            'disponibles'    => $statsRaw->disponibles ?? 0,
+            'en_ruta'        => $statsRaw->en_ruta ?? 0,
+            'ocupados'       => $statsRaw->ocupados ?? 0,
+            'fuera_servicio' => $statsRaw->fuera_servicio ?? 0,
         ];
 
         $zonas = ZonaCobertura::where('sucursal_id', $sucursal_id)
             ->where('activo', true)
+            ->select('id', 'nombre')
             ->get();
 
         // Domiciliario que se está liquidando (para el modal)
         $liquidandoDom = $this->liquidandoId
-            ? PerfilDomiciliario::with('usuario')->find($this->liquidandoId)
+            ? PerfilDomiciliario::with('usuario:id,nombre,correo')->find($this->liquidandoId)
             : null;
 
         $todasLiquidaciones = [];
         if ($this->activeTab === 'liquidaciones') {
-            $todasLiquidaciones = LiquidacionDomiciliario::with(['perfil.usuario', 'aprobador'])
+            $todasLiquidaciones = LiquidacionDomiciliario::with(['perfil.usuario:id,nombre', 'aprobador:id,nombre'])
                 ->where('sucursal_id', $sucursal_id)
                 ->orderByDesc('liquidado_en')
                 ->get();
         }
 
         return view('livewire.admin.domiciliarios.manage-domiciliarios', [
-            'stats'         => $stats,
-            'domiciliarios' => $domiciliarios,
-            'zonas'         => $zonas,
-            'liquidandoDom' => $liquidandoDom,
+            'stats'              => $stats,
+            'domiciliarios'      => $domiciliarios,
+            'zonas'              => $zonas,
+            'liquidandoDom'      => $liquidandoDom,
             'todasLiquidaciones' => $todasLiquidaciones,
         ])->layout('layouts.admin');
     }

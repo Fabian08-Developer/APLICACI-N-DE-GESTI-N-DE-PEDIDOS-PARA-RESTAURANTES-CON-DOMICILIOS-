@@ -7,6 +7,7 @@ use App\Models\Mesa;
 use App\Models\PagoReserva;
 use App\Models\ReservaMesa;
 use App\Models\Sucursal;
+use App\Scopes\TenantScope;
 use App\Services\ReservaService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
@@ -26,6 +27,8 @@ class ReservaController extends Controller
         $sucursal = Sucursal::where('slug', $slug)
             ->where('activo', true)
             ->firstOrFail();
+
+        TenantScope::setTenantId($sucursal->id);
 
         // Verificar que la sucursal tiene reservas activas
         $config = is_string($sucursal->configuracion)
@@ -47,8 +50,13 @@ class ReservaController extends Controller
         $horizonteDias    = $this->reservaService->horizonteDias($sucursal);
 
         return view('cliente.reservas.formulario', compact(
-            'sucursal', 'mesas', 'montoDeposito', 'requiereDeposito',
-            'duracionTurno', 'anticipacionMin', 'horizonteDias'
+            'sucursal',
+            'mesas',
+            'montoDeposito',
+            'requiereDeposito',
+            'duracionTurno',
+            'anticipacionMin',
+            'horizonteDias'
         ));
     }
 
@@ -59,6 +67,8 @@ class ReservaController extends Controller
     public function slots(Request $request, string $slug)
     {
         $sucursal = Sucursal::where('slug', $slug)->where('activo', true)->firstOrFail();
+
+        TenantScope::setTenantId($sucursal->id);
 
         $request->validate([
             'fecha'         => 'required|date|after_or_equal:today',
@@ -79,7 +89,7 @@ class ReservaController extends Controller
             $mesas = Mesa::where('sucursal_id', $sucursal->id)
                 ->whereIn('id', $mesasIds)
                 ->get();
-                
+
             if ($mesas->isEmpty()) {
                 throw ValidationException::withMessages(['mesas_ids' => 'Mesa seleccionada no válida.']);
             }
@@ -99,6 +109,8 @@ class ReservaController extends Controller
     public function crear(Request $request, string $slug)
     {
         $sucursal = Sucursal::where('slug', $slug)->where('activo', true)->firstOrFail();
+
+        TenantScope::setTenantId($sucursal->id);
 
         $datos = $request->validate([
             'nombre_cliente'   => 'required|string|max:150',
@@ -126,7 +138,6 @@ class ReservaController extends Controller
             return redirect()->route('cliente.reservas.confirmada', [
                 'codigo' => $reserva->codigo_reserva,
             ]);
-
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
@@ -138,8 +149,10 @@ class ReservaController extends Controller
      */
     public function deposito(string $slug, string $codigo)
     {
-        $reserva  = ReservaMesa::where('codigo_reserva', $codigo)->firstOrFail();
+        $reserva  = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)->firstOrFail();
         $sucursal = $reserva->sucursal;
+
+        TenantScope::setTenantId($sucursal->id);
 
         if ($reserva->deposito_pagado) {
             return redirect()->route('cliente.reservas.confirmada', ['codigo' => $codigo]);
@@ -154,8 +167,10 @@ class ReservaController extends Controller
      */
     public function procesarDeposito(Request $request, string $slug, string $codigo)
     {
-        $reserva  = ReservaMesa::where('codigo_reserva', $codigo)->firstOrFail();
+        $reserva  = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)->firstOrFail();
         $sucursal = $reserva->sucursal;
+
+        TenantScope::setTenantId($sucursal->id);
 
         $datos = $request->validate([
             'metodo'          => 'required|in:efectivo,nequi,transferencia',
@@ -170,7 +185,6 @@ class ReservaController extends Controller
 
             return redirect()->route('cliente.reservas.confirmada', ['codigo' => $codigo])
                 ->with('exito', 'Depósito registrado exitosamente. ¡Tu reserva está en proceso!');
-
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors())->withInput();
         }
@@ -182,9 +196,11 @@ class ReservaController extends Controller
      */
     public function confirmada(string $codigo)
     {
-        $reserva = ReservaMesa::where('codigo_reserva', $codigo)
-            ->with(['sucursal', 'mesa'])
+        $reserva = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)
+            ->with(['sucursal', 'mesas'])
             ->firstOrFail();
+
+        TenantScope::setTenantId($reserva->sucursal_id);
 
         return view('cliente.reservas.confirmada', compact('reserva'));
     }
@@ -195,9 +211,11 @@ class ReservaController extends Controller
      */
     public function cancelarFormulario(string $codigo)
     {
-        $reserva = ReservaMesa::where('codigo_reserva', $codigo)
-            ->with(['sucursal', 'mesa'])
+        $reserva = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)
+            ->with(['sucursal', 'mesas'])
             ->firstOrFail();
+
+        TenantScope::setTenantId($reserva->sucursal_id);
 
         if ($reserva->estado->esFinal()) {
             return view('cliente.reservas.ya-cancelada', compact('reserva'));
@@ -219,8 +237,10 @@ class ReservaController extends Controller
      */
     public function cancelar(Request $request, string $codigo)
     {
-        $reserva  = ReservaMesa::where('codigo_reserva', $codigo)->firstOrFail();
+        $reserva  = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)->firstOrFail();
         $sucursal = $reserva->sucursal;
+
+        TenantScope::setTenantId($sucursal->id);
 
         $request->validate([
             'motivo' => 'nullable|string|max:500',
@@ -235,7 +255,6 @@ class ReservaController extends Controller
             );
 
             return view('cliente.reservas.cancelacion-exitosa', compact('reserva'));
-
         } catch (ValidationException $e) {
             return back()->withErrors($e->errors());
         }
@@ -265,7 +284,11 @@ class ReservaController extends Controller
 
             $hayMesa = $cursor->gte($ahora)
                 ? $this->reservaService->mesasDisponiblesParaSlot(
-                    $sucursal, $fecha, $cursor->format('H:i'), $slotFin->format('H:i'), $personas
+                    $sucursal,
+                    $fecha,
+                    $cursor->format('H:i'),
+                    $slotFin->format('H:i'),
+                    $personas
                 )->isNotEmpty()
                 : false;
 

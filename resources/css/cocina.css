@@ -1,6 +1,6 @@
 /* 🎨 PALETA COCINA - Artisan Kitchen (Light Theme) */
 :root {
-    --bg-main:    #FDFBF7; /* Ivory / Cream */
+    --bg-main:    #FFFFFF; /* White */
     --surface:    #FFFFFF; /* White */
     --text-main:  #2C241B; /* Espresso */
     --text-muted: #5C5246;
@@ -155,7 +155,7 @@ body {
 /* ── KANBAN ── */
 .kanban {
     display: grid;
-    grid-template-columns: repeat(4, 1fr);
+    grid-template-columns: repeat(3, 1fr);
     gap: 1.2rem;
 }
 
@@ -171,7 +171,7 @@ body {
     border-radius: 4px;
 }
 
-.col-cnt { background: var(--accent); color: #FFF; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.65rem; font-weight: 800;}
+.col-cnt, .col-count { background: var(--accent); color: #FFF; padding: 0.15rem 0.5rem; border-radius: 12px; font-size: 0.65rem; font-weight: 800;}
 
 /* ── ORDER CARDS (ARTISAN TICKETS) ── */
 .order-card {

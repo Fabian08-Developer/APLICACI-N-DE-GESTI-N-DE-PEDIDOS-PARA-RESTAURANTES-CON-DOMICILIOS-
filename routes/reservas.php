@@ -22,5 +22,6 @@ Route::post('/s/{slug}/reservar/{codigo}/deposito', [ReservaController::class, '
 
 // Consulta y cancelación de reserva (acceso por código, sin slug)
 Route::get('/reserva/{codigo}',                [ReservaController::class, 'confirmada'])->name('cliente.reservas.confirmada');
+Route::get('/reserva/{codigo}/pdf',            [ReservaController::class, 'descargarPdf'])->name('cliente.reservas.pdf');
 Route::get('/reserva/{codigo}/cancelar',       [ReservaController::class, 'cancelarFormulario'])->name('cliente.reservas.cancelar');
 Route::post('/reserva/{codigo}/cancelar',      [ReservaController::class, 'cancelar'])->name('cliente.reservas.cancelar.procesar');

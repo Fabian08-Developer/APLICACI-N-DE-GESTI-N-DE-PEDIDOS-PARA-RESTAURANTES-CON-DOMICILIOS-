@@ -26,7 +26,7 @@
         [x-cloak] { display: none !important; }
         body { color: var(--text-main); background-color: var(--bg-main); overflow-x: hidden; }
         ::-webkit-scrollbar { width: 5px; }
-        ::-webkit-scrollbar-track { background: #FDFBF7; }
+        ::-webkit-scrollbar-track { background: #FFFFFF; }
         ::-webkit-scrollbar-thumb { background: #E2DDD5; border-radius: 10px; }
         ::-webkit-scrollbar-thumb:hover { background: #D97706; }
         .sidebar-transition { transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1); }
@@ -129,7 +129,7 @@
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
         {{-- Sidebar Header --}}
-        <div class="h-20 flex items-center justify-between px-6 border-b border-[#2C241B]/10 bg-[#FDFBF7] shrink-0">
+        <div class="h-20 flex items-center justify-between px-6 border-b border-[#2C241B]/10 bg-[#FFFFFF] shrink-0">
             <div class="flex flex-col">
                 <span class="text-[14px] font-black text-[#2C241B] uppercase tracking-widest leading-tight">{{ $platformName }}</span>
                 <span class="text-[10px] font-bold text-[#E07A5F] uppercase tracking-wider">{{ $platformSub }}</span>
@@ -221,7 +221,7 @@
         </nav>
 
         {{-- Footer Sidebar --}}
-        <div class="p-4 border-t border-[#2C241B]/10 bg-[#FDFBF7]">
+        <div class="p-4 border-t border-[#2C241B]/10 bg-[#FFFFFF]">
             <div class="flex items-center gap-3 mb-4">
                 <div class="w-10 h-10 rounded-xl bg-[#E07A5F] text-[#FFFFFF] flex items-center justify-center font-black shadow-sm shrink-0">
                     {{ substr($userName, 0, 1) }}

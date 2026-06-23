@@ -54,42 +54,52 @@ class GerenteDashboard extends Component
 
     public function getWeeklySalesProperty()
     {
-        $userId = auth()->id();
+        $userId    = auth()->id();
         $empresaId = auth()->user()->empresa_id;
 
         return Cache::remember("weekly_sales_gerente_{$userId}", now()->addMinutes(5), function () use ($empresaId) {
+            // Obtener IDs de sucursales una sola vez
+            $sucursalIds = Sucursal::where('empresa_id', $empresaId)->pluck('id');
+
+            // 1 SOLA query GROUP BY DATE en lugar de 7 queries separadas
+            $inicio = Carbon::today()->subDays(6)->startOfDay();
+            $fin    = Carbon::today()->endOfDay();
+
+            $rawData = Pedido::whereIn('sucursal_id', $sucursalIds)
+                ->whereNotIn('estado', ['cancelado', 'CANCELADO'])
+                ->whereBetween('creado_en', [$inicio, $fin])
+                ->selectRaw("DATE(creado_en) as fecha, SUM(total) as ventas")
+                ->groupBy('fecha')
+                ->orderBy('fecha')
+                ->pluck('ventas', 'fecha')
+                ->toArray();
+
+            $translations = [
+                Carbon::MONDAY    => 'Lun',
+                Carbon::TUESDAY   => 'Mar',
+                Carbon::WEDNESDAY => 'Mie',
+                Carbon::THURSDAY  => 'Jue',
+                Carbon::FRIDAY    => 'Vie',
+                Carbon::SATURDAY  => 'Sab',
+                Carbon::SUNDAY    => 'Dom',
+            ];
+
             $daysData = [];
             $maxSales = 0;
 
             for ($i = 6; $i >= 0; $i--) {
-                $date = Carbon::today()->subDays($i);
-                
-                $sales = Pedido::whereHas('sucursal', function ($query) use ($empresaId) {
-                        $query->where('empresa_id', $empresaId);
-                    })
-                    ->whereNotIn('estado', ['cancelado', 'CANCELADO'])
-                    ->whereDate('creado_en', $date)
-                    ->sum('total');
-
-                $dayOfWeek = $date->dayOfWeek;
-                $translations = [
-                    Carbon::MONDAY => 'Lun',
-                    Carbon::TUESDAY => 'Mar',
-                    Carbon::WEDNESDAY => 'Mie',
-                    Carbon::THURSDAY => 'Jue',
-                    Carbon::FRIDAY => 'Vie',
-                    Carbon::SATURDAY => 'Sab',
-                    Carbon::SUNDAY => 'Dom',
-                ];
-                $dayLabel = $translations[$dayOfWeek] ?? '';
+                $date       = Carbon::today()->subDays($i);
+                $dateStr    = $date->format('Y-m-d');
+                $sales      = (float) ($rawData[$dateStr] ?? 0);
+                $dayLabel   = $translations[$date->dayOfWeek] ?? '';
 
                 if ($sales > $maxSales) {
                     $maxSales = $sales;
                 }
 
                 $daysData[] = [
-                    'label' => $dayLabel,
-                    'sales' => $sales,
+                    'label'    => $dayLabel,
+                    'sales'    => $sales,
                     'date_str' => $date->format('d/m'),
                 ];
             }

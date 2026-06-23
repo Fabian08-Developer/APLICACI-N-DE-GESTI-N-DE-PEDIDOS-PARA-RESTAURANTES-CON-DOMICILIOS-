@@ -3,6 +3,7 @@
 namespace App\Livewire\Admin\Pedidos;
 
 use Livewire\Component;
+use Livewire\WithPagination;
 use App\Models\Pedido;
 use App\Models\Mesa;
 use App\Models\User;
@@ -17,10 +18,14 @@ use App\Events\PedidoAsignadoDomiciliario;
 use App\Events\PedidoCancelado;
 use App\Jobs\DispararNotificacion;
 use Carbon\Carbon;
+use Illuminate\Support\Facades\Cache;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
 
 class ManagePedidos extends Component
 {
+    use WithPagination;
+
     // Navigation tab
     public $tab = 'local'; // Valores válidos: TipoPedido::LOCAL->value, TipoPedido::DOMICILIO->value, 'domicilios_activos'
 
@@ -66,29 +71,40 @@ class ManagePedidos extends Component
     {
         $this->tab = $tab;
         $this->limpiarFiltros();
+        $this->resetPage();
     }
 
     public function limpiarFiltros()
     {
         $this->filtroFechaInicio = null;
-        $this->filtroFechaFin = null;
-        $this->filtroEstado = null;
-        $this->filtroMesa = null;
-        $this->filtroMesero = null;
+        $this->filtroFechaFin    = null;
+        $this->filtroEstado      = null;
+        $this->filtroMesa        = null;
+        $this->filtroMesero      = null;
         $this->filtroDomiciliario = null;
-        $this->filtroZona = null;
+        $this->filtroZona        = null;
+        $this->resetPage();
     }
+
+    // Reset page on filter change
+    public function updatedFiltroEstado()      { $this->resetPage(); }
+    public function updatedFiltroMesa()        { $this->resetPage(); }
+    public function updatedFiltroMesero()      { $this->resetPage(); }
+    public function updatedFiltroDomiciliario(){ $this->resetPage(); }
+    public function updatedFiltroZona()        { $this->resetPage(); }
+    public function updatedFiltroFechaInicio() { $this->resetPage(); }
+    public function updatedFiltroFechaFin()    { $this->resetPage(); }
 
     public function openDetailModal($id)
     {
         $this->selectedPedidoId = $id;
-        $this->showDetailModal = true;
+        $this->showDetailModal  = true;
     }
 
     public function closeDetailModal()
     {
         $this->selectedPedidoId = null;
-        $this->showDetailModal = false;
+        $this->showDetailModal  = false;
         $this->motivoCancelacion = '';
     }
 
@@ -112,8 +128,6 @@ class ManagePedidos extends Component
         }
 
         try {
-            // La lógica de validación de bloqueo y actualización de estado
-            // del domiciliario vive en el servicio de dominio.
             $domiciliario = $this->pedidoService->asignarDomiciliario($pedido, $domiciliarioId);
 
             PedidoAsignadoDomiciliario::dispatch(
@@ -142,15 +156,8 @@ class ManagePedidos extends Component
     }
 
     /**
-     * RF-188: Asignación automática inteligente con 5 criterios:
-     * 1. Solo disponibles
-     * 2. Sin bloqueo (sin liquidaciones pendientes, sin exceder límite efectivo)
-     * 3. Priorizar domiciliarios de la misma zona del pedido
-     * 4. Menor carga de trabajo (pedidos_hoy ASC)
-     * 5. Desempate: menor cantidad de pedidos activos
-     *
-     * La selección del candidato permanece aquí (lógica de UI/orquestación).
-     * La asignación efectiva y sus invariantes de dominio van al PedidoService.
+     * RF-188: Asignación automática inteligente con 5 criterios.
+     * OPTIMIZADO: el filtro de bloqueo ahora se resuelve en SQL, no en PHP.
      */
     public function autoAsignar($pedidoId)
     {
@@ -167,23 +174,30 @@ class ManagePedidos extends Component
 
         $sucursal_id = auth()->user()->sucursal_id;
 
-        // 1 & 2. Solo disponibles sin bloqueo
-        $candidatos = PerfilDomiciliario::with(['liquidaciones', 'pedidosActivos'])
+        // OPTIMIZADO: filtrar en SQL en lugar de cargar todos y filtrar en PHP
+        // Excluye domiciliarios con efectivo_pendiente >= limite_efectivo O con liquidaciones pendientes
+        $candidatos = PerfilDomiciliario::with(['pedidosActivos'])
             ->where('sucursal_id', $sucursal_id)
             ->where('estado', 'disponible')
-            ->get()
-            ->filter(fn ($d) => !$d->tiene_bloqueo);
+            ->where(function ($q) {
+                // Solo los que NO tienen bloqueo por efectivo
+                $q->whereRaw('efectivo_pendiente < limite_efectivo');
+            })
+            ->whereDoesntHave('liquidaciones', function ($q) {
+                $q->where('estado', 'pendiente');
+            })
+            ->get();
 
         if ($candidatos->isEmpty()) {
             session()->flash('error', 'No hay domiciliarios disponibles para asignar. Puede que todos tengan liquidaciones pendientes o hayan superado el límite de efectivo.');
             return;
         }
 
-        // 3. Priorizar por zona del pedido
+        // Priorizar por zona del pedido
         $mismaZona  = $candidatos->where('zona_id', $pedido->zona_id);
         $candidatos = $mismaZona->isNotEmpty() ? $mismaZona : $candidatos;
 
-        // 4 & 5. Menor carga (pedidos_hoy) y desempate por pedidos activos
+        // Menor carga (pedidos_hoy) y desempate por pedidos activos
         $elegido = $candidatos
             ->sortBy([
                 ['pedidos_hoy', 'asc'],
@@ -197,7 +211,6 @@ class ManagePedidos extends Component
         }
 
         try {
-            // El servicio ejecuta la asignación con sus invariantes de dominio
             $this->pedidoService->asignarDomiciliario($pedido, $elegido->id);
 
             PedidoAsignadoDomiciliario::dispatch(
@@ -229,11 +242,9 @@ class ManagePedidos extends Component
             return;
         }
 
-        // Capturar estado anterior antes de la actualización para el evento
         $estadoAnterior = $pedido->estado;
 
         try {
-            // El servicio valida el Enum, aplica timestamps y acredita efectivo al domiciliario.
             $this->pedidoService->cambiarEstado($pedido, $nuevoEstado);
 
             PedidoCambioEstado::dispatch(
@@ -268,11 +279,10 @@ class ManagePedidos extends Component
         $pedido = Pedido::find($pedidoId);
         if ($pedido) {
             $pedido->update([
-                'estado' => EstadoPedido::CANCELADO->value,
+                'estado'             => EstadoPedido::CANCELADO->value,
                 'motivo_cancelacion' => $this->motivoCancelacion
             ]);
 
-            // Save history log
             HistorialEstadoPedido::create([
                 'pedido_id'   => $pedido->id,
                 'sucursal_id' => $pedido->sucursal_id,
@@ -281,7 +291,6 @@ class ManagePedidos extends Component
                 'cambiado_en' => now(),
             ]);
 
-            // R-02: Dispatch al final.
             PedidoCancelado::dispatch(
                 sucursal_id: $pedido->sucursal_id,
                 pedido_id:   $pedido->id,
@@ -305,25 +314,26 @@ class ManagePedidos extends Component
 
     public function render()
     {
-        $user = auth()->user();
+        $user        = auth()->user();
         $sucursal_id = $user->sucursal_id;
 
+        // ── PEDIDOS (paginados) ───────────────────────────────────────────
         $query = Pedido::with([
-            'sesionCliente.mesa',
-            'mesero',
-            'domiciliario.usuario',
-            'zona'
-        ])
-        ->withCount('detalles')
-        ->where('sucursal_id', $sucursal_id);
+                'sesionCliente.mesa',
+                'mesero:id,nombre',
+                'domiciliario.usuario:id,nombre',
+                'zona:id,nombre',
+            ])
+            ->withCount('detalles')
+            ->where('sucursal_id', $sucursal_id);
 
         // Filter based on selected tab
         if ($this->tab === TipoPedido::LOCAL->value) {
             $query->where('tipo', TipoPedido::LOCAL->value);
             if ($this->filtroMesa) {
-                $query->whereHas('sesionCliente', function ($q) {
-                    $q->where('mesa_id', $this->filtroMesa);
-                });
+                $query->whereHas('sesionCliente', fn($q) =>
+                    $q->where('mesa_id', $this->filtroMesa)
+                );
             }
             if ($this->filtroMesero) {
                 $query->where('mesero_id', $this->filtroMesero);
@@ -347,7 +357,6 @@ class ManagePedidos extends Component
             }
         }
 
-        // General Filters
         if ($this->filtroEstado) {
             $query->where('estado', $this->filtroEstado);
         }
@@ -358,62 +367,72 @@ class ManagePedidos extends Component
             $query->whereDate('creado_en', '<=', $this->filtroFechaFin);
         }
 
-        $pedidos = $query->latest('creado_en')->get();
+        $pedidos = $query->latest('creado_en')->paginate(20);
 
-        // Dropdowns for filters
-        $mesas = Mesa::where('sucursal_id', $sucursal_id)->get();
-        $meseros = User::where('sucursal_id', $sucursal_id)
-            ->where('rol', 'mesero')
-            ->get();
-        $domiciliarios = PerfilDomiciliario::with('usuario')
-            ->where('sucursal_id', $sucursal_id)
-            ->get();
-        $zonas = ZonaCobertura::where('sucursal_id', $sucursal_id)->get();
+        // ── DROPDOWNS (cacheados 60 segundos — no cambian cada request) ──
+        $cacheKey = "dropdowns_pedidos_{$sucursal_id}";
+        $dropdowns = Cache::remember($cacheKey, 60, function () use ($sucursal_id) {
+            return [
+                'mesas'         => Mesa::where('sucursal_id', $sucursal_id)
+                                       ->select('id', 'numero')
+                                       ->get(),
+                'meseros'       => User::where('sucursal_id', $sucursal_id)
+                                       ->where('rol', 'mesero')
+                                       ->select('id', 'nombre')
+                                       ->get(),
+                'domiciliarios' => PerfilDomiciliario::with('usuario:id,nombre')
+                                       ->where('sucursal_id', $sucursal_id)
+                                       ->get(),
+                'zonas'         => ZonaCobertura::where('sucursal_id', $sucursal_id)
+                                       ->select('id', 'nombre')
+                                       ->get(),
+            ];
+        });
 
-        // Statistics
-        $today = Carbon::today();
-        $totalPedidosHoy = Pedido::where('sucursal_id', $sucursal_id)
-            ->whereDate('creado_en', $today)
-            ->count();
-        $pendientesHoy = Pedido::where('sucursal_id', $sucursal_id)
-            ->whereDate('creado_en', $today)
-            ->whereNotIn('estado', [EstadoPedido::ENTREGADO->value, EstadoPedido::CANCELADO->value])
-            ->count();
-        $completadosHoy = Pedido::where('sucursal_id', $sucursal_id)
-            ->whereDate('creado_en', $today)
-            ->where('estado', EstadoPedido::ENTREGADO->value)
-            ->count();
+        // ── ESTADÍSTICAS HOY — 1 sola query en lugar de 3 ───────────────
+        $statsHoy = Pedido::where('sucursal_id', $sucursal_id)
+            ->whereDate('creado_en', Carbon::today())
+            ->selectRaw("
+                COUNT(*) as total,
+                SUM(CASE WHEN estado NOT IN (?, ?) THEN 1 ELSE 0 END) as pendientes,
+                SUM(CASE WHEN estado = ? THEN 1 ELSE 0 END) as completados
+            ", [
+                EstadoPedido::ENTREGADO->value,
+                EstadoPedido::CANCELADO->value,
+                EstadoPedido::ENTREGADO->value,
+            ])
+            ->first();
 
-        // Active delivery count for badge
+        // Active delivery count for badge — query separada sólo cuando es necesario
         $cantDomiciliosActivos = Pedido::where('sucursal_id', $sucursal_id)
             ->where('tipo', TipoPedido::DOMICILIO->value)
             ->whereNotIn('estado', [EstadoPedido::ENTREGADO->value, EstadoPedido::CANCELADO->value])
             ->count();
 
-        // Load selected order details
+        // ── PEDIDO SELECCIONADO (solo cuando el modal está abierto) ──────
         $selectedPedido = $this->selectedPedidoId
             ? Pedido::with([
                 'sesionCliente.mesa',
-                'mesero',
-                'detalles.producto',
-                'domiciliario.usuario',
-                'zona',
-                'historial.usuario',
-                'pagos'
+                'mesero:id,nombre',
+                'detalles.producto:id,nombre',
+                'domiciliario.usuario:id,nombre',
+                'zona:id,nombre',
+                'historial.usuario:id,nombre',
+                'pagos',
             ])->find($this->selectedPedidoId)
             : null;
 
         return view('livewire.admin.pedidos.manage-pedidos', [
-            'pedidos' => $pedidos,
-            'mesas' => $mesas,
-            'meseros' => $meseros,
-            'domiciliarios' => $domiciliarios,
-            'zonas' => $zonas,
-            'totalPedidosHoy' => $totalPedidosHoy,
-            'pendientesHoy' => $pendientesHoy,
-            'completadosHoy' => $completadosHoy,
+            'pedidos'               => $pedidos,
+            'mesas'                 => $dropdowns['mesas'],
+            'meseros'               => $dropdowns['meseros'],
+            'domiciliarios'         => $dropdowns['domiciliarios'],
+            'zonas'                 => $dropdowns['zonas'],
+            'totalPedidosHoy'       => $statsHoy->total ?? 0,
+            'pendientesHoy'         => $statsHoy->pendientes ?? 0,
+            'completadosHoy'        => $statsHoy->completados ?? 0,
             'cantDomiciliosActivos' => $cantDomiciliosActivos,
-            'selectedPedido' => $selectedPedido,
+            'selectedPedido'        => $selectedPedido,
         ])->layout('layouts.admin');
     }
 }

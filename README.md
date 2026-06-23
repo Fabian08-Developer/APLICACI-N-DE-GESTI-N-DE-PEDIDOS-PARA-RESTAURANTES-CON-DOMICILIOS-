@@ -11,12 +11,28 @@ La aplicación está diseñada bajo el patrón Modelo-Vista-Controlador (MVC) y 
 - **Roles y Permisos**: Implementado usando `spatie/laravel-permission` para permitir alta granularidad.
 - **Seguridad**: Uso de cookies HTTP-Only para la transmisión de tokens de personal y middlewares de Sanctum para la API.
 
-## Requisitos Previos
+## Stack de Tecnologías
 
-- PHP 8.3+
-- Composer
-- Node.js y npm
-- MySQL o PostgreSQL
+### Backend
+- **Laravel**: Framework principal (PHP)
+- **PostgreSQL**: Base de Datos
+- **Redis**: Sistema de Caché
+
+### Frontend
+- **Blade + Alpine.js + Livewire**: Arquitectura reactiva frontend
+- **Dependencias Frontend**:
+  - `alpinejs`
+  - `@alpinejs/mask`
+  - `@alpinejs/persist`
+
+### Dependencias PHP
+- `livewire/livewire`
+- `laravel/sanctum` (Autenticación API)
+- `spatie/laravel-permission` (Roles y Permisos)
+- `barryvdh/laravel-dompdf` (Exportación a PDF)
+- `maatwebsite/excel` (Importación/Exportación Excel)
+- `simplesoftwareio/simple-qrcode` (Generador de Códigos QR)
+- `laravel/reverb` (Servidor WebSocket)
 
 ## Instalación
 

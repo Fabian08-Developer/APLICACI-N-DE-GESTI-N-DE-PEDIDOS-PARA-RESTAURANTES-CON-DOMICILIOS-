@@ -1,4 +1,4 @@
-<div class="p-6 lg:p-8 space-y-8 bg-[#FDFBF7] min-h-screen">
+<div class="p-6 lg:p-8 space-y-8 bg-[var(--bg-main)] min-h-screen">
     {{-- Header --}}
     <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>

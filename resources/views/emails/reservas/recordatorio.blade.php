@@ -49,10 +49,10 @@
                     <span class="detail-label">Código</span>
                     <span class="detail-value"><span class="code">{{ $reserva->codigo_reserva }}</span></span>
                 </div>
-                @if($reserva->mesa)
+                @if($reserva->mesas->count() > 0)
                 <div class="detail-row">
-                    <span class="detail-label">🪑 Mesa</span>
-                    <span class="detail-value">Mesa #{{ $reserva->mesa->numero }}</span>
+                    <span class="detail-label">🪑 Mesa(s)</span>
+                    <span class="detail-value">Mesa(s) #{{ $reserva->mesas->pluck('numero')->join(', ') }}</span>
                 </div>
                 @endif
                 <div class="detail-row">
