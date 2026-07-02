@@ -32,6 +32,7 @@ class Sucursal extends Model
         'activo',
         'hora_apertura',
         'hora_cierre',
+        'timezone',
         'latitud',
         'longitud',
     ];
@@ -86,6 +87,7 @@ class Sucursal extends Model
 
     /**
      * Indica si la sucursal está abierta en este momento.
+     * Usa el timezone propio de la sucursal si está configurado.
      */
     public function estaAbierta(): bool
     {
@@ -93,7 +95,8 @@ class Sucursal extends Model
             return true; // Sin horario configurado → siempre abierta
         }
 
-        $ahora    = Carbon::now()->format('H:i:s');
+        $tz       = $this->timezone ?? config('app.timezone', 'America/Bogota');
+        $ahora    = Carbon::now($tz)->format('H:i:s');
         $apertura = $this->hora_apertura;
         $cierre   = $this->hora_cierre;
 

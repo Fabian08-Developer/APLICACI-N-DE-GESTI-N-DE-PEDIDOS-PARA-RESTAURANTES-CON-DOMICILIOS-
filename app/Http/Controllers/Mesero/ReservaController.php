@@ -184,4 +184,5 @@ class ReservaController extends Controller
             return back()->withErrors($e->errors())->withInput();
         }
     }
+
 }

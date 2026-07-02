@@ -1,8 +1,6 @@
-@extends('mesero.layout')
+@extends('layouts.admin')
 
-@section('titulo', 'Nueva Reserva')
-
-@section('contenido')
+@section('content')
 <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
 <style>
     /* ── Estilos base del Wizard de Reservas ── */
@@ -20,7 +18,6 @@
         font-family: 'Inter', sans-serif;
     }
 
-    /* Contenedor principal que aísla los estilos para no romper el layout del mesero */
     .wizard-theme-wrapper {
         background-color: var(--dark);
         color: var(--text);
@@ -191,7 +188,6 @@
     .wizard-theme .errors { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; color: #f87171; font-size: 0.9rem; }
     [x-cloak] { display: none !important; }
 
-    /* Estilos extra para el checkbox de depósito */
     .wizard-theme .checkbox-label {
         display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.95rem; color: var(--text); line-height: 1.4; font-weight: 500;
         margin-top: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);
@@ -200,14 +196,14 @@
 </style>
 
 <div class="wizard-theme-wrapper wizard-theme">
-    <div class="wizard-container" x-data="reservaWizardMesero()">
+    <div class="wizard-container" x-data="reservaWizardAdmin()">
         
         <!-- Left: Wizard Form -->
         <div class="glass-panel">
             <div class="page-header">
-                <a href="{{ route('mesero.reservas.index') }}" style="color:var(--text-dim); text-decoration:none; font-size:0.9rem; display:inline-block; margin-bottom:1rem;">← Volver a Reservas</a>
+                <a href="{{ route('admin.reservas.index') }}" style="color:var(--text-dim); text-decoration:none; font-size:0.9rem; display:inline-block; margin-bottom:1rem;">← Volver a Reservas</a>
                 <h1 class="serif">Nueva Reserva</h1>
-                <p>Creación de reserva desde el panel del restaurante</p>
+                <p>Creación de reserva desde el panel del Administrador</p>
             </div>
 
             <div class="steps">
@@ -232,14 +228,11 @@
                 </div>
             @endif
 
-            <form method="POST" action="{{ route('mesero.reservas.store') }}" id="formReserva">
+            <form method="POST" action="{{ route('admin.reservas.store') }}" id="formReservaAdmin">
                 @csrf
                 
-                <!-- Hidden inputs to send to server -->
                 <input type="hidden" name="fecha_reserva" :value="fecha">
                 <input type="hidden" name="numero_personas" :value="personas">
-                
-                <!-- Para el mesero, permitimos forzar la hora si es necesario -->
                 <input type="hidden" name="hora_inicio" :value="horaSeleccionada">
                 
                 <template x-for="mesaId in mesasSeleccionadas" :key="mesaId">
@@ -353,8 +346,8 @@
                     <label class="checkbox-label">
                         <input type="checkbox" name="deposito_pagado_efectivo" value="1" {{ old('deposito_pagado_efectivo') ? 'checked' : '' }}>
                         <div>
-                            <strong>El cliente pagó el depósito en efectivo (${{ number_format($montoDeposito, 0, ',', '.') }}) en este momento.</strong><br>
-                            <span style="font-size:0.8rem; color:var(--text-dim);">Al marcar esta opción, la reserva quedará Confirmada de inmediato. Si no, se enviará el correo con enlace de pago.</span>
+                            <strong>El cliente pagó el depósito en efectivo o por otro medio de inmediato (${{ number_format($montoDeposito, 0, ',', '.') }}).</strong><br>
+                            <span style="font-size:0.8rem; color:var(--text-dim);">Al marcar esta opción, la reserva quedará Confirmada de inmediato.</span>
                         </div>
                     </label>
                     @endif
@@ -407,7 +400,7 @@
 
 <script>
 document.addEventListener('alpine:init', () => {
-    Alpine.data('reservaWizardMesero', () => ({
+    Alpine.data('reservaWizardAdmin', () => ({
         step: 1,
         fecha: '{{ old('fecha_reserva', date('Y-m-d')) }}',
         personas: {{ old('numero_personas', 2) }},
@@ -452,7 +445,6 @@ document.addEventListener('alpine:init', () => {
             this.slots = [];
             
             // Usamos la ruta pública del cliente para obtener las franjas.
-            // Para eso, el controlador envía el $sucursal en la vista.
             let url = `{{ route('cliente.reservas.slots', $sucursal->slug) }}?fecha=${this.fecha}&numero_personas=${this.personas}`;
             
             if (this.mesasSeleccionadas.length > 0) {

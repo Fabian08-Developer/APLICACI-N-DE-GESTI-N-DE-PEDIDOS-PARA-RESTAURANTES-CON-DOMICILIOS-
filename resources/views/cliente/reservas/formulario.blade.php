@@ -263,12 +263,12 @@
                 </div>
 
                 <div class="form-group" style="margin-top:2rem;">
-                    <label class="form-label">Hora de llegada <span x-show="isLoadingSlots">(Cargando...)</span></label>
+                    <label class="form-label">Hora de llegada <span x-show="isLoadingSlots" style="color:var(--gold);">(Cargando...)</span></label>
                     <div class="slots-grid">
                         <template x-for="slot in slots" :key="slot.hora_inicio">
                             <div class="slot-btn" 
                                  :class="{'active': horaSeleccionada === slot.hora_inicio, 'disabled': !slot.disponible}"
-                                 @click="if(slot.disponible) horaSeleccionada = slot.hora_inicio">
+                                 @click="if(slot.disponible) { horaSeleccionada = slot.hora_inicio; validarAnticipacion(); }">
                                 <span x-text="slot.hora_inicio.substring(0,5)"></span>
                             </div>
                         </template>
@@ -276,10 +276,17 @@
                             No hay horarios disponibles para la fecha y cantidad de personas indicadas.
                         </div>
                     </div>
+
+                    <!-- Alerta en tiempo real de anticipación mínima -->
+                    <div x-show="errorHora" x-transition
+                         style="margin-top:1rem; padding:0.85rem 1rem; border-radius:10px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); display:flex; align-items:center; gap:0.6rem; color:#f87171; font-size:0.88rem;">
+                        <span style="font-size:1.1rem;">⚠️</span>
+                        <span x-text="errorHora"></span>
+                    </div>
                 </div>
 
                 <div class="btn-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-next" @click="step = 2" :disabled="!fecha || !personas || !horaSeleccionada">Continuar →</button>
+                    <button type="button" class="btn btn-next" @click="step = 2" :disabled="!fecha || !personas || !horaSeleccionada || !!errorHora">Continuar →</button>
                 </div>
             </div>
 
@@ -393,6 +400,7 @@ document.addEventListener('alpine:init', () => {
         mesaSeleccionada: '{{ old('mesas_ids.0', '') }}',
         slots: [],
         isLoadingSlots: false,
+        errorHora: '',
         mesasObj: @json($mesas),
 
         init() {
@@ -400,6 +408,20 @@ document.addEventListener('alpine:init', () => {
             @if($errors->any())
                 this.step = 3;
             @endif
+        },
+
+        validarAnticipacion() {
+            if (!this.fecha || !this.horaSeleccionada) { this.errorHora = ''; return; }
+            const ahora    = new Date();
+            const [h, m]   = this.horaSeleccionada.split(':');
+            const reserva  = new Date(this.fecha + 'T' + this.horaSeleccionada);
+            const diffMin  = (reserva - ahora) / 60000;
+            if (diffMin < 30) {
+                const minFaltantes = Math.ceil(30 - diffMin);
+                this.errorHora = `Esta hora no cumple con el mínimo de 30 minutos de anticipación. Elige una hora al menos ${minFaltantes} min más tarde.`;
+            } else {
+                this.errorHora = '';
+            }
         },
 
         fetchSlots() {
@@ -418,7 +440,7 @@ document.addEventListener('alpine:init', () => {
             .then(data => {
                 this.slots = data.slots || [];
                 let horaAunDisponible = this.slots.find(s => s.hora_inicio === this.horaSeleccionada && s.disponible);
-                if (!horaAunDisponible) this.horaSeleccionada = '';
+                if (!horaAunDisponible) { this.horaSeleccionada = ''; this.errorHora = ''; }
             })
             .catch(err => console.error(err))
             .finally(() => {

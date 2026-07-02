@@ -16,7 +16,7 @@
     <meta name="apple-mobile-web-app-title" content="SGPD">
     <link rel="manifest" href="/manifest.json">
     <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
-    @vite(['resources/css/admin.css', 'resources/js/admin.js'])
+    @vite(['resources/css/admin.css', 'resources/js/admin.js', 'resources/js/echo-setup.js'])
     @livewireStyles
     <style>
         .livewire-progress-bar {
@@ -167,7 +167,8 @@
             <div class="alerta alerta-error">{{ session('error') }}</div>
         @endif
 
-        {{ $slot }}
+        {{ $slot ?? '' }}
+        @yield('content')
     </main>
 
     @livewireScripts

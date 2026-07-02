@@ -12,16 +12,17 @@ use App\Http\Controllers\Cliente\ReservaController;
 */
 
 // Formulario y creación de reserva
-Route::get('/s/{slug}/reservar',               [ReservaController::class, 'formulario'])->name('cliente.reservas.formulario');
-Route::get('/s/{slug}/reservar/slots',         [ReservaController::class, 'slots'])->name('cliente.reservas.slots');
-Route::post('/s/{slug}/reservar',              [ReservaController::class, 'crear'])->name('cliente.reservas.crear');
+Route::get('/s/{slug}/reservar',       [ReservaController::class, 'formulario'])->name('cliente.reservas.formulario');
+Route::get('/s/{slug}/reservar/slots', [ReservaController::class, 'slots'])->middleware('throttle:60,1')->name('cliente.reservas.slots');
+Route::post('/s/{slug}/reservar',      [ReservaController::class, 'crear'])->middleware('throttle:15,1')->name('cliente.reservas.crear');
 
 // Pago del depósito
 Route::get('/s/{slug}/reservar/{codigo}/deposito',  [ReservaController::class, 'deposito'])->name('cliente.reservas.deposito');
-Route::post('/s/{slug}/reservar/{codigo}/deposito', [ReservaController::class, 'procesarDeposito'])->name('cliente.reservas.deposito.procesar');
+Route::post('/s/{slug}/reservar/{codigo}/deposito', [ReservaController::class, 'procesarDeposito'])->middleware('throttle:10,1')->name('cliente.reservas.deposito.procesar');
 
 // Consulta y cancelación de reserva (acceso por código, sin slug)
-Route::get('/reserva/{codigo}',                [ReservaController::class, 'confirmada'])->name('cliente.reservas.confirmada');
-Route::get('/reserva/{codigo}/pdf',            [ReservaController::class, 'descargarPdf'])->name('cliente.reservas.pdf');
-Route::get('/reserva/{codigo}/cancelar',       [ReservaController::class, 'cancelarFormulario'])->name('cliente.reservas.cancelar');
-Route::post('/reserva/{codigo}/cancelar',      [ReservaController::class, 'cancelar'])->name('cliente.reservas.cancelar.procesar');
+Route::get('/reserva/{codigo}',          [ReservaController::class, 'confirmada'])->name('cliente.reservas.confirmada');
+Route::get('/reserva/{codigo}/pdf',      [ReservaController::class, 'descargarPdf'])->name('cliente.reservas.pdf');
+Route::get('/reserva/{codigo}/cancelar', [ReservaController::class, 'cancelarFormulario'])->name('cliente.reservas.cancelar');
+Route::post('/reserva/{codigo}/cancelar',[ReservaController::class, 'cancelar'])->middleware('throttle:5,1')->name('cliente.reservas.cancelar.procesar');
+

@@ -22,6 +22,8 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:adminis
     Route::get('/mesas', ManageMesas::class)->name('mesas');
     Route::get('/mesas/{id}/imprimir-qr', [\App\Http\Controllers\Admin\MesaController::class, 'imprimirQr'])->name('mesas.imprimir-qr');
     
+    Route::get('/reservas/crear', [\App\Http\Controllers\Admin\ReservaController::class, 'crear'])->name('reservas.crear');
+    Route::post('/reservas', [\App\Http\Controllers\Admin\ReservaController::class, 'store'])->name('reservas.store');
     Route::get('/reservas', ManageReservas::class)->name('reservas.index');
     
     Route::get('/productos', ManageProductos::class)->name('productos');

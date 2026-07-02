@@ -401,156 +401,6 @@ tbody td {
     border-bottom: 2px solid #E07A5F;
     border-radius: 8px 8px 0 0;
 }
-.tab-badge {
-    background: #E07A5F;
-    color: #FDFBF7;
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.15rem 0.45rem;
-    border-radius: 10px;
-    margin-left: 0.25rem;
-}
-
-/* ── CUSTOMER & TABLE INFO COLUMNS ── */
-.cliente-info-col {
-    display: flex;
-    flex-direction: column;
-}
-.cliente-nombre {
-    font-weight: 600;
-    color: #2C241B;
-}
-.cliente-tel {
-    font-size: 0.75rem;
-    color: rgba(44, 36, 27, 0.6);
-}
-.direccion-col {
-    color: rgba(44, 36, 27, 0.6);
-}
-.domiciliario-badge {
-    background: rgba(59, 130, 246, 0.1);
-    color: #60a5fa;
-    border: 1px solid rgba(59, 130, 246, 0.2);
-    padding: 0.2rem 0.5rem;
-    border-radius: 6px;
-    font-size: 0.75rem;
-}
-.sin-asignar {
-    color: #ef4444;
-    font-size: 0.75rem;
-    font-style: italic;
-}
-.btn-asignar {
-    padding: 0.35rem 0.75rem;
-    background: rgba(201, 168, 76, 0.1);
-    border: 1px solid rgba(201, 168, 76, 0.3);
-    color: #E07A5F;
-    border-radius: 6px;
-    font-size: 0.75rem;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-.btn-asignar:hover {
-    background: rgba(201, 168, 76, 0.25);
-}
-
-/* ── DRAWER SYSTEM (SLIDE IN DETAILS) ── */
-.drawer-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.6);
-    z-index: 1000;
-    opacity: 0;
-    pointer-events: none;
-    transition: opacity 0.3s ease;
-    backdrop-filter: blur(4px);
-}
-.drawer-overlay.show {
-    opacity: 1;
-    pointer-events: auto;
-}
-.drawer-content {
-    position: fixed;
-    top: 0;
-    right: -450px;
-    width: 450px;
-    height: 100%;
-    background: #FDFBF7;
-    border-left: 1px solid #1e293b;
-    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
-    z-index: 1001;
-    display: flex;
-    flex-direction: column;
-    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-}
-.drawer-content.show {
-    right: 0;
-}
-.drawer-header {
-    padding: 1.5rem;
-    border-bottom: 1px solid #1e293b;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-}
-.drawer-header h2 {
-    font-size: 1.25rem;
-    font-weight: 700;
-    color: #2C241B;
-}
-.btn-close-drawer {
-    background: transparent;
-    border: none;
-    color: #94a3b8;
-    font-size: 1.25rem;
-    cursor: pointer;
-    transition: color 0.2s;
-}
-.btn-close-drawer:hover {
-    color: #ef4444;
-}
-.drawer-body {
-    padding: 1.5rem;
-    overflow-y: auto;
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 1.5rem;
-}
-.drawer-section {
-    border-bottom: 1px solid rgba(44, 36, 27, 0.05);
-    padding-bottom: 1.25rem;
-}
-.drawer-section h3 {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: #E07A5F;
-    letter-spacing: 0.05em;
-    text-transform: uppercase;
-    margin-bottom: 0.75rem;
-}
-.info-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 0.75rem;
-    font-size: 0.85rem;
-}
-.info-grid div {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-}
-.info-grid .full-width {
-    grid-column: 1 / span 2;
-}
-.info-label {
-    font-size: 0.7rem;
-    color: #64748b;
-    text-transform: uppercase;
-}
 .badge-local {
     background: rgba(201, 168, 76, 0.1);
     color: #E07A5F;
@@ -926,4 +776,140 @@ tbody td {
 }
 .btn-assign-driver:hover {
     background: #b5933d;
-}
+}
+/* ── RESTORED MISSING STYLES ── */
+.cliente-info-col {
+    display: flex;
+    flex-direction: column;
+}
+.cliente-nombre {
+    font-weight: 600;
+    color: #2C241B;
+}
+.cliente-tel {
+    font-size: 0.75rem;
+    color: rgba(44, 36, 27, 0.6);
+}
+.direccion-col {
+    color: rgba(44, 36, 27, 0.6);
+}
+.domiciliario-badge {
+    background: rgba(59, 130, 246, 0.1);
+    color: #60a5fa;
+    border: 1px solid rgba(59, 130, 246, 0.2);
+    padding: 0.2rem 0.5rem;
+    border-radius: 6px;
+    font-size: 0.75rem;
+}
+.sin-asignar {
+    color: #ef4444;
+    font-size: 0.75rem;
+    font-style: italic;
+}
+.btn-asignar {
+    padding: 0.35rem 0.75rem;
+    background: rgba(201, 168, 76, 0.1);
+    border: 1px solid rgba(201, 168, 76, 0.3);
+    color: #E07A5F;
+    border-radius: 6px;
+    font-size: 0.75rem;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+.btn-asignar:hover {
+    background: rgba(201, 168, 76, 0.25);
+}
+.drawer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.6);
+    z-index: 1000;
+    opacity: 0;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+    backdrop-filter: blur(4px);
+}
+.drawer-overlay.show {
+    opacity: 1;
+    pointer-events: auto;
+}
+.drawer-content {
+    position: fixed;
+    top: 0;
+    right: -550px;
+    width: 550px;
+    height: 100%;
+    background: #FDFBF7;
+    border-left: 1px solid #1e293b;
+    box-shadow: -10px 0 30px rgba(0, 0, 0, 0.5);
+    z-index: 1001;
+    display: flex;
+    flex-direction: column;
+    transition: right 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.drawer-content.show {
+    right: 0;
+}
+.drawer-header {
+    padding: 1.5rem;
+    border-bottom: 1px solid #1e293b;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+.drawer-header h2 {
+    font-size: 1.25rem;
+    font-weight: 700;
+    color: #2C241B;
+    margin: 0;
+}
+.btn-close-drawer {
+    background: transparent;
+    border: none;
+    color: #94a3b8;
+    font-size: 1.25rem;
+    cursor: pointer;
+    transition: color 0.2s;
+}
+.btn-close-drawer:hover {
+    color: #ef4444;
+}
+.drawer-body {
+    padding: 1.5rem;
+    overflow-y: auto;
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+.drawer-section {
+    border-bottom: 1px solid rgba(44, 36, 27, 0.05);
+    padding-bottom: 1.25rem;
+}
+.drawer-section h3 {
+    font-size: 0.875rem;
+    font-weight: 700;
+    color: #E07A5F;
+    letter-spacing: 0.05em;
+    text-transform: uppercase;
+    margin-bottom: 0.75rem;
+}
+.info-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.75rem;
+    font-size: 0.85rem;
+}
+.info-grid div {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+}
+.info-label {
+    font-size: 0.7rem;
+    color: #64748b;
+    text-transform: uppercase;
+}

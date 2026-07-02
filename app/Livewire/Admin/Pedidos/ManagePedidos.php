@@ -370,24 +370,21 @@ class ManagePedidos extends Component
         $pedidos = $query->latest('creado_en')->paginate(20);
 
         // ── DROPDOWNS (cacheados 60 segundos — no cambian cada request) ──
-        $cacheKey = "dropdowns_pedidos_{$sucursal_id}";
-        $dropdowns = Cache::remember($cacheKey, 60, function () use ($sucursal_id) {
-            return [
-                'mesas'         => Mesa::where('sucursal_id', $sucursal_id)
-                                       ->select('id', 'numero')
-                                       ->get(),
-                'meseros'       => User::where('sucursal_id', $sucursal_id)
-                                       ->where('rol', 'mesero')
-                                       ->select('id', 'nombre')
-                                       ->get(),
-                'domiciliarios' => PerfilDomiciliario::with('usuario:id,nombre')
-                                       ->where('sucursal_id', $sucursal_id)
-                                       ->get(),
-                'zonas'         => ZonaCobertura::where('sucursal_id', $sucursal_id)
-                                       ->select('id', 'nombre')
-                                       ->get(),
-            ];
-        });
+        $dropdowns = [
+            'mesas'         => Mesa::where('sucursal_id', $sucursal_id)
+                                   ->select('id', 'numero')
+                                   ->get(),
+            'meseros'       => User::where('sucursal_id', $sucursal_id)
+                                   ->where('rol', 'mesero')
+                                   ->select('id', 'nombre')
+                                   ->get(),
+            'domiciliarios' => PerfilDomiciliario::with('usuario:id,nombre')
+                                   ->where('sucursal_id', $sucursal_id)
+                                   ->get(),
+            'zonas'         => ZonaCobertura::where('sucursal_id', $sucursal_id)
+                                   ->select('id', 'nombre')
+                                   ->get(),
+        ];
 
         // ── ESTADÍSTICAS HOY — 1 sola query en lugar de 3 ───────────────
         $statsHoy = Pedido::where('sucursal_id', $sucursal_id)

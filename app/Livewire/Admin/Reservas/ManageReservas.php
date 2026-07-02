@@ -103,6 +103,7 @@ class ManageReservas extends Component
         $this->selectedReservaId = $id;
         $this->showCancelModal   = true;
         $this->motivoCancelacion = '';
+        $this->dispatch('open-cancel-modal');
     }
 
     public function closeCancelModal()
@@ -110,6 +111,7 @@ class ManageReservas extends Component
         $this->selectedReservaId = null;
         $this->showCancelModal   = false;
         $this->motivoCancelacion = '';
+        $this->dispatch('close-cancel-modal');
     }
 
     // ─── Acciones de estado ──────────────────────────────────────────────────
@@ -141,7 +143,7 @@ class ManageReservas extends Component
 
         $reserva = ReservaMesa::find($this->selectedReservaId);
         if ($reserva && $reserva->estado->puedeTransicionarA(EstadoReserva::CANCELADA)) {
-            $this->reservaService->cancelarReserva($reserva, 'administrador', $this->motivoCancelacion);
+            $this->reservaService->cancelarReserva($reserva, $this->motivoCancelacion, 'administrador');
             session()->flash('success', 'Reserva cancelada correctamente.');
             $this->closeCancelModal();
             $this->closeDetailModal();
@@ -260,12 +262,7 @@ class ManageReservas extends Component
 
         // ── Historial ─────────────────────────────────────────────────────────
         $histQuery = ReservaMesa::with(['mesas'])
-            ->where('sucursal_id', $sucursal_id)
-            ->whereIn('estado', [
-                EstadoReserva::COMPLETADA->value,
-                EstadoReserva::CANCELADA->value,
-                EstadoReserva::NO_SHOW->value,
-            ]);
+            ->where('sucursal_id', $sucursal_id);
 
         if ($this->filtroFechaInicio) $histQuery->whereDate('fecha_reserva', '>=', $this->filtroFechaInicio);
         if ($this->filtroFechaFin)    $histQuery->whereDate('fecha_reserva', '<=', $this->filtroFechaFin);

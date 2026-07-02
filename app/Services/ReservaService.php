@@ -6,7 +6,11 @@ use App\Enums\EstadoReserva;
 use App\Jobs\EnviarRecordatorioReservaJob;
 use App\Mail\ReservaConfirmadaMail;
 use App\Mail\ReservaCanceladaMail;
+use App\Mail\ReservaRecibidaMail;
+use App\Mail\ReservaExpiradaMail;
+use App\Mail\ComprobantePagoReservaMail;
 use App\Models\Mesa;
+use App\Services\WebPushService;
 use App\Models\Notificacion;
 use App\Models\PagoReserva;
 use App\Models\ReservaMesa;
@@ -56,7 +60,9 @@ class ReservaService
 
     public function anticipacionMinima(Sucursal $sucursal): int
     {
-        return (int) $this->config($sucursal, 'anticipacion_minima_minutos', self::DEFAULT_ANTICIPACION_MIN_MIN);
+        // Regla de negocio fija: mínimo 30 minutos de anticipación, sin excepciones.
+        $configurado = (int) $this->config($sucursal, 'anticipacion_minima_minutos', self::DEFAULT_ANTICIPACION_MIN_MIN);
+        return max(self::DEFAULT_ANTICIPACION_MIN_MIN, $configurado);
     }
 
     public function horizonteDias(Sucursal $sucursal): int
@@ -135,6 +141,7 @@ class ReservaService
         $duracion = $this->duracionTurno($sucursal);
         $apertura = $sucursal->hora_apertura ?? '09:00:00';
         $cierre   = $sucursal->hora_cierre   ?? '22:00:00';
+        $tz       = $sucursal->timezone ?? config('app.timezone', 'America/Bogota');
 
         $reservasExistentes = ReservaMesa::whereHas('mesas', function($q) use ($mesa) {
                 $q->where('mesas.id', $mesa->id);
@@ -144,11 +151,11 @@ class ReservaService
             ->get(['hora_inicio', 'hora_fin']);
 
         $slots = [];
-        $cursor = Carbon::parse($fecha . ' ' . $apertura);
-        $fin    = Carbon::parse($fecha . ' ' . $cierre);
+        $cursor = Carbon::parse($fecha . ' ' . $apertura, $tz);
+        $fin    = Carbon::parse($fecha . ' ' . $cierre, $tz);
 
-        // Anticipación mínima: no mostrar slots en el pasado
-        $ahora = now()->addMinutes($this->anticipacionMinima($sucursal));
+        // Anticipación mínima: no mostrar slots ya expirados según timezone de la sucursal
+        $ahora = now($tz)->addMinutes($this->anticipacionMinima($sucursal));
 
         while ($cursor->copy()->addMinutes($duracion)->lte($fin)) {
             $slotFin = $cursor->copy()->addMinutes($duracion);
@@ -247,17 +254,18 @@ class ReservaService
             }
 
             // 2. Validar anticipación mínima y horizonte máximo
-            $fechaHoraInicio = Carbon::parse($datos['fecha_reserva'] . ' ' . $datos['hora_inicio']);
+            $tz              = $sucursal->timezone ?? config('app.timezone', 'America/Bogota');
+            $fechaHoraInicio = Carbon::parse($datos['fecha_reserva'] . ' ' . $datos['hora_inicio'], $tz);
             $anticipacion    = $this->anticipacionMinima($sucursal);
             $horizonte       = $this->horizonteDias($sucursal);
 
-            if ($fechaHoraInicio->lt(now()->addMinutes($anticipacion))) {
+            if ($fechaHoraInicio->lt(now($tz)->addMinutes($anticipacion))) {
                 throw ValidationException::withMessages([
                     'hora_inicio' => "Debes reservar con al menos {$anticipacion} minutos de anticipación.",
                 ]);
             }
 
-            if ($fechaHoraInicio->gt(now()->addDays($horizonte))) {
+            if ($fechaHoraInicio->gt(now($tz)->addDays($horizonte))) {
                 throw ValidationException::withMessages([
                     'fecha_reserva' => "Solo puedes reservar hasta {$horizonte} días en el futuro.",
                 ]);
@@ -272,7 +280,12 @@ class ReservaService
             $mesasIds = array_filter((array) $mesasIds);
 
             if (!empty($mesasIds)) {
-                $mesas = Mesa::where('sucursal_id', $sucursal->id)->whereIn('id', $mesasIds)->get();
+                // Lock pesimista: bloquea las filas de mesa durante la transacción
+                // para prevenir race conditions cuando dos requests llegan al mismo tiempo.
+                $mesas = Mesa::where('sucursal_id', $sucursal->id)
+                             ->whereIn('id', $mesasIds)
+                             ->lockForUpdate()
+                             ->get();
 
                 $capacidadTotal = $mesas->sum('capacidad');
                 if ($capacidadTotal < $datos['numero_personas']) {
@@ -332,7 +345,22 @@ class ReservaService
             // Si requiere depósito, el flujo continua cuando el cliente paga
             // (ver: procesarPagoDeposito)
 
-            return $reserva->fresh();
+            $reservaFresh = $reserva->fresh();
+
+            // Enviar correo de "Reserva Recibida" con el comprobante y detalles.
+            // Se encola para liberar la transacción inmediatamente (no bloquear por SMTP).
+            if ($reservaFresh->estado === EstadoReserva::PENDIENTE_PAGO || $reservaFresh->estado === EstadoReserva::PENDIENTE) {
+                try {
+                    Mail::to($reservaFresh->correo_cliente)->queue(new ReservaRecibidaMail($reservaFresh));
+                } catch (\Exception $e) {
+                    logger()->error('Error encolando email de reserva recibida', [
+                        'reserva_id' => $reservaFresh->id,
+                        'error'      => $e->getMessage(),
+                    ]);
+                }
+            }
+
+            return $reservaFresh;
         });
     }
 
@@ -358,13 +386,12 @@ class ReservaService
 
         $reserva->confirmar();
 
-        // Enviar email de confirmación
+        // Enviar email de confirmación (encolado para no bloquear el flujo principal)
         try {
             Mail::to($reserva->correo_cliente)
-                ->send(new ReservaConfirmadaMail($reserva));
+                ->queue(new ReservaConfirmadaMail($reserva));
         } catch (\Exception $e) {
-            // No bloquear el flujo si el email falla
-            logger()->error('Error enviando email de confirmación de reserva', [
+            logger()->error('Error encolando email de confirmación de reserva', [
                 'reserva_id' => $reserva->id,
                 'error'      => $e->getMessage(),
             ]);
@@ -454,12 +481,12 @@ class ReservaService
 
         $reserva->cancelar($motivo, $por);
 
-        // Enviar email de cancelación
+        // Enviar email de cancelación (encolado)
         try {
             Mail::to($reserva->correo_cliente)
-                ->send(new ReservaCanceladaMail($reserva));
+                ->queue(new ReservaCanceladaMail($reserva));
         } catch (\Exception $e) {
-            logger()->error('Error enviando email de cancelación de reserva', [
+            logger()->error('Error encolando email de cancelación de reserva', [
                 'reserva_id' => $reserva->id,
                 'error'      => $e->getMessage(),
             ]);
@@ -484,6 +511,16 @@ class ReservaService
 
         foreach ($reservasExpiradas as $reserva) {
             $reserva->marcarNoShow();
+
+            // Enviar correo de expiración al cliente
+            try {
+                Mail::to($reserva->correo_cliente)->queue(new ReservaExpiradaMail($reserva));
+            } catch (\Exception $e) {
+                logger()->error('Error encolando email de reserva expirada', [
+                    'reserva_id' => $reserva->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
 
             // Notificación interna al mesero/admin
             $this->crearNotificacionInterna(
@@ -536,6 +573,15 @@ class ReservaService
             if ($aprobarAutomaticamente) {
                 $pago->aprobar($datos['referencia'] ?? 'Efectivo en recepción');
 
+                try {
+                    Mail::to($reserva->correo_cliente)->queue(new ComprobantePagoReservaMail($pago));
+                } catch (\Exception $e) {
+                    logger()->error('Error encolando email de comprobante de pago', [
+                        'pago_id' => $pago->id,
+                        'error'   => $e->getMessage(),
+                    ]);
+                }
+
                 // Tras aprobar el pago, el modelo PagoReserva ya movió la reserva a PENDIENTE.
                 // Ahora auto-confirmar si está configurado.
                 $reserva->refresh();
@@ -566,6 +612,15 @@ class ReservaService
 
         DB::transaction(function () use ($pago, $referencia, $sucursal) {
             $pago->aprobar($referencia);
+
+            try {
+                Mail::to($pago->reserva->correo_cliente)->queue(new ComprobantePagoReservaMail($pago));
+            } catch (\Exception $e) {
+                logger()->error('Error encolando email de comprobante de pago', [
+                    'pago_id' => $pago->id,
+                    'error'   => $e->getMessage(),
+                ]);
+            }
 
             $reserva = $pago->reserva->fresh();
             if ($this->autoConfirmar($sucursal)) {
@@ -605,7 +660,7 @@ class ReservaService
     }
 
     /**
-     * Crea notificaciones para todos los admins/meseros de la sucursal.
+     * Crea notificaciones internas y Web Push para todos los admins/meseros de la sucursal.
      */
     private function notificarUsuariosSucursal(Sucursal $sucursal, string $mensaje, string $tipo): void
     {
@@ -614,7 +669,10 @@ class ReservaService
                 ->where('activo', true)
                 ->get();
 
+            $pushService = app(WebPushService::class);
+
             foreach ($usuarios as $usuario) {
+                // Notificación interna (campanilla)
                 Notificacion::create([
                     'usuario_id' => $usuario->id,
                     'tipo'       => $tipo,
@@ -622,6 +680,18 @@ class ReservaService
                     'mensaje'    => $mensaje,
                     'leida'      => false,
                 ]);
+
+                // Notificación Push al navegador (si el usuario tiene suscripción activa)
+                try {
+                    $pushService->sendToUser($usuario->id, 'Reserva de Mesa', $mensaje, [
+                        'tipo' => $tipo,
+                        'url'  => '/admin/reservas',
+                    ]);
+                } catch (\Throwable $pushEx) {
+                    logger()->warning('[ReservaService] Push fallido para usuario ' . $usuario->id, [
+                        'error' => $pushEx->getMessage(),
+                    ]);
+                }
             }
         } catch (\Exception $e) {
             logger()->error('Error creando notificación interna de reserva', ['error' => $e->getMessage()]);

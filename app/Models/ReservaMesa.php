@@ -117,13 +117,16 @@ class ReservaMesa extends Model
         return $query->where('estado', EstadoReserva::CONFIRMADA->value);
     }
 
-    /** Reservas que ya pasaron su tiempo de tolerancia sin check-in. */
+    /** Reservas que ya pasaron su ventana de tolerancia de llegada. */
     public function scopeConNoShowPendiente($query, int $toleranciaMinutos = 15)
     {
-        $limite = now()->subMinutes($toleranciaMinutos)->format('H:i:s');
+        // Usar timezone de la aplicación para evitar desajustes en servidores UTC
+        $tz     = config('app.timezone', 'America/Bogota');
+        $limite = now($tz)->subMinutes($toleranciaMinutos)->format('H:i:s');
+
         return $query
             ->where('estado', EstadoReserva::CONFIRMADA->value)
-            ->where('fecha_reserva', today()->toDateString())
+            ->where('fecha_reserva', today($tz)->toDateString())
             ->where('hora_inicio', '<=', $limite);
     }
 

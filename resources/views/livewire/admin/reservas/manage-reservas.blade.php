@@ -1,5 +1,4 @@
 @section('titulo', 'Centro de Reservas')
-<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
 {{-- ─────────────────────────────────────────────────────────────────────────
      CENTRO DE GESTIÓN DE RESERVAS — Full UX redesign
@@ -36,7 +35,11 @@
 }"
  @open-detail-drawer.window="showDetail = true"
  @close-detail-drawer.window="showDetail = false"
+ @open-cancel-modal.window="showCancel = true"
+ @close-cancel-modal.window="showCancel = false"
 >
+
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
 
 @vite(['resources/css/pedidos.css'])
 
@@ -144,9 +147,15 @@
 </style>
 
 {{-- ─── HEADER con alertas ─── --}}
-<div class="pagina-header">
-    <h1>Centro de Reservas</h1>
-    <p>Gestiona mesas, horarios y estado de las reservas en tiempo real.</p>
+<div class="pagina-header" style="display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:1rem;">
+    <div>
+        <h1>Centro de Reservas</h1>
+        <p>Gestiona mesas, horarios y estado de las reservas en tiempo real.</p>
+    </div>
+    <a href="{{ route('admin.reservas.crear') }}" style="background:var(--primary, #A85507); color:#FFF; padding:0.75rem 1.5rem; border-radius:8px; text-decoration:none; font-weight:600; display:flex; align-items:center; gap:8px; font-size:0.9rem; transition:background 0.2s;">
+        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4"/></svg>
+        Nueva Reserva
+    </a>
 </div>
 
 @if (session()->has('success'))
@@ -402,6 +411,7 @@
                         ].filter(Boolean).join('\n');
                     },
                     eventClick(info) {
+                        window.dispatchEvent(new CustomEvent('open-detail-drawer'));
                         $wire.openDetailModal(info.event.id);
                     },
                     dateClick(info) {
@@ -457,9 +467,9 @@
                 <label>ESTADO</label>
                 <select wire:model.live="filtroEstado">
                     <option value="">Todos</option>
-                    <option value="completada">Completada</option>
-                    <option value="cancelada">Cancelada</option>
-                    <option value="no_show">No se presentó</option>
+                    @foreach($estados as $estadoEnum)
+                        <option value="{{ $estadoEnum->value }}">{{ $estadoEnum->etiqueta() }}</option>
+                    @endforeach
                 </select>
             </div>
             <div class="elegant-group">
@@ -499,7 +509,7 @@
             </thead>
             <tbody>
                 @foreach($reservasHistorial as $reserva)
-                <tr>
+                <tr wire:key="reserva-{{ $reserva->id }}">
                     <td style="white-space:nowrap;">
                         <strong>{{ \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y') }}</strong><br>
                         <span class="texto-gris">{{ substr($reserva->hora_inicio,0,5) }} – {{ substr($reserva->hora_fin,0,5) }}</span>
@@ -527,8 +537,11 @@
                         @endif
                     </td>
                     <td><span class="badge {{ $reserva->estado->colorClase() }}">{{ $reserva->estado->etiqueta() }}</span></td>
-                    <td>
-                        <button type="button" class="btn-ver" wire:click="openDetailModal('{{ $reserva->id }}')">Ver detalles</button>
+                    <td style="text-align:right;">
+                        <button type="button" class="btn-ver" wire:click="openDetailModal('{{ $reserva->id }}')" wire:loading.attr="disabled" style="min-width: 100px;">
+                            <span wire:loading.remove wire:target="openDetailModal('{{ $reserva->id }}')">Ver detalles</span>
+                            <span wire:loading wire:target="openDetailModal('{{ $reserva->id }}')">Cargando...</span>
+                        </button>
                     </td>
                 </tr>
                 @endforeach
@@ -675,7 +688,7 @@
                         @endif
 
                         @if(in_array($selectedReserva->estado->value, ['pendiente_pago', 'pendiente', 'confirmada']))
-                        <button type="button" @click="showCancel = true"
+                        <button type="button" wire:click="openCancelModal('{{ $selectedReserva->id }}')"
                                 style="background:transparent;color:#ef4444;border:1px solid #ef4444;padding:1rem;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:.9rem;transition:all .2s;margin-top:.25rem;"
                                 onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
                             <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/></svg>

@@ -106,6 +106,13 @@ require __DIR__ . '/cliente.php';
 require __DIR__ . '/superadmin.php';
 require __DIR__ . '/reservas.php';
 
+// ─── Web Push Notifications ──────────────────────────────────────────────────
+// Estas rutas guardan/eliminan la suscripción push del navegador del usuario.
+Route::middleware('auth')->group(function () {
+    Route::post('/push/subscribe',   [\App\Http\Controllers\PushSubscriptionController::class, 'store'])->name('push.subscribe');
+    Route::post('/push/unsubscribe', [\App\Http\Controllers\PushSubscriptionController::class, 'destroy'])->name('push.unsubscribe');
+});
+
 // ─── Tienda online pública por empresa (DEBE IR AL FINAL) ────────────────
 // Captura /{empresa_slug}; se declara después de todas las rutas del sistema
 // para no interferir con /login, /dashboard, etc.

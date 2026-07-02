@@ -364,7 +364,7 @@
                                     <span class="item-subtotal">${{ number_format($det->subtotal, 2) }}</span>
                                 </div>
                                 
-                                @if($det->variantes_elegidas && count($det->variantes_elegidas) > 0)
+                                @if(!empty($det->variantes_elegidas) && is_array($det->variantes_elegidas))
                                     <div class="item-meta">
                                         <strong>Variantes:</strong>
                                         @foreach($det->variantes_elegidas as $k => $v)
@@ -373,7 +373,7 @@
                                     </div>
                                 @endif
                                 
-                                @if($det->adiciones_elegidas && count($det->adiciones_elegidas) > 0)
+                                @if(!empty($det->adiciones_elegidas) && is_array($det->adiciones_elegidas))
                                     <div class="item-meta">
                                         <strong>Adiciones:</strong>
                                         @foreach($det->adiciones_elegidas as $ad)
