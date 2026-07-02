@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('titulo') — Mesero</title>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <script src="//unpkg.com/alpinejs" defer></script>
     @vite(['resources/css/mesero.css', 'resources/js/mesero.js'])
 </head>
 <body>

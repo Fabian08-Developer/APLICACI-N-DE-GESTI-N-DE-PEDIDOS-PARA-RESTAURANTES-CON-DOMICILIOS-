@@ -10,15 +10,27 @@ class ReporteExportController extends Controller
 {
     public function exportar(Request $request)
     {
-        $component = new ManageReportes();
         $format = $request->input('format');
+
+        if (!in_array($format, ['pdf', 'excel', 'csv'])) {
+            return abort(400, 'Formato de exportación no válido.');
+        }
+
+        // Instanciar el componente y pasarle todos los parámetros del request
+        // para que los filtros activos sean respetados en la exportación.
+        $component = new ManageReportes();
+        $component->period      = $request->input('period', 'mes');
+        $component->start       = $request->input('start', '');
+        $component->end         = $request->input('end', '');
+        $component->categorias  = $request->input('categorias', []);
+        $component->metodos_pago = $request->input('metodos_pago', []);
+        $component->productos_top = $request->input('productos_top', []);
 
         if ($format === 'pdf') {
             return $component->exportPdf();
-        } elseif ($format === 'excel' || $format === 'csv') {
-            return $component->exportExcel($format);
         }
 
-        return abort(400);
+        return $component->exportExcel($format);
     }
 }
+

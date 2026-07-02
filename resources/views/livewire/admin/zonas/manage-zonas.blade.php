@@ -6,6 +6,7 @@
         deleteId: '',
         deleteName: ''
     }"
+    x-effect="document.body.style.overflow = (isOpen || showDetail || showBarrioEditor || showModalEliminar) ? 'hidden' : ''"
     @open-sidebar.window="isOpen = true"
     @close-sidebar.window="isOpen = false"
     @open-detail-modal.window="showDetail = true"
@@ -174,6 +175,7 @@
             display: flex;
             flex-direction: column;
             box-shadow: -4px 0 25px rgba(0, 0, 0, 0.05);
+            overflow-y: auto;
         }
 
         .sidebar-z.open {

@@ -353,14 +353,19 @@
                 @foreach($categoriasChart as $cat)
                     <div style="margin-bottom: 1rem;">
                         <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem;">
-                            <span style="color: var(--text-main);">{{ $cat->nombre }}</span>
+                            <span style="color: var(--text-main);">{{ is_string($cat) ? $cat : (is_array($cat) ? ($cat['nombre'] ?? 'N/A') : $cat->nombre) }}</span>
                             <div style="display: flex; gap: 15px;">
-                                <strong style="color: var(--text-main);">${{ number_format($cat->total, 0, ',', '.') }}</strong>
-                                <span style="color: var(--text-sec); font-size: 0.75rem;">{{ $currentMetrics['ventasTotales'] > 0 ? round(($cat->total / $currentMetrics['ventasTotales']) * 100) : 0 }}%</span>
+                                <strong style="color: var(--text-main);">${{ number_format(is_string($cat) ? 0 : (is_array($cat) ? ($cat['total'] ?? 0) : $cat->total), 0, ',', '.') }}</strong>
+                                <span style="color: var(--text-sec); font-size: 0.75rem;">
+                                    @php
+                                        $catTotal = is_string($cat) ? 0 : (is_array($cat) ? ($cat['total'] ?? 0) : $cat->total);
+                                    @endphp
+                                    {{ $currentMetrics['ventasTotales'] > 0 ? round(($catTotal / $currentMetrics['ventasTotales']) * 100) : 0 }}%
+                                </span>
                             </div>
                         </div>
                         <div class="progreso-vacia" style="height: 6px; background: rgba(255,255,255,0.05);">
-                            <div class="progreso-llena" style="width: {{ $currentMetrics['ventasTotales'] > 0 ? ($cat->total / $currentMetrics['ventasTotales']) * 100 : 0 }}%; background: var(--primary);"></div>
+                            <div class="progreso-llena" style="width: {{ $currentMetrics['ventasTotales'] > 0 ? ($catTotal / $currentMetrics['ventasTotales']) * 100 : 0 }}%; background: var(--primary);"></div>
                         </div>
                     </div>
                 @endforeach
@@ -495,88 +500,86 @@
                         {{-- Schedule --}}
                         <div class="exp-schedule-card">
                             <div class="exp-schedule-header">
-                                <div><label class="exp-label" style="margin-bottom:0;">Programar envío automático</label><p style="font-size:0.75rem;color:#64748b;">Recibe el reporte periódicamente por email</p></div>
-                                <div class="exp-switch" :class="{ 'on': scheduleOn }" @click="scheduleOn = !scheduleOn"><div class="exp-switch-thumb"></div></div>
-                            </div>
-                            <div class="exp-schedule-opts" :class="{ 'visible': scheduleOn }">
-                                <div class="exp-space">
-                                    <div>
-                                        <label class="exp-label">Frecuencia</label>
-                                        <div class="exp-select-wrap">
-                                            <select class="exp-select"><option value="daily">Diario</option><option value="weekly" selected>Semanal</option><option value="monthly">Mensual</option></select>
-                                            <svg class="exp-select-arrow" style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="exp-label">Destinatarios</label>
-                                        <div class="exp-recipients" id="expRecipients">
-                                            <template x-for="(email, index) in recipients" :key="index">
-                                                <div class="exp-recipient-row">
-                                                    <input type="email" class="exp-input" placeholder="correo@empresa.com" x-model="recipients[index]">
-                                                    <button type="button" class="exp-btn-ghost" @click="removeRecipient(index)" x-show="recipients.length > 1" style="border-radius:0.5rem;">
-                                                        <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                                    </button>
-                                                </div>
-                                            </template>
-                                        </div>
-                                        <button type="button" class="exp-btn exp-btn-outline exp-btn-sm" style="margin-top:0.5rem;" @click="addRecipient()">
-                                            <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
-                                            Agregar destinatario
-                                        </button>
-                                    </div>
+                                <div>
+                                    <label class="exp-label" style="margin-bottom:0;">Programar envío automático</label>
+                                    <p style="font-size:0.75rem;color:#64748b;">Configura envíos periódicos por email o WhatsApp</p>
                                 </div>
+                                <div class="exp-switch" :class="{ 'on': scheduleOn }" @click="scheduleOn = !scheduleOn; if(scheduleOn){ showExportSidebar = false; showScheduleSidebar = true; scheduleOn = false; }"><div class="exp-switch-thumb"></div></div>
                             </div>
-                        </div>
-
-                        {{-- Template name --}}
-                        <div class="exp-template-save">
-                            <input type="text" class="exp-input" id="expTplName" placeholder="Nombre de plantilla (opcional)" oninput="document.getElementById('expSaveTplBtn').style.display=this.value?'flex':'none'">
-                            <button type="button" class="exp-btn exp-btn-outline exp-btn-sm" id="expSaveTplBtn" style="display:none;">Guardar</button>
                         </div>
                     </div>
                 </div>
 
                 {{-- Tab: Templates --}}
                 <div class="exp-tab-content" :class="{ 'active': exportTab === 'templates' }" id="exp-tab-templates">
-                    <div class="exp-tpl-item">
-                        <div class="exp-tpl-info">
-                            <svg class="exp-tpl-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <div><div class="exp-tpl-name">Reporte Semanal</div><div class="exp-tpl-meta">4 secciones – Semanal</div></div>
+                    <!-- Guardar plantilla actual -->
+                    <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; background: rgba(255,255,255,0.01);">
+                        <label class="exp-label">Guardar configuración actual como plantilla</label>
+                        <div style="display:flex; gap:0.5rem;">
+                            <input type="text" class="exp-input" x-model="newTemplateName" placeholder="Ej: Reporte semanal de ventas">
+                            <button type="button" class="exp-btn exp-btn-outline" @click="saveTemplate()" :disabled="!newTemplateName.trim()">
+                                <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
+                                Guardar
+                            </button>
                         </div>
-                        <div class="exp-tpl-actions"><button type="button" class="exp-btn exp-btn-outline exp-btn-sm">Usar</button></div>
                     </div>
-                    <div class="exp-tpl-item">
-                        <div class="exp-tpl-info">
-                            <svg class="exp-tpl-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2"/></svg>
-                            <div><div class="exp-tpl-name">Resumen Mensual</div><div class="exp-tpl-meta">6 secciones – Mensual</div></div>
+
+                    <!-- Lista de plantillas guardadas -->
+                    <template x-if="savedTemplates.length === 0">
+                        <div style="text-align:center; padding: 2.5rem 1rem; color: var(--text-sec);">
+                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 0.75rem; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                            <p style="font-size:0.875rem;">No hay plantillas guardadas todavía.</p>
+                            <p style="font-size:0.75rem; margin-top:0.25rem;">Configura un formato y secciones, luego guarda.</p>
                         </div>
-                        <div class="exp-tpl-actions"><button type="button" class="exp-btn exp-btn-outline exp-btn-sm">Usar</button></div>
-                    </div>
+                    </template>
+                    <template x-for="tpl in savedTemplates" :key="tpl.id">
+                        <div class="exp-tpl-item">
+                            <div class="exp-tpl-info">
+                                <svg class="exp-tpl-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
+                                <div>
+                                    <div class="exp-tpl-name" x-text="tpl.name"></div>
+                                    <div class="exp-tpl-meta" x-text="tpl.format.toUpperCase() + ' – ' + tpl.sections.join(', ')"></div>
+                                </div>
+                            </div>
+                            <div class="exp-tpl-actions">
+                                <button type="button" class="exp-btn exp-btn-outline exp-btn-sm" @click="loadTemplate(tpl)">Usar</button>
+                                <button type="button" class="exp-btn-ghost" @click="deleteTemplate(tpl.id)" style="color:#F87171; border-radius:0.375rem;">
+                                    <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                </button>
+                            </div>
+                        </div>
+                    </template>
                 </div>
 
                 {{-- Tab: History --}}
                 <div class="exp-tab-content" :class="{ 'active': exportTab === 'history' }" id="exp-tab-history">
-                    <div class="exp-hist-item">
-                        <div class="exp-hist-info">
-                            <div class="exp-status-icon exp-status-success"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg></div>
-                            <div><div class="exp-hist-name">Reporte Semanal</div><div class="exp-hist-meta">25 Abr 2026, 09:00 – gerente@empresa.com</div></div>
+                    <template x-if="exportHistory.length === 0">
+                        <div style="text-align:center; padding: 2.5rem 1rem; color: var(--text-sec);">
+                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 0.75rem; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            <p style="font-size:0.875rem;">No hay exportaciones registradas.</p>
+                            <p style="font-size:0.75rem; margin-top:0.25rem;">Las exportaciones realizadas aparecerán aquí.</p>
                         </div>
-                        <div class="exp-hist-actions"><span class="exp-badge">PDF</span></div>
-                    </div>
-                    <div class="exp-hist-item">
-                        <div class="exp-hist-info">
-                            <div class="exp-status-icon exp-status-failed"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg></div>
-                            <div><div class="exp-hist-name">Resumen Mensual</div><div class="exp-hist-meta">24 Abr 2026, 14:30 – equipo@empresa.com</div></div>
+                    </template>
+                    <template x-for="entry in exportHistory" :key="entry.id">
+                        <div class="exp-hist-item">
+                            <div class="exp-hist-info">
+                                <div class="exp-status-icon exp-status-success">
+                                    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+                                </div>
+                                <div>
+                                    <div class="exp-hist-name" x-text="entry.format.toUpperCase() + ' – ' + entry.period"></div>
+                                    <div class="exp-hist-meta" x-text="entry.date"></div>
+                                </div>
+                            </div>
+                            <div class="exp-hist-actions">
+                                <span class="exp-badge" x-text="entry.format.toUpperCase()"></span>
+                                <button type="button" class="exp-btn exp-btn-outline exp-btn-sm" @click="retryExport(entry)">Reintentar</button>
+                                <button type="button" class="exp-btn-ghost" @click="removeHistory(entry.id)" style="color:#F87171; border-radius:0.375rem;">
+                                    <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                                </button>
+                            </div>
                         </div>
-                        <div class="exp-hist-actions"><span class="exp-badge">EXCEL</span><button type="button" class="exp-btn exp-btn-outline exp-btn-sm">Reintentar</button></div>
-                    </div>
-                    <div class="exp-hist-item">
-                        <div class="exp-hist-info">
-                            <div class="exp-status-icon exp-status-pending"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg></div>
-                            <div><div class="exp-hist-name">Reporte Diario</div><div class="exp-hist-meta">26 Abr 2026, 08:00 – analista@empresa.com</div></div>
-                        </div>
-                        <div class="exp-hist-actions"><span class="exp-badge">CSV</span></div>
-                    </div>
+                    </template>
                 </div>
             </div>
 
@@ -1067,10 +1070,16 @@
             recipients: [''],
             isExporting: false,
 
+            // Plantillas e Historial (localStorage)
+            savedTemplates: [],
+            newTemplateName: '',
+            exportHistory: [],
+
             fpInstance: null,
             chartTendencia: null,
             chartCategorias: null,
             _reporteActualizadoHandler: null,
+            _navigatedHandler: null,
 
             init() {
                 // Wait for flatpickr to be available (CDN load delay)
@@ -1114,18 +1123,44 @@
                     this.initCharts();
                 });
 
-                // Listen to Livewire's custom event to update the charts
+                // Listen to Livewire's custom event:
+                // - If charts don't exist yet (first nav), initialize them with the data received.
+                // - If they already exist, just update them.
                 this._reporteActualizadoHandler = (event) => {
                     const data = event.detail[0] || event.detail;
-                    this.updateCharts(data);
+                    if (!this.chartTendencia || !this.chartCategorias) {
+                        // Gráficas no inicializadas aún: inicializar con datos del evento
+                        this.$nextTick(() => this.initChartsWithData(data));
+                    } else {
+                        this.updateCharts(data);
+                    }
                 };
                 window.addEventListener('reporte-actualizado', this._reporteActualizadoHandler);
+
+                // Re-inicializar gráficas en navegación SPA de Livewire
+                this._navigatedHandler = () => {
+                    this.chartTendencia = null;
+                    this.chartCategorias = null;
+                    this.$nextTick(() => this.initCharts());
+                };
+                window.addEventListener('livewire:navigated', this._navigatedHandler);
+
+                // Cargar plantillas e historial desde localStorage
+                try {
+                    const tpls = localStorage.getItem('reporte_templates');
+                    if (tpls) this.savedTemplates = JSON.parse(tpls);
+                    const hist = localStorage.getItem('reporte_history');
+                    if (hist) this.exportHistory = JSON.parse(hist);
+                } catch(e) { console.warn('localStorage no disponible', e); }
             },
 
             destroy() {
-                // Cleanup window event listener
+                // Limpiar event listeners al destruir el componente
                 if (this._reporteActualizadoHandler) {
                     window.removeEventListener('reporte-actualizado', this._reporteActualizadoHandler);
+                }
+                if (this._navigatedHandler) {
+                    window.removeEventListener('livewire:navigated', this._navigatedHandler);
                 }
             },
             
@@ -1182,6 +1217,70 @@
                 this.recipients.splice(index, 1);
             },
 
+            // ── Plantillas (localStorage) ──
+            saveTemplate() {
+                const name = this.newTemplateName.trim();
+                if (!name) return;
+                const tpl = {
+                    id: Date.now(),
+                    name,
+                    format: this.exportFormat,
+                    sections: [...this.exportSections],
+                    createdAt: new Date().toLocaleString('es-CO')
+                };
+                this.savedTemplates.unshift(tpl);
+                try { localStorage.setItem('reporte_templates', JSON.stringify(this.savedTemplates)); } catch(e) {}
+                this.newTemplateName = '';
+            },
+
+            loadTemplate(tpl) {
+                this.exportFormat = tpl.format;
+                this.exportSections = [...tpl.sections];
+                this.exportTab = 'quick'; // Volver al tab de exportación
+            },
+
+            deleteTemplate(id) {
+                this.savedTemplates = this.savedTemplates.filter(t => t.id !== id);
+                try { localStorage.setItem('reporte_templates', JSON.stringify(this.savedTemplates)); } catch(e) {}
+            },
+
+            // ── Historial de exportaciones (localStorage) ──
+            addToHistory(format, period) {
+                const entry = {
+                    id: Date.now(),
+                    format,
+                    period,
+                    sections: [...this.exportSections],
+                    date: new Date().toLocaleString('es-CO'),
+                    params: {
+                        period: this.datePeriod,
+                        start: this.start,
+                        end: this.end
+                    }
+                };
+                this.exportHistory.unshift(entry);
+                // Mantener solo los últimos 20 registros
+                if (this.exportHistory.length > 20) this.exportHistory = this.exportHistory.slice(0, 20);
+                try { localStorage.setItem('reporte_history', JSON.stringify(this.exportHistory)); } catch(e) {}
+            },
+
+            removeHistory(id) {
+                this.exportHistory = this.exportHistory.filter(e => e.id !== id);
+                try { localStorage.setItem('reporte_history', JSON.stringify(this.exportHistory)); } catch(e) {}
+            },
+
+            retryExport(entry) {
+                // Restaurar parámetros del historial y re-exportar
+                this.exportFormat = entry.format;
+                this.exportSections = [...(entry.sections || this.exportSections)];
+                if (entry.params) {
+                    this.datePeriod = entry.params.period || this.datePeriod;
+                    this.start = entry.params.start || this.start;
+                    this.end = entry.params.end || this.end;
+                }
+                this.$nextTick(() => this.doExport());
+            },
+
             doExport() {
                 this.isExporting = true;
                 const params = new URLSearchParams();
@@ -1208,12 +1307,16 @@
                     params.append('_st', st);
                 }
 
+                // Registrar en el historial de exportaciones
+                this.addToHistory(this.exportFormat, this.datePeriod);
+
                 window.location.href = "{{ route('admin.reportes.exportar') }}?" + params.toString();
                 setTimeout(() => {
                     this.isExporting = false;
                 }, 3000);
             },
 
+            // Inicializa las gráficas usando los datos embebidos en PHP (carga inicial)
             initCharts() {
                 if (typeof ApexCharts === 'undefined') {
                     setTimeout(() => this.initCharts(), 100);
@@ -1222,7 +1325,15 @@
                 const elTendencia = document.querySelector("#chart-tendencia");
                 const elCategorias = document.querySelector("#chart-categorias");
                 
-                if (!elTendencia || !elCategorias) return;
+                if (!elTendencia || !elCategorias) {
+                    // Elementos no en DOM aún, reintentar
+                    setTimeout(() => this.initCharts(), 150);
+                    return;
+                }
+
+                // Si ya existen, destruirlas antes de crear nuevas
+                if (this.chartTendencia) { try { this.chartTendencia.destroy(); } catch(e) {} this.chartTendencia = null; }
+                if (this.chartCategorias) { try { this.chartCategorias.destroy(); } catch(e) {} this.chartCategorias = null; }
 
                 // Ensure data is array (PHP sometimes JSON encodes collections as objects if keys aren't sequential)
                 let rawTrendTotals = @json($trendTotals);
@@ -1232,56 +1343,25 @@
                 let trendCats = Array.isArray(rawTrendDates) ? rawTrendDates : Object.values(rawTrendDates || {});
 
                 var optionsTendencia = {
-                    series: [{
-                        name: 'Ventas ($)',
-                        data: trendData
-                    }],
+                    series: [{ name: 'Ventas ($)', data: trendData }],
                     chart: {
-                        type: 'area',
-                        height: 280,
-                        toolbar: { show: false },
-                        background: 'transparent',
-                        fontFamily: 'DM Sans, sans-serif',
-                        parentHeightOffset: 0
+                        type: 'area', height: 280, toolbar: { show: false },
+                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0
                     },
                     colors: ['#E07A5F'],
-                    fill: {
-                        type: 'gradient',
-                        gradient: {
-                            shadeIntensity: 1,
-                            opacityFrom: 0.3,
-                            opacityTo: 0.05,
-                            stops: [0, 90, 100]
-                        }
-                    },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 90, 100] } },
                     dataLabels: { enabled: false },
                     stroke: { curve: 'smooth', width: 2 },
-                    markers: {
-                        size: trendData.length === 1 ? 5 : 0
-                    },
+                    markers: { size: trendData.length === 1 ? 5 : 0 },
                     xaxis: {
                         categories: trendCats,
                         labels: { style: { colors: '#94A3B8', fontSize: '11px' } },
-                        axisBorder: { show: false },
-                        axisTicks: { show: false },
-                        tooltip: { enabled: false }
+                        axisBorder: { show: false }, axisTicks: { show: false }, tooltip: { enabled: false }
                     },
-                    yaxis: {
-                        labels: {
-                            style: { colors: '#94A3B8', fontSize: '11px' },
-                            formatter: function (value) { return "$" + value.toLocaleString(); }
-                        }
-                    },
-                    grid: {
-                        borderColor: 'rgba(44, 36, 27, 0.05)',
-                        strokeDashArray: 4,
-                        padding: { top: 0, right: 0, bottom: 0, left: 10 }
-                    },
+                    yaxis: { labels: { style: { colors: '#94A3B8', fontSize: '11px' }, formatter: v => '$' + v.toLocaleString() } },
+                    grid: { borderColor: 'rgba(44,36,27,0.05)', strokeDashArray: 4, padding: { top: 0, right: 0, bottom: 0, left: 10 } },
                     theme: { mode: 'light' },
-                    tooltip: {
-                        theme: 'light',
-                        y: { formatter: function (val) { return "$" + val.toLocaleString() } }
-                    }
+                    tooltip: { theme: 'light', y: { formatter: val => '$' + val.toLocaleString() } }
                 };
 
                 this.chartTendencia = new ApexCharts(elTendencia, optionsTendencia);
@@ -1293,50 +1373,90 @@
                 let rawCatNames = @json($catNames);
                 let catLabels = Array.isArray(rawCatNames) ? rawCatNames : Object.values(rawCatNames || {});
 
-                var optionsCategorias = {
-                    series: catData,
-                    labels: catLabels,
+                this._renderCategorias(elCategorias, catData, catLabels);
+            },
+
+
+            // Inicializa las gráficas usando datos recibidos desde el evento Livewire
+            // Se usa cuando las gráficas no existen todavía (primer acceso por navegación SPA)
+            initChartsWithData(data) {
+                if (typeof ApexCharts === 'undefined') {
+                    setTimeout(() => this.initChartsWithData(data), 100);
+                    return;
+                }
+                const elTendencia = document.querySelector("#chart-tendencia");
+                const elCategorias = document.querySelector("#chart-categorias");
+                if (!elTendencia || !elCategorias) {
+                    setTimeout(() => this.initChartsWithData(data), 150);
+                    return;
+                }
+
+                if (this.chartTendencia) { try { this.chartTendencia.destroy(); } catch(e) {} this.chartTendencia = null; }
+                if (this.chartCategorias) { try { this.chartCategorias.destroy(); } catch(e) {} this.chartCategorias = null; }
+
+                let trendData = Array.isArray(data.trendTotals) ? data.trendTotals : Object.values(data.trendTotals || {});
+                let trendCats = Array.isArray(data.trendDates) ? data.trendDates : Object.values(data.trendDates || {});
+                let catData   = Array.isArray(data.catTotals)  ? data.catTotals  : Object.values(data.catTotals  || {});
+                let catLabels = Array.isArray(data.catNames)   ? data.catNames   : Object.values(data.catNames   || {});
+
+                this._renderTendencia(elTendencia, trendData, trendCats);
+                this._renderCategorias(elCategorias, catData, catLabels);
+            },
+
+            // Helper: crea y renderiza la gráfica de tendencia
+            _renderTendencia(el, trendData, trendCats) {
+                const opts = {
+                    series: [{ name: 'Ventas ($)', data: trendData }],
                     chart: {
-                        type: 'donut',
-                        height: 280,
-                        background: 'transparent',
-                        fontFamily: 'DM Sans, sans-serif'
+                        type: 'area', height: 280, toolbar: { show: false },
+                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0
                     },
+                    colors: ['#E07A5F'],
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 90, 100] } },
+                    dataLabels: { enabled: false },
+                    stroke: { curve: 'smooth', width: 2 },
+                    markers: { size: trendData.length === 1 ? 5 : 0 },
+                    xaxis: {
+                        categories: trendCats,
+                        labels: { style: { colors: '#94A3B8', fontSize: '11px' } },
+                        axisBorder: { show: false }, axisTicks: { show: false }, tooltip: { enabled: false }
+                    },
+                    yaxis: { labels: { style: { colors: '#94A3B8', fontSize: '11px' }, formatter: v => '$' + v.toLocaleString() } },
+                    grid: { borderColor: 'rgba(44,36,27,0.05)', strokeDashArray: 4, padding: { top: 0, right: 0, bottom: 0, left: 10 } },
+                    theme: { mode: 'light' },
+                    tooltip: { theme: 'light', y: { formatter: val => '$' + val.toLocaleString() } }
+                };
+                this.chartTendencia = new ApexCharts(el, opts);
+                this.chartTendencia.render();
+            },
+
+            // Helper: crea y renderiza la gráfica de categorías (donut)
+            _renderCategorias(el, catData, catLabels) {
+                const opts = {
+                    series: catData.map(v => parseInt(v) || 0),
+                    labels: catLabels,
+                    chart: { type: 'donut', height: 280, background: 'transparent', fontFamily: 'DM Sans, sans-serif' },
                     colors: ['#E07A5F', '#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'],
                     stroke: { show: true, colors: ['#FFFFFF'], width: 3 },
                     dataLabels: { enabled: false },
                     plotOptions: {
-                        pie: {
-                            donut: { 
-                                size: '75%',
-                                labels: {
-                                    show: true,
-                                    name: { show: false },
-                                    value: {
-                                        show: true,
-                                        fontSize: '1.2rem',
-                                        color: '#2C241B',
-                                        formatter: function (val) { return "$" + parseInt(val).toLocaleString() }
-                                    },
-                                    total: {
-                                        show: true,
-                                        showAlways: true,
-                                        label: 'Total',
-                                        color: '#94A3B8',
-                                        formatter: function (w) {
-                                            return "$" + w.globals.seriesTotals.reduce((a, b) => { return a + b }, 0).toLocaleString()
-                                        }
-                                    }
+                        pie: { donut: {
+                            size: '75%',
+                            labels: {
+                                show: true,
+                                name: { show: false },
+                                value: { show: true, fontSize: '1.2rem', color: '#2C241B', formatter: val => '$' + parseInt(val).toLocaleString() },
+                                total: { show: true, showAlways: true, label: 'Total', color: '#94A3B8',
+                                    formatter: w => '$' + w.globals.seriesTotals.reduce((a, b) => a + b, 0).toLocaleString()
                                 }
                             }
-                        }
+                        }}
                     },
                     legend: { show: false },
                     theme: { mode: 'light' },
                     tooltip: { theme: 'light' }
                 };
-
-                this.chartCategorias = new ApexCharts(elCategorias, optionsCategorias);
+                this.chartCategorias = new ApexCharts(el, opts);
                 this.chartCategorias.render();
             },
 
@@ -1345,30 +1465,22 @@
                     let trendCats = Array.isArray(data.trendDates) ? data.trendDates : Object.values(data.trendDates);
                     let trendData = Array.isArray(data.trendTotals) ? data.trendTotals : Object.values(data.trendTotals);
                     
-                    this.chartTendencia.updateOptions({
-                        xaxis: {
-                            categories: trendCats
-                        }
-                    }, false, true);
-                    this.chartTendencia.updateSeries([{
-                        name: 'Ventas ($)',
-                        data: trendData
-                    }], true);
+                    this.chartTendencia.updateOptions({ xaxis: { categories: trendCats } }, false, true);
+                    this.chartTendencia.updateSeries([{ name: 'Ventas ($)', data: trendData }], true);
                 }
                 
                 if (this.chartCategorias && data.catTotals && data.catNames) {
                     let catLabels = Array.isArray(data.catNames) ? data.catNames : Object.values(data.catNames);
                     let catData = Array.isArray(data.catTotals) ? data.catTotals : Object.values(data.catTotals);
                     
-                    this.chartCategorias.updateOptions({
-                        labels: catLabels
-                    }, false, true);
+                    this.chartCategorias.updateOptions({ labels: catLabels }, false, true);
                     this.chartCategorias.updateSeries(catData.map(val => parseInt(val) || 0), true);
                 }
             }
         }));
     });
 </script>
+
 
 </div>
 

@@ -146,7 +146,7 @@
         <table class="meta-table">
             <tr>
                 <td><strong>Período:</strong> {{ ucfirst($period) }}</td>
-                <td class="text-right"><strong>Fechas:</strong> {{ $start->format('d/m/Y') }} - {{ $end->format('d/m/Y') }}</td>
+                <td class="text-right"><strong>Fechas:</strong> {{ \Carbon\Carbon::parse($start)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($end)->format('d/m/Y') }}</td>
             </tr>
             @if(!empty($selectedCategorias) || !empty($selectedMetodosPago) || !empty($selectedProductosTop))
             <tr>

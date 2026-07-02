@@ -9,13 +9,14 @@
     .wizard-theme {
         --gold:     #C48B57;
         --gold-light: #d8aa7e;
-        --dark:     #0D0B09;
-        --surface:  rgba(25, 20, 16, 0.7);
-        --border:   rgba(196,139,87,0.2);
-        --text:     #F5EFE6;
-        --text-dim: #A0907A;
+        --dark:     #ffffff;
+        --surface:  #ffffff;
+        --border:   #e5e7eb;
+        --text:     #111827;
+        --text-dim: #6b7280;
+        --input-bg: #f9fafb;
         --radius:   20px;
-        --shadow:   0 15px 40px rgba(0,0,0,0.5);
+        --shadow:   0 10px 25px rgba(0,0,0,0.05);
         --transition: all 0.3s ease;
         font-family: 'Inter', sans-serif;
     }
@@ -26,8 +27,7 @@
         color: var(--text);
         border-radius: var(--radius);
         padding: 2rem;
-        background-image: radial-gradient(circle at top right, rgba(196,139,87,0.1), transparent 50%),
-                          radial-gradient(circle at bottom left, rgba(196,139,87,0.05), transparent 50%);
+        box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
     }
 
     .wizard-theme .serif { font-family: 'Playfair Display', serif; }
@@ -111,7 +111,7 @@
     .wizard-theme .form-label { display: block; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.5rem; }
     .wizard-theme .form-control {
         width: 100%;
-        background: rgba(0,0,0,0.3);
+        background: var(--input-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1rem;
@@ -121,7 +121,7 @@
     }
     .wizard-theme .form-control:focus { outline: none; border-color: var(--gold); }
     .wizard-theme .form-control[type="date"]::-webkit-calendar-picker-indicator,
-    .wizard-theme .form-control[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    .wizard-theme .form-control[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
 
     .wizard-theme .slots-grid {
         display: grid;
@@ -130,7 +130,7 @@
         margin-top: 1rem;
     }
     .wizard-theme .slot-btn {
-        background: rgba(0,0,0,0.3);
+        background: var(--input-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 0.75rem 0.5rem;
@@ -148,7 +148,7 @@
         gap: 1rem;
     }
     .wizard-theme .mesa-btn {
-        background: rgba(0,0,0,0.3);
+        background: var(--input-bg);
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem 1rem;
@@ -174,8 +174,8 @@
         transition: var(--transition);
         border: none;
     }
-    .wizard-theme .btn-prev { background: rgba(255,255,255,0.05); color: var(--text); }
-    .wizard-theme .btn-prev:hover { background: rgba(255,255,255,0.1); }
+    .wizard-theme .btn-prev { background: #f3f4f6; color: var(--text); }
+    .wizard-theme .btn-prev:hover { background: #e5e7eb; }
     .wizard-theme .btn-next, .wizard-theme .btn-submit { background: var(--gold); color: var(--dark); }
     .wizard-theme .btn-next:hover, .wizard-theme .btn-submit:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(196,139,87,0.3); }
     .wizard-theme .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
@@ -194,7 +194,7 @@
     /* Estilos extra para el checkbox de depósito */
     .wizard-theme .checkbox-label {
         display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.95rem; color: var(--text); line-height: 1.4; font-weight: 500;
-        margin-top: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);
+        margin-top: 1.5rem; background: var(--input-bg); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);
     }
     .wizard-theme .checkbox-label input[type="checkbox"] { margin-top: 0.2rem; width: 1.2rem; height: 1.2rem; accent-color: var(--gold); cursor: pointer; }
 </style>
@@ -283,7 +283,9 @@
                         <!-- Alerta en tiempo real de anticipación mínima -->
                         <div x-show="errorHora" x-transition
                              style="margin-top:1rem; padding:0.85rem 1rem; border-radius:10px; background:rgba(239,68,68,0.12); border:1px solid rgba(239,68,68,0.35); display:flex; align-items:center; gap:0.6rem; color:#f87171; font-size:0.88rem;">
-                            <span style="font-size:1.1rem;">⚠️</span>
+                            <span style="display:flex; align-items:center;">
+                                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path><line x1="12" y1="9" x2="12" y2="13"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+                            </span>
                             <span x-text="errorHora"></span>
                         </div>
                     </div>
@@ -299,7 +301,9 @@
                     
                     <div class="mesas-grid">
                         <div class="mesa-btn" :class="{'active': mesasSeleccionadas.length === 0}" @click="mesasSeleccionadas = []">
-                            <span class="icon">✨</span>
+                            <span class="icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2l3 7 7 3-7 3-3 7-3-7-7-3 7-3z"/></svg>
+                            </span>
                             <span class="name">Automática</span>
                             <span style="display:block; font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem;">Asignación por sistema</span>
                         </div>
@@ -309,7 +313,9 @@
                              :class="{'active': mesasSeleccionadas.includes('{{ $mesa->id }}')}" 
                              @click="toggleMesa('{{ $mesa->id }}')">
                             <div class="check">✓</div>
-                            <span class="icon">🪑</span>
+                            <span class="icon">
+                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                            </span>
                             <span class="name">Mesa {{ $mesa->numero }}</span>
                             <span style="display:block; font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem;">Capacidad: {{ $mesa->capacidad }}</span>
                         </div>
@@ -373,28 +379,36 @@
             <h3 class="summary-title">Resumen</h3>
             
             <div class="summary-item">
-                <div class="summary-icon">📅</div>
+                <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                </div>
                 <div class="summary-detail">
                     <span class="summary-label">Fecha</span>
                     <span class="summary-value" x-text="fecha || '-'"></span>
                 </div>
             </div>
             <div class="summary-item">
-                <div class="summary-icon">👥</div>
+                <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                </div>
                 <div class="summary-detail">
                     <span class="summary-label">Personas</span>
                     <span class="summary-value" x-text="personas ? personas + ' personas' : '-'"></span>
                 </div>
             </div>
             <div class="summary-item">
-                <div class="summary-icon">🕒</div>
+                <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                </div>
                 <div class="summary-detail">
                     <span class="summary-label">Hora</span>
                     <span class="summary-value" x-text="horaSeleccionada ? horaSeleccionada.substring(0,5) : '-'"></span>
                 </div>
             </div>
             <div class="summary-item">
-                <div class="summary-icon">🪑</div>
+                <div class="summary-icon">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                </div>
                 <div class="summary-detail">
                     <span class="summary-label">Mesas</span>
                     <span class="summary-value" x-text="mesasSeleccionadas.length === 0 ? 'Automática' : getMesasNombres()"></span>

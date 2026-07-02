@@ -75,15 +75,10 @@ class ManageReportes extends Component
         $user        = auth()->user();
         $sucursal_id = $user->sucursal_id;
 
-        // Clave de caché única por sucursal + combinación de filtros activos
-        $cacheKey = "reporte_v2_{$sucursal_id}_{$this->period}_{$this->start}_{$this->end}_"
-            . md5(implode(',', $this->categorias ?? []))
-            . '_' . md5(implode(',', $this->metodos_pago ?? []))
-            . '_' . md5(implode(',', $this->productos_top ?? []));
+        // Bypass Cache completely to isolate the issue
+        $data = $this->calcularDatosReporte($user, $sucursal_id);
 
-        return \Illuminate\Support\Facades\Cache::remember($cacheKey, 120, function () use ($user, $sucursal_id) {
-            return $this->calcularDatosReporte($user, $sucursal_id);
-        });
+        return $data;
     }
 
     /**
@@ -403,7 +398,7 @@ class ManageReportes extends Component
         $data['sections'] = $sections;
 
         $pdf = Pdf::loadView('admin.reportes.pdf', $data);
-        return $pdf->download('Reporte_Ventas_' . $data['start']->format('Ymd') . '_' . $data['end']->format('Ymd') . '.pdf');
+        return $pdf->download('Reporte_Ventas_' . \Carbon\Carbon::parse($data['start'])->format('Ymd') . '_' . \Carbon\Carbon::parse($data['end'])->format('Ymd') . '.pdf');
     }
 
     /**
@@ -416,7 +411,7 @@ class ManageReportes extends Component
         $data['sections'] = $sections;
 
         $export = new ReporteVentasExport($data);
-        $fileName = 'Reporte_Ventas_' . $data['start']->format('Ymd') . '_' . $data['end']->format('Ymd');
+        $fileName = 'Reporte_Ventas_' . \Carbon\Carbon::parse($data['start'])->format('Ymd') . '_' . \Carbon\Carbon::parse($data['end'])->format('Ymd');
         
         if ($format === 'excel') {
             return Excel::download($export, $fileName . '.xlsx');
