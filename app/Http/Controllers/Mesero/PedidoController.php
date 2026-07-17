@@ -45,18 +45,22 @@ class PedidoController extends Controller
             ->first();
 
         if ($sesionActiva) {
+            // Registrar actividad del mesero para que el timeout no cierre
+            // una sesión que el mesero está atendiendo activamente.
+            $sesionActiva->actualizarActividad();
             return $sesionActiva;
         }
 
         $token = Str::random(40);
         $sesion = SesionCliente::create([
-            'sucursal_id' => $mesa->sucursal_id,
-            'mesa_id' => $mesa->id,
-            'zona_id' => $mesa->zona_id ?? null,
-            'token' => $token,
-            'tipo' => 'local',
-            'nombre_cliente' => 'Cliente Mesa ' . $mesa->numero . ' (Asistido por Mesero)',
-            'activo' => true,
+            'sucursal_id'         => $mesa->sucursal_id,
+            'mesa_id'             => $mesa->id,
+            'zona_id'             => $mesa->zona_id ?? null,
+            'token'               => $token,
+            'tipo'                => 'local',
+            'nombre_cliente'      => 'Cliente Mesa ' . $mesa->numero . ' (Asistido por Mesero)',
+            'activo'              => true,
+            'ultima_actividad_en' => now(), // Registrar desde el inicio para el job de timeout
         ]);
 
         $mesa->ocupar();

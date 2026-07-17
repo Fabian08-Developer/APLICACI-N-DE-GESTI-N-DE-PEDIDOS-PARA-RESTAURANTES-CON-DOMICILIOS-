@@ -70,7 +70,7 @@ class ClienteController extends Controller
             ->first();
 
         if ($sesionActiva) {
-            return redirect()->route('cliente.menu', ['t' => $sesionActiva->token]);
+            return redirect()->route('cliente.sin-sesion')->with('error', 'Esta mesa ya cuenta con una sesión activa en curso.');
         }
 
         $token = Str::random(40);
@@ -136,7 +136,7 @@ class ClienteController extends Controller
 
         // Obtener empresa de la sucursal y sus barrios con cobertura activa
         $empresaId = $sucursal->empresa_id;
-        $barrios = Barrio::whereHas('tarifas', function ($q) use ($empresaId) {
+        $barrios = Barrio::withoutGlobalScopes()->whereHas('tarifas', function ($q) use ($empresaId) {
                 $q->where('activo', true)
                   ->whereHas('sucursal', function ($sq) use ($empresaId) {
                       $sq->where('activo', true)->where('empresa_id', $empresaId);

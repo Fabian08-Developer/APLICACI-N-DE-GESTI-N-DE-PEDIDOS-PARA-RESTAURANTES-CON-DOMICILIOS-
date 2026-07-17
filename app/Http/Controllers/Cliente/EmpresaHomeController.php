@@ -80,7 +80,7 @@ class EmpresaHomeController extends Controller
         }
 
         // 2. Cobertura de Barrios para el Buscador del Hero (Consultado de Zonas de Cobertura)
-        $barrios = \App\Models\Barrio::whereHas('zona', function ($query) use ($sucursales) {
+        $barrios = \App\Models\Barrio::withoutGlobalScopes()->whereHas('zona', function ($query) use ($sucursales) {
             $query->withoutGlobalScopes()
                   ->whereIn('sucursal_id', $sucursales->pluck('id'))
                   ->where('activo', true);

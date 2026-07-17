@@ -24,7 +24,7 @@ class SucursalAssignmentService
      */
     public function resolver(string $barrioId): array
     {
-        $barrio = Barrio::find($barrioId);
+        $barrio = Barrio::withoutGlobalScopes()->find($barrioId);
 
         if (!$barrio) {
             return $this->sinCobertura('Barrio no encontrado.');

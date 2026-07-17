@@ -223,6 +223,12 @@
                 <strong>Tiempo de llegada:</strong> Por favor llega a tiempo. Tenemos una tolerancia de <strong>15 minutos</strong> antes de liberar tu mesa.
             </div>
 
+            <div style="text-align:center; margin: 24px 0 16px;">
+                <a href="{{ url('/reserva/' . $reserva->codigo_reserva) }}" style="display:inline-block; background:#C48B57; color:#FFFFFF; text-decoration:none; padding:12px 24px; border-radius:8px; font-weight:600; font-size:0.95rem;">
+                    Ver y gestionar mi reserva →
+                </a>
+            </div>
+
             <div class="cancel-btn">
                 <a href="{{ url('/reserva/' . $reserva->codigo_reserva . '/cancelar') }}" class="cancel-link">
                     ¿Necesitas cancelar? Hazlo aquí

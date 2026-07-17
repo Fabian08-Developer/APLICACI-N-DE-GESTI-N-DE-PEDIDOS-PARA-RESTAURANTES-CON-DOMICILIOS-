@@ -24,19 +24,25 @@ use Illuminate\Support\Facades\Log;
  */
 class DispararNotificacion implements ShouldQueue
 {
-    use Dispatchable, InteractsWithQueue, Queueable, SerializesModels;
+    use Dispatchable { dispatch as dispatchStatic; }
+    use InteractsWithQueue, Queueable, SerializesModels;
 
     public int $tries   = 3;
     public int $backoff = 5;
 
     public function __construct(
-        private readonly string  $sucursal_id,
-        private readonly string  $tipo,
-        private readonly string  $titulo,
-        private readonly string  $mensaje,
+        private readonly string  $sucursal_id = '',
+        private readonly string  $tipo        = '',
+        private readonly string  $titulo      = '',
+        private readonly string  $mensaje     = '',
         private readonly array   $datos       = [],
-        private readonly ?string $usuario_id  = null, // null = guardar para todos en la sucursal
+        private readonly ?string $usuario_id  = null,
     ) {}
+
+    public function dispatch(): \Illuminate\Foundation\Bus\PendingDispatch
+    {
+        return new \Illuminate\Foundation\Bus\PendingDispatch($this);
+    }
 
     public function handle(): void
     {

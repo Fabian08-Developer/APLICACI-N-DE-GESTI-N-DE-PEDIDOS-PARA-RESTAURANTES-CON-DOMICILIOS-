@@ -45,10 +45,21 @@ class PedidoService
                     $tiempoEstimado = $tarifa['tiempo_estimado'];
                 } elseif ($sesion->zona_id) {
                     // Fallback legacy: si solo hay zona_id (sesiones antiguas sin barrio_id)
-                    $zona = ZonaCobertura::find($sesion->zona_id);
+                    $zona = ZonaCobertura::withoutGlobalScopes()->find($sesion->zona_id);
                     if ($zona) {
                         $costoEnvio     = (float) $zona->costo_envio;
                         $tiempoEstimado = (int) $zona->tiempo_estimado;
+                    }
+                }
+
+                // Fallback de seguridad: si no se aplicó costo (ej. sesión sin barrio_id o zona_id), tomar tarifa activa de la sucursal
+                if ($costoEnvio <= 0 && $sesion->sucursal_id) {
+                    $tarifaFallback = \App\Models\SucursalBarrioTarifa::where('sucursal_id', $sesion->sucursal_id)
+                        ->where('activo', true)
+                        ->first();
+                    if ($tarifaFallback) {
+                        $costoEnvio     = (float) $tarifaFallback->costo_envio;
+                        $tiempoEstimado = (int) $tarifaFallback->tiempo_estimado;
                     }
                 }
             }

@@ -7,6 +7,7 @@ let CONFIG = {
     rutaEntregar: (id) => `/mesero/pedidos/${id}/entregar`,
     rutaCancelar: (id) => `/mesero/pedidos/${id}/cancelar`,
     rutaConfirmarPago: (id) => `/mesero/pedidos/${id}/confirmar-pago`,
+    rutaRegistrarCobro: (id) => `/mesero/pedidos/${id}/registrar-cobro`,
     pedidos: [],
 };
 
@@ -78,8 +79,12 @@ export function abrirDrawer(id) {
     document.getElementById('drawer-mesero').textContent = p.mesero;
     document.getElementById('drawer-hora').textContent   = p.hora;
 
+    const pagoBadge = p.estado_pago === 'PENDIENTE'
+        ? `<span class="estado-badge" style="background: rgba(245,158,11,0.1); color: #F59E0B; border: 1px solid rgba(245,158,11,0.3); margin-left: 6px;">⏳ Por cobrar</span>`
+        : `<span class="estado-badge" style="background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.3); margin-left: 6px;">✓ Pagado</span>`;
+
     document.getElementById('drawer-badge').innerHTML =
-        `<span class="estado-badge estado-${p.estado}">${ESTADO_LABEL[p.estado] ?? p.estado}</span>`;
+        `<span class="estado-badge estado-${p.estado}">${ESTADO_LABEL[p.estado] ?? p.estado}</span>${p.estado_pago ? pagoBadge : ''}`;
 
     document.getElementById('drawer-productos').innerHTML = p.detalles.map(d => `
         <div class="producto-item">
@@ -148,6 +153,14 @@ function renderFooter(p) {
             'EN_PREPARACION': ' Cocinero preparando el pedido',
         };
         footer.innerHTML = `<div class="drawer-estado-msg">${textos[p.estado] ?? 'Procesando...'}</div>`;
+    }
+
+    if (p.estado_pago === 'PENDIENTE' && p.estado !== 'PENDIENTE_PAGO' && p.estado !== 'CANCELADO') {
+        const btnCobrar = `
+            <button class="btn-confirmar-pago" onclick="registrarCobroPedido('${p.id}')" style="background: linear-gradient(135deg, #3B82F6, #2563EB); box-shadow: 0 4px 12px rgba(59,130,246,0.3); margin-top: 10px; width: 100%; font-weight: 700; padding: 0.8rem; border: none; border-radius: 8px; color: white; cursor: pointer; transition: all 0.2s;">
+                💲 Registrar Cobro en Efectivo ($${Number(p.total).toLocaleString('es-CO')})
+            </button>`;
+        footer.innerHTML += btnCobrar;
     }
 }
 
@@ -336,6 +349,66 @@ export async function confirmarPagoEfectivo(id) {
     }
 }
 
+/**
+ * Acción de registrar cobro en efectivo de pedido activo/manual
+ */
+export async function registrarCobroPedido(id) {
+    const btn = document.querySelector('button[onclick*="registrarCobroPedido"]');
+    if (btn) {
+        btn.disabled = true;
+        btn.textContent = 'Registrando cobro...';
+    }
+
+    try {
+        const res = await fetch(CONFIG.rutaRegistrarCobro(id), {
+            method: 'POST',
+            headers: {
+                'X-CSRF-TOKEN': CONFIG.csrf,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({ metodo_pago: 'Efectivo' }),
+        });
+        const data = await res.json();
+
+        if (data.ok) {
+            mostrarToast(`Cobro del Pedido #${id} registrado ✓`);
+            const p = CONFIG.pedidos.find(x => x.id === id || x.id == id);
+            if (p) {
+                p.estado_pago = 'COMPLETADO';
+                if (p.estado === 'ENTREGADO') {
+                    removerFila(id);
+                    cerrarDrawer();
+                } else {
+                    abrirDrawer(id);
+                    const row = document.getElementById(`row-${id}`);
+                    if (row) {
+                        const small = row.querySelector('.pedido-total small');
+                        if (small) {
+                            small.textContent = '✓ Pagado';
+                            small.style.color = '#10B981';
+                        }
+                    }
+                }
+            } else {
+                cerrarDrawer();
+            }
+        } else {
+            mostrarToast(data.mensaje || 'No se pudo registrar el cobro', true);
+            if (btn) {
+                btn.disabled = false;
+                btn.textContent = `💲 Registrar Cobro en Efectivo`;
+            }
+        }
+    } catch (err) {
+        mostrarToast('Error de conexión', true);
+        if (btn) {
+            btn.disabled = false;
+            btn.textContent = `💲 Registrar Cobro en Efectivo`;
+        }
+    }
+}
+
 // Globalizar
 window.abrirDrawer = abrirDrawer;
 window.cerrarDrawer = cerrarDrawer;
@@ -344,4 +417,5 @@ window.cancelarPedido = cancelarPedido;
 window.cerrarModalCancelacion = cerrarModalCancelacion;
 window.ejecutarCancelacion = ejecutarCancelacion;
 window.confirmarPagoEfectivo = confirmarPagoEfectivo;
+window.registrarCobroPedido = registrarCobroPedido;
 window.initMesero = initMesero;

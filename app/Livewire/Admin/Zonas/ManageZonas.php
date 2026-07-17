@@ -167,38 +167,71 @@ class ManageZonas extends Component
             $msg = 'Zona creada correctamente.';
         }
 
-        // Sync barrios con sucursal_id correcto y propagar tarifas a la pivote
-        // IMPORTANTE: la eliminación en cascada limpia sucursal_barrio_tarifas automáticamente
-        Barrio::where('zona_id', $zona->id)->delete();
+        // Sincronización inteligente no destructiva de barrios (preservando coordenadas y UUIDs)
+        $existingBarrios = Barrio::where('zona_id', $zona->id)->get();
+        $keptBarrioIds = [];
 
         if (!empty(trim($this->barrios))) {
             $barriosNames = explode(',', $this->barrios);
             foreach ($barriosNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
-                    // Crear barrio CON sucursal_id para que sea detectable por el checkout
-                    $barrio = Barrio::create([
-                        'zona_id'     => $zona->id,
-                        'sucursal_id' => $sucursal_id,
-                        'nombre'      => $name,
-                        'activo'      => true,
-                    ]);
+                    $existing = $existingBarrios->first(function ($b) use ($name) {
+                        return mb_strtolower($b->nombre) === mb_strtolower($name);
+                    });
 
-                    // Propagar tarifa a la pivote sede-barrio
-                    SucursalBarrioTarifa::updateOrCreate(
-                        [
+                    if ($existing) {
+                        // Actualizar datos básicos sin sobreescribir coordenadas
+                        $existing->update([
+                            'nombre'      => $name,
                             'sucursal_id' => $sucursal_id,
-                            'barrio_id'   => $barrio->id,
-                        ],
-                        [
-                            'costo_envio'     => $this->costo_envio,
-                            'tiempo_estimado' => $this->tiempo_estimado,
-                            'activo'          => true,
-                        ]
-                    );
+                            'activo'      => true,
+                        ]);
+                        $keptBarrioIds[] = $existing->id;
+
+                        // Asegurar tarifa en la pivote sede-barrio
+                        SucursalBarrioTarifa::updateOrCreate(
+                            [
+                                'sucursal_id' => $sucursal_id,
+                                'barrio_id'   => $existing->id,
+                            ],
+                            [
+                                'costo_envio'     => $this->costo_envio,
+                                'tiempo_estimado' => $this->tiempo_estimado,
+                                'activo'          => true,
+                            ]
+                        );
+                    } else {
+                        // Crear nuevo barrio con sucursal_id
+                        $barrio = Barrio::create([
+                            'zona_id'     => $zona->id,
+                            'sucursal_id' => $sucursal_id,
+                            'nombre'      => $name,
+                            'activo'      => true,
+                        ]);
+                        $keptBarrioIds[] = $barrio->id;
+
+                        // Propagar tarifa a la pivote sede-barrio
+                        SucursalBarrioTarifa::updateOrCreate(
+                            [
+                                'sucursal_id' => $sucursal_id,
+                                'barrio_id'   => $barrio->id,
+                            ],
+                            [
+                                'costo_envio'     => $this->costo_envio,
+                                'tiempo_estimado' => $this->tiempo_estimado,
+                                'activo'          => true,
+                            ]
+                        );
+                    }
                 }
             }
         }
+
+        // Eliminar únicamente los barrios que fueron eliminados explícitamente del input
+        Barrio::where('zona_id', $zona->id)
+            ->whereNotIn('id', $keptBarrioIds)
+            ->delete();
 
         session()->flash('success', $msg);
         $this->closeSidebar();

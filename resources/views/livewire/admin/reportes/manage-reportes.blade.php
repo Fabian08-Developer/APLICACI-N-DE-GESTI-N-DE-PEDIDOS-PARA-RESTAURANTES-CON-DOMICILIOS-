@@ -159,7 +159,7 @@
 </style>
 
 
-<div x-data="salesReport()">
+<div x-data="salesReport()" x-effect="document.body.style.overflow = (showExportSidebar || showScheduleSidebar || showAiAssistant) ? 'hidden' : ''">
     {{-- ENCABEZADO Y CONTROLES --}}
     <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
         <div>

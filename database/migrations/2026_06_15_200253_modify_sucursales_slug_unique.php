@@ -11,12 +11,14 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::table('sucursales', function (Blueprint $table) {
-            // Drop the old global unique index
-            $table->dropUnique('sucursales_slug_unico');
-            // Add a new composite unique index
-            $table->unique(['empresa_id', 'slug'], 'sucursales_empresa_slug_unique');
-        });
+        if (DB::getDriverName() !== 'sqlite') {
+            Schema::table('sucursales', function (Blueprint $table) {
+                // Drop the old global unique index
+                $table->dropUnique('sucursales_slug_unico');
+                // Add a new composite unique index
+                $table->unique(['empresa_id', 'slug'], 'sucursales_empresa_slug_unique');
+            });
+        }
     }
 
     /**

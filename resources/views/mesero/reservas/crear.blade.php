@@ -159,6 +159,8 @@
     }
     .wizard-theme .mesa-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
     .wizard-theme .mesa-btn.active { background: rgba(196,139,87,0.1); border-color: var(--gold); box-shadow: 0 5px 15px rgba(196,139,87,0.2); }
+    .wizard-theme .mesa-btn.disabled { opacity: 0.55; cursor: not-allowed; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+    .wizard-theme .mesa-btn.disabled:hover { transform: none; border-color: rgba(239,68,68,0.3); }
     .wizard-theme .mesa-btn .icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
     .wizard-theme .mesa-btn .name { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--gold); }
     .wizard-theme .mesa-btn .check { position: absolute; top: 10px; right: 10px; color: var(--gold); font-size: 1.2rem; display: none; }
@@ -263,7 +265,7 @@
                         
                         <div style="display: flex; gap: 1rem; align-items: center; margin-bottom: 1rem;">
                             <span style="font-size: 0.9rem; color: var(--text-dim);">Modo Manual:</span>
-                            <input type="time" class="form-control" style="width: auto; padding: 0.5rem;" x-model="horaSeleccionada" @change="validarAnticipacion()">
+                            <input type="time" class="form-control" style="width: auto; padding: 0.5rem;" x-model="horaSeleccionada" @change="validarAnticipacion(); fetchMesasOcupadas();">
                         </div>
 
                         <label class="form-label">O elige un horario sugerido disponible:</label>
@@ -271,7 +273,7 @@
                             <template x-for="slot in slots" :key="slot.hora_inicio">
                                 <div class="slot-btn" 
                                      :class="{'active': horaSeleccionada === slot.hora_inicio, 'disabled': !slot.disponible}"
-                                     @click="if(slot.disponible) { horaSeleccionada = slot.hora_inicio; validarAnticipacion(); }">
+                                     @click="if(slot.disponible) { horaSeleccionada = slot.hora_inicio; validarAnticipacion(); fetchMesasOcupadas(); }">
                                     <span x-text="slot.hora_inicio.substring(0,5)"></span>
                                 </div>
                             </template>
@@ -291,13 +293,13 @@
                     </div>
 
                     <div class="btn-actions" style="justify-content: flex-end;">
-                        <button type="button" class="btn btn-next" @click="step = 2" :disabled="!fecha || !personas || !horaSeleccionada || !!errorHora">Continuar →</button>
+                        <button type="button" class="btn btn-next" @click="step = 2; fetchMesasOcupadas();" :disabled="!fecha || !personas || !horaSeleccionada || !!errorHora">Continuar →</button>
                     </div>
                 </div>
 
                 <!-- STEP 2: Selección de Mesa -->
                 <div x-show="step === 2" x-transition x-cloak>
-                    <p style="color:var(--text-dim); margin-bottom:1.5rem;">Elige las mesas para la reserva (puedes elegir varias). Si no eliges ninguna, el sistema asignará automáticamente.</p>
+                    <p style="color:var(--text-dim); margin-bottom:1.5rem;">Elige las mesas para la reserva (puedes elegir varias). Si no eliges ninguna, el sistema asignará automáticamente entre las disponibles.</p>
                     
                     <div class="mesas-grid">
                         <div class="mesa-btn" :class="{'active': mesasSeleccionadas.length === 0}" @click="mesasSeleccionadas = []">
@@ -310,14 +312,20 @@
 
                         @foreach($mesas as $mesa)
                         <div class="mesa-btn" 
-                             :class="{'active': mesasSeleccionadas.includes('{{ $mesa->id }}')}" 
-                             @click="toggleMesa('{{ $mesa->id }}')">
+                             :class="{'active': mesasSeleccionadas.includes('{{ $mesa->id }}'), 'disabled': mesasOcupadas.includes('{{ $mesa->id }}')}" 
+                             @click="if(!mesasOcupadas.includes('{{ $mesa->id }}')) { toggleMesa('{{ $mesa->id }}') }">
                             <div class="check">✓</div>
                             <span class="icon">
-                                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                                <template x-if="mesasOcupadas.includes('{{ $mesa->id }}')">
+                                    <span>🚫</span>
+                                </template>
+                                <template x-if="!mesasOcupadas.includes('{{ $mesa->id }}')">
+                                    <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
+                                </template>
                             </span>
                             <span class="name">Mesa {{ $mesa->numero }}</span>
                             <span style="display:block; font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem;">Capacidad: {{ $mesa->capacidad }}</span>
+                            <span x-show="mesasOcupadas.includes('{{ $mesa->id }}')" style="display:block; font-size:0.75rem; color:#ef4444; font-weight:600; margin-top:0.4rem; background:rgba(239,68,68,0.12); padding:0.2rem 0.5rem; border-radius:6px;">Reservada en este horario</span>
                         </div>
                         @endforeach
                     </div>
@@ -359,7 +367,7 @@
                     <label class="checkbox-label">
                         <input type="checkbox" name="deposito_pagado_efectivo" value="1" {{ old('deposito_pagado_efectivo') ? 'checked' : '' }}>
                         <div>
-                            <strong>El cliente pagó el depósito en efectivo (${{ number_format($montoDeposito, 0, ',', '.') }}) en este momento.</strong><br>
+                            <strong>El cliente pagó el depósito en efectivo (<span x-text="mesasSeleccionadas.length > 1 ? '$' + new Intl.NumberFormat('es-CO').format({{ $montoDeposito }} * mesasSeleccionadas.length) + ' (' + mesasSeleccionadas.length + ' mesas × $' + new Intl.NumberFormat('es-CO').format({{ $montoDeposito }}) + ')' : '${{ number_format($montoDeposito, 0, ',', '.') }} (por mesa)'"></span>) en este momento.</strong><br>
                             <span style="font-size:0.8rem; color:var(--text-dim);">Al marcar esta opción, la reserva quedará Confirmada de inmediato. Si no, se enviará el correo con enlace de pago.</span>
                         </div>
                     </label>
@@ -431,9 +439,16 @@ document.addEventListener('alpine:init', () => {
         isLoadingSlots: false,
         errorHora: '',
         mesasObj: @json($mesas),
+        mesasOcupadas: [],
 
         init() {
             this.fetchSlots();
+            if (this.horaSeleccionada) {
+                this.fetchMesasOcupadas();
+            }
+            this.$watch('step', value => {
+                if (value === 2) this.fetchMesasOcupadas();
+            });
             @if($errors->any())
                 this.step = 3;
             @endif
@@ -486,6 +501,24 @@ document.addEventListener('alpine:init', () => {
             .finally(() => {
                 this.isLoadingSlots = false;
             });
+        },
+
+        fetchMesasOcupadas() {
+            if (!this.fecha || !this.horaSeleccionada) {
+                this.mesasOcupadas = [];
+                return;
+            }
+            let url = `{{ route('cliente.reservas.mesas-ocupadas', $sucursal->slug) }}?fecha=${this.fecha}&hora_inicio=${this.horaSeleccionada}`;
+            fetch(url, {
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.mesasOcupadas = data.mesas_ocupadas_ids || [];
+                // Si alguna de las mesas seleccionadas está ahora ocupada, deseleccionarla
+                this.mesasSeleccionadas = this.mesasSeleccionadas.filter(id => !this.mesasOcupadas.includes(id));
+            })
+            .catch(err => console.error(err));
         },
 
         getMesasNombres() {

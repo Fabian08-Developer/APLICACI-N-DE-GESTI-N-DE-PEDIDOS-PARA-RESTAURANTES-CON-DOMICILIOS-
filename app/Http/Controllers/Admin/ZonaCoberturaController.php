@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\ZonaCobertura;
 use App\Models\Barrio;
+use App\Models\SucursalBarrioTarifa;
 use App\Models\PerfilDomiciliario;
 
 use Illuminate\Validation\Rule;
@@ -55,11 +56,24 @@ class ZonaCoberturaController extends Controller
             foreach ($barriosNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
-                    Barrio::create([
+                    $barrio = Barrio::create([
                         'zona_id' => $zona->id,
+                        'sucursal_id' => $sucursal_id,
                         'nombre' => $name,
                         'activo' => true
                     ]);
+
+                    SucursalBarrioTarifa::updateOrCreate(
+                        [
+                            'sucursal_id' => $sucursal_id,
+                            'barrio_id'   => $barrio->id,
+                        ],
+                        [
+                            'costo_envio'     => $zona->costo_envio,
+                            'tiempo_estimado' => $zona->tiempo_estimado,
+                            'activo'          => true,
+                        ]
+                    );
                 }
             }
         }
@@ -135,21 +149,66 @@ class ZonaCoberturaController extends Controller
             'activo' => (bool)$request->input('activo'),
         ]);
 
-        Barrio::where('zona_id', $zona->id)->delete();
+        // Sincronización inteligente no destructiva de barrios
+        $existingBarrios = Barrio::where('zona_id', $zona->id)->get();
+        $keptBarrioIds = [];
 
         if ($request->filled('barrios')) {
             $barriosNames = explode(',', $request->input('barrios'));
             foreach ($barriosNames as $name) {
                 $name = trim($name);
                 if ($name !== '') {
-                    Barrio::create([
-                        'zona_id' => $zona->id,
-                        'nombre' => $name,
-                        'activo' => true
-                    ]);
+                    $existing = $existingBarrios->first(function ($b) use ($name) {
+                        return mb_strtolower($b->nombre) === mb_strtolower($name);
+                    });
+
+                    if ($existing) {
+                        $existing->update([
+                            'nombre'      => $name,
+                            'sucursal_id' => $sucursal_id,
+                            'activo'      => true,
+                        ]);
+                        $keptBarrioIds[] = $existing->id;
+
+                        SucursalBarrioTarifa::updateOrCreate(
+                            [
+                                'sucursal_id' => $sucursal_id,
+                                'barrio_id'   => $existing->id,
+                            ],
+                            [
+                                'costo_envio'     => $zona->costo_envio,
+                                'tiempo_estimado' => $zona->tiempo_estimado,
+                                'activo'          => true,
+                            ]
+                        );
+                    } else {
+                        $barrio = Barrio::create([
+                            'zona_id'     => $zona->id,
+                            'sucursal_id' => $sucursal_id,
+                            'nombre'      => $name,
+                            'activo'      => true
+                        ]);
+                        $keptBarrioIds[] = $barrio->id;
+
+                        SucursalBarrioTarifa::updateOrCreate(
+                            [
+                                'sucursal_id' => $sucursal_id,
+                                'barrio_id'   => $barrio->id,
+                            ],
+                            [
+                                'costo_envio'     => $zona->costo_envio,
+                                'tiempo_estimado' => $zona->tiempo_estimado,
+                                'activo'          => true,
+                            ]
+                        );
+                    }
                 }
             }
         }
+
+        Barrio::where('zona_id', $zona->id)
+            ->whereNotIn('id', $keptBarrioIds)
+            ->delete();
 
         return redirect()->route('admin.zonas.index')->with('success', 'Zona actualizada correctamente.');
     }

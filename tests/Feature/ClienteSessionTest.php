@@ -33,6 +33,7 @@ class ClienteSessionTest extends TestCase
         $this->empresa = Empresa::create([
             'nit' => '123456789-0',
             'nombre' => 'Restaurante Test',
+            'slug' => 'restaurante-test',
             'activo' => true,
         ]);
 
@@ -98,7 +99,7 @@ class ClienteSessionTest extends TestCase
     }
 
     /** @test */
-    public function test_escanear_qr_reutiliza_sesion_activa_de_mesa_rf_c12()
+    public function test_escanear_qr_rechaza_si_mesa_tiene_sesion_activa()
     {
         // Crear primera sesión activa
         $sesionExistente = SesionCliente::create([
@@ -118,8 +119,9 @@ class ClienteSessionTest extends TestCase
             'codigo' => $this->mesa->codigo_qr
         ]));
 
-        // Debe redirigir con el MISMO token
-        $response->assertRedirect(route('cliente.menu', ['t' => $sesionExistente->token]));
+        // Debe redirigir a sin-sesion indicando que la mesa está ocupada
+        $response->assertRedirect(route('cliente.sin-sesion'));
+        $response->assertSessionHas('error', 'Esta mesa ya cuenta con una sesión activa en curso.');
 
         // Verificar que no se creó otra sesión en la base de datos
         $this->assertEquals(1, SesionCliente::count());

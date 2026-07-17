@@ -83,8 +83,8 @@ class ClienteTokenMiddleware
         \App\Scopes\TenantScope::setTenantId($sesionMesa->sucursal_id);
 
         // Actualizar actividad en BD (no en session)
-        // touch() actualiza updated_at → sirve como marca de última actividad
-        $sesionMesa->touch();
+        // actualizarActividad() escribe ultima_actividad_en → fuente de verdad para CerrarSesionesInactivasJob
+        $sesionMesa->actualizarActividad();
 
         return $next($request);
     }

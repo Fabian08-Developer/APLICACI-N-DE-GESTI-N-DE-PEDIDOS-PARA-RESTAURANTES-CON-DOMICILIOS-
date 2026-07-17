@@ -182,6 +182,28 @@ class ReservaService
     }
 
     /**
+     * Devuelve los IDs de las mesas de una sucursal ocupadas en un slot de tiempo dado.
+     */
+    public function mesasOcupadasEnSlot(
+        Sucursal $sucursal,
+        string $fecha,
+        string $horaInicio,
+        string $horaFin
+    ): array {
+        return DB::table('reserva_mesas')
+            ->join('reservas_mesa', 'reserva_mesas.reserva_id', '=', 'reservas_mesa.id')
+            ->where('reservas_mesa.sucursal_id', $sucursal->id)
+            ->where('reservas_mesa.fecha_reserva', $fecha)
+            ->whereIn('reservas_mesa.estado', [EstadoReserva::PENDIENTE->value, EstadoReserva::CONFIRMADA->value, EstadoReserva::CLIENTE_LLEGO->value])
+            ->where('reservas_mesa.hora_inicio', '<', $horaFin)
+            ->where('reservas_mesa.hora_fin', '>', $horaInicio)
+            ->pluck('reserva_mesas.mesa_id')
+            ->unique()
+            ->values()
+            ->toArray();
+    }
+
+    /**
      * Devuelve las mesas de una sucursal disponibles para un slot de tiempo dado.
      */
     public function mesasDisponiblesParaSlot(
@@ -306,9 +328,10 @@ class ReservaService
                 );
             }
 
-            // 5. Calcular depósito
+            // 5. Calcular depósito (por cada mesa asignada/seleccionada)
             $requiereDeposito = $this->requiereDeposito($sucursal);
-            $montoDeposito    = $requiereDeposito ? $this->montoDeposito($sucursal) : 0;
+            $cantidadMesas    = max(1, count($mesasIds));
+            $montoDeposito    = $requiereDeposito ? ($this->montoDeposito($sucursal) * $cantidadMesas) : 0;
 
             // 6. Estado inicial según si hay depósito requerido
             $estadoInicial = $requiereDeposito
@@ -493,7 +516,193 @@ class ReservaService
         }
     }
 
+    // ─── Posponer / Reprogramar reserva ──────────────────────────
+
+    /**
+     * Valida la nueva fecha/hora y verifica si las mesas actuales tienen conflicto.
+     * NO modifica nada en base de datos — es solo lectura.
+     *
+     * @return array{conflicto: bool, nuevaHoraFin: string, mesasActualesIds: array, mesasConflicto: array, mesasAlternativas: mixed}
+     * @throws ValidationException  Si la fecha/hora es inválida.
+     */
+    public function verificarConflictoPostponer(
+        ReservaMesa $reserva,
+        string $nuevaFecha,
+        string $nuevaHoraInicio,
+        Sucursal $sucursal
+    ): array {
+        if ($reserva->estado->esFinal()) {
+            throw ValidationException::withMessages([
+                'estado' => 'Esta reserva está en un estado final y no puede reprogramarse.',
+            ]);
+        }
+
+        $tz             = $sucursal->timezone ?? config('app.timezone', 'America/Bogota');
+        $nuevaFechaHora = Carbon::parse($nuevaFecha . ' ' . $nuevaHoraInicio, $tz);
+        $anticipacion   = $this->anticipacionMinima($sucursal);
+
+        if ($nuevaFechaHora->lt(now($tz)->addMinutes($anticipacion))) {
+            throw ValidationException::withMessages([
+                'postpone_hora_inicio' => "Debes reprogramar con al menos {$anticipacion} minutos de anticipación.",
+            ]);
+        }
+
+        $horizonte = $this->horizonteDias($sucursal);
+        if ($nuevaFechaHora->gt(now($tz)->addDays($horizonte))) {
+            throw ValidationException::withMessages([
+                'postpone_fecha' => "Solo puedes reservar hasta {$horizonte} días en el futuro.",
+            ]);
+        }
+
+        $duracion     = $this->duracionTurno($sucursal);
+        $nuevaHoraFin = $nuevaFechaHora->copy()->addMinutes($duracion)->format('H:i');
+        $mesasActualesIds = $reserva->mesas->pluck('id')->toArray();
+
+        // Detectar qué mesas actuales tienen conflicto en el nuevo slot
+        $mesasConflicto = [];
+        if (!empty($mesasActualesIds)) {
+            $mesasConflicto = DB::table('reserva_mesas')
+                ->join('reservas_mesa', 'reserva_mesas.reserva_id', '=', 'reservas_mesa.id')
+                ->where('reservas_mesa.id', '!=', $reserva->id)
+                ->where('reservas_mesa.fecha_reserva', $nuevaFecha)
+                ->whereIn('reservas_mesa.estado', [
+                    \App\Enums\EstadoReserva::PENDIENTE->value,
+                    \App\Enums\EstadoReserva::CONFIRMADA->value,
+                    \App\Enums\EstadoReserva::CLIENTE_LLEGO->value,
+                    \App\Enums\EstadoReserva::PENDIENTE_PAGO->value,
+                ])
+                ->where('reservas_mesa.hora_inicio', '<', $nuevaHoraFin)
+                ->where('reservas_mesa.hora_fin',   '>', $nuevaHoraInicio)
+                ->whereIn('reserva_mesas.mesa_id', $mesasActualesIds)
+                ->pluck('reserva_mesas.mesa_id')
+                ->toArray();
+        }
+
+        $hayConflicto = !empty($mesasConflicto);
+        $mesasAlternativas = $hayConflicto
+            ? $this->mesasDisponiblesParaSlot($sucursal, $nuevaFecha, $nuevaHoraInicio, $nuevaHoraFin, $reserva->numero_personas)
+            : collect();
+
+        return [
+            'conflicto'         => $hayConflicto,
+            'nuevaHoraFin'      => $nuevaHoraFin,
+            'mesasActualesIds'  => $mesasActualesIds,
+            'mesasConflicto'    => $mesasConflicto,
+            'mesasAlternativas' => $mesasAlternativas,
+        ];
+    }
+
+    /**
+     * Guarda la reprogramación con las mesas indicadas (manual o auto-asignadas).
+     *
+     * @param  array  $mesasIds  IDs de mesas a usar en el nuevo slot.
+     * @throws ValidationException
+     */
+    public function posponerReservaConMesas(
+        ReservaMesa $reserva,
+        string $nuevaFecha,
+        string $nuevaHoraInicio,
+        string $nuevaHoraFin,
+        array $mesasIds,
+        Sucursal $sucursal
+    ): void {
+        $this->verificarDisponibilidad($mesasIds, $nuevaFecha, $nuevaHoraInicio, $nuevaHoraFin, $reserva->id);
+
+        DB::transaction(function () use ($reserva, $nuevaFecha, $nuevaHoraInicio, $nuevaHoraFin, $mesasIds) {
+            $fechaAnterior = $reserva->fecha_reserva->format('Y-m-d');
+            $horaAnterior  = $reserva->hora_inicio;
+
+            $reserva->update([
+                'fecha_reserva' => $nuevaFecha,
+                'hora_inicio'   => $nuevaHoraInicio,
+                'hora_fin'      => $nuevaHoraFin,
+            ]);
+
+            $reserva->mesas()->sync($mesasIds);
+
+            try {
+                Mail::to($reserva->correo_cliente)
+                    ->queue(new \App\Mail\ReservaPospuestaMail(
+                        $reserva->fresh(['mesas', 'sucursal']),
+                        $fechaAnterior,
+                        $horaAnterior,
+                    ));
+            } catch (\Exception $e) {
+                logger()->error('Error encolando email de reserva pospuesta', [
+                    'reserva_id' => $reserva->id,
+                    'error'      => $e->getMessage(),
+                ]);
+            }
+        });
+    }
+
+    /**
+     * Procesa en masa la reprogramación de un lote de reservas.
+     *
+     * Por cada reserva:
+     *  - Si sus mesas actuales están libres → reprograma conservando mesas.
+     *  - Si hay conflicto y hay alternativas → reasigna automáticamente.
+     *  - Si hay conflicto y NO hay alternativas → registra como 'conflicto'.
+     *
+     * @param  array    $reservasIds
+     * @param  string   $nuevaFecha         Formato: Y-m-d
+     * @param  string   $nuevaHoraInicio    Formato: H:i
+     * @param  Sucursal $sucursal
+     * @return array{exitosas: int, conflictos: int, errores: int, detalle: array}
+     */
+    public function posponerReservasEnMasa(
+        array $reservasIds,
+        string $nuevaFecha,
+        string $nuevaHoraInicio,
+        Sucursal $sucursal
+    ): array {
+        $exitosas  = 0;
+        $conflictos = 0;
+        $errores   = 0;
+        $detalle   = [];
+
+        $reservas = ReservaMesa::with('mesas')
+            ->whereIn('id', $reservasIds)
+            ->where('sucursal_id', $sucursal->id)
+            ->get();
+
+        foreach ($reservas as $reserva) {
+            try {
+                $info = $this->verificarConflictoPostponer($reserva, $nuevaFecha, $nuevaHoraInicio, $sucursal);
+
+                if ($info['conflicto']) {
+                    try {
+                        $nuevasMesas = $this->asignarMesasAutomaticamente(
+                            $sucursal, $nuevaFecha, $nuevaHoraInicio, $info['nuevaHoraFin'], $reserva->numero_personas
+                        );
+                        $this->posponerReservaConMesas($reserva, $nuevaFecha, $nuevaHoraInicio, $info['nuevaHoraFin'], $nuevasMesas, $sucursal);
+                        $exitosas++;
+                        $detalle[] = ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva, 'nombre' => $reserva->nombre_cliente, 'resultado' => 'exitosa_reasignada', 'mensaje' => 'Reprogramada con mesas reasignadas automáticamente.'];
+                    } catch (\Exception $e) {
+                        $conflictos++;
+                        $detalle[] = ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva, 'nombre' => $reserva->nombre_cliente, 'resultado' => 'conflicto', 'mensaje' => 'No hay mesas disponibles. Requiere atención manual.'];
+                    }
+                } else {
+                    $this->posponerReservaConMesas($reserva, $nuevaFecha, $nuevaHoraInicio, $info['nuevaHoraFin'], $info['mesasActualesIds'], $sucursal);
+                    $exitosas++;
+                    $detalle[] = ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva, 'nombre' => $reserva->nombre_cliente, 'resultado' => 'exitosa', 'mensaje' => 'Reprogramada conservando mesas.'];
+                }
+            } catch (\Illuminate\Validation\ValidationException $e) {
+                $errores++;
+                $detalle[] = ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva, 'nombre' => $reserva->nombre_cliente, 'resultado' => 'error', 'mensaje' => collect($e->errors())->flatten()->first()];
+            } catch (\Exception $e) {
+                $errores++;
+                $detalle[] = ['id' => $reserva->id, 'codigo' => $reserva->codigo_reserva, 'nombre' => $reserva->nombre_cliente, 'resultado' => 'error', 'mensaje' => 'Error inesperado.'];
+                logger()->error('Error en posponer masivo', ['reserva_id' => $reserva->id, 'error' => $e->getMessage()]);
+            }
+        }
+
+        return compact('exitosas', 'conflictos', 'errores', 'detalle');
+    }
+
+
     // ─── Procesar No-Shows ────────────────────────────────────────
+
 
     /**
      * Detecta y procesa reservas confirmadas que ya expiraron sin check-in.

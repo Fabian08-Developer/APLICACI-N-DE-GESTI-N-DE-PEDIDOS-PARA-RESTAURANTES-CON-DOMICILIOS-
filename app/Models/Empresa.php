@@ -37,6 +37,15 @@ class Empresa extends Model
         'apariencia' => 'array',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($empresa) {
+            if (empty($empresa->slug) && !empty($empresa->nombre)) {
+                $empresa->slug = \Illuminate\Support\Str::slug($empresa->nombre) . '-' . substr(uniqid(), -4);
+            }
+        });
+    }
+
     /**
      * Obtiene un valor de la apariencia con fallback seguro.
      */

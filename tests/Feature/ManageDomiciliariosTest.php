@@ -33,6 +33,7 @@ class ManageDomiciliariosTest extends TestCase
         $this->empresa = Empresa::create([
             'nit'    => '999888777-0',
             'nombre' => 'Empresa Dom Test',
+            'slug'   => 'empresa-dom-test',
             'activo' => true,
         ]);
 
@@ -229,7 +230,7 @@ class ManageDomiciliariosTest extends TestCase
         $this->assertDatabaseHas('liquidaciones_domiciliario', [
             'perfil_domiciliario_id' => $dom->id,
             'monto'                  => 75000,
-            'estado'                 => 'completada',
+            'estado'                 => 'completado',
         ]);
     }
 

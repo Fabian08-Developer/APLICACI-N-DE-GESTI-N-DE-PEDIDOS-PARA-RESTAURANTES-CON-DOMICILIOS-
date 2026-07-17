@@ -43,6 +43,15 @@ class Sucursal extends Model
         'longitud' => 'decimal:8',
     ];
 
+    protected static function booted(): void
+    {
+        static::creating(function ($sucursal) {
+            if (empty($sucursal->slug) && !empty($sucursal->nombre)) {
+                $sucursal->slug = \Illuminate\Support\Str::slug($sucursal->nombre) . '-' . substr(uniqid(), -4);
+            }
+        });
+    }
+
     // ─── Relaciones ──────────────────────────────────────────────
 
     /** La sucursal pertenece a una Empresa */

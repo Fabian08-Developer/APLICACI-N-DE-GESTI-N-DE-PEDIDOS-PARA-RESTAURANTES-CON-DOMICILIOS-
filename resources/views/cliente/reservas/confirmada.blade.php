@@ -333,6 +333,10 @@
             </a>
             @endif
 
+            <a href="{{ route('cliente.reservas.pdf', $reserva->codigo_reserva) }}" class="btn-primary" style="background:#2C2621; color:#F9F7F3; margin-bottom: 0.75rem;">
+                📄 Descargar comprobante en PDF
+            </a>
+
             <a href="{{ route('cliente.reservas.cancelar', $reserva->codigo_reserva) }}" class="btn-link">
                 Necesito cancelar mi reserva
             </a>

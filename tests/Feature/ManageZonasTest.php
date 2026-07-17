@@ -30,6 +30,7 @@ class ManageZonasTest extends TestCase
         $this->empresa = Empresa::create([
             'nit'    => '111222333-4',
             'nombre' => 'Restaurante Test',
+            'slug'   => 'restaurante-test',
             'activo' => true,
         ]);
 
@@ -178,6 +179,52 @@ class ManageZonasTest extends TestCase
     }
 
     /** @test */
+    public function test_updating_zone_preserves_existing_barrio_coordinates_and_uuid()
+    {
+        $this->actingAs($this->administrador);
+
+        $zona = ZonaCobertura::create([
+            'sucursal_id'     => $this->sucursal->id,
+            'nombre'          => 'Zona Georeferenciada',
+            'costo_envio'     => 5000,
+            'tiempo_estimado' => 30,
+            'activo'          => true,
+        ]);
+
+        $barrioExistente = Barrio::create([
+            'zona_id'     => $zona->id,
+            'sucursal_id' => $this->sucursal->id,
+            'nombre'      => 'Barrio Centro',
+            'latitud'     => 10.42350000,
+            'longitud'    => -75.54320000,
+            'activo'      => true,
+        ]);
+
+        Livewire::test(\App\Livewire\Admin\Zonas\ManageZonas::class)
+            ->call('openEdit', $zona->id)
+            ->set('nombre', 'Zona Georeferenciada Actualizada')
+            ->set('costo_envio', 6000)
+            ->set('barrios', 'Barrio Centro, Barrio Nuevo')
+            ->call('save')
+            ->assertHasNoErrors();
+
+        // El barrio existente debe conservar su ID original y sus coordenadas
+        $this->assertDatabaseHas('barrios', [
+            'id'       => $barrioExistente->id,
+            'zona_id'  => $zona->id,
+            'nombre'   => 'Barrio Centro',
+            'latitud'  => 10.42350000,
+            'longitud' => -75.54320000,
+        ]);
+
+        // Y el nuevo barrio debe crearse correctamente
+        $this->assertDatabaseHas('barrios', [
+            'zona_id' => $zona->id,
+            'nombre'  => 'Barrio Nuevo',
+        ]);
+    }
+
+    /** @test */
     public function test_admin_can_toggle_active_status_rf144()
     {
         $this->actingAs($this->administrador);
@@ -234,7 +281,7 @@ class ManageZonasTest extends TestCase
         ]);
 
         Livewire::test(\App\Livewire\Admin\Zonas\ManageZonas::class)
-            ->call('delete', $zona->id);
+            ->call('eliminarZona', $zona->id);
 
         $this->assertDatabaseHas('zonas_cobertura', [
             'id' => $zona->id,

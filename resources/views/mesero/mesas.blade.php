@@ -121,16 +121,31 @@
                             <li style="margin-bottom: 0.25rem;">{{ $detalle->cantidad }}× <span style="color: var(--text-muted);">{{ $detalle->producto->nombre }}</span></li>
                             @endforeach
                         </ul>
-                        <div class="pedido-row-footer" style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem;">
-                            <span class="pedido-total" style="font-weight: 800; font-size: 0.95rem;">${{ number_format($pedido->total, 0, ',', '.') }}</span>
-                            @if($pedido->estado === 'LISTO')
-                            <form method="POST" action="{{ route('mesero.pedidos.entregar', $pedido->id) }}" style="margin: 0;">
-                                @csrf
-                                <button type="submit" style="background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: all 0.2s;">
-                                    Entregar
-                                </button>
-                            </form>
-                            @endif
+                        <div class="pedido-row-footer" style="display: flex; gap: 0.75rem; align-items: center; justify-content: space-between; border-top: 1px solid rgba(255,255,255,0.05); padding-top: 0.75rem; flex-wrap: wrap;">
+                            <div>
+                                <span class="pedido-total" style="font-weight: 800; font-size: 0.95rem;">${{ number_format($pedido->total, 0, ',', '.') }}</span>
+                                <span style="font-size: 0.75rem; font-weight: 700; color: {{ $pedido->estado_pago === 'PENDIENTE' ? '#F59E0B' : '#10B981' }}; margin-left: 0.5rem;">
+                                    {{ $pedido->estado_pago === 'PENDIENTE' ? '⏳ Por cobrar' : '✓ Pagado' }}
+                                </span>
+                            </div>
+                            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                                @if($pedido->estado_pago === 'PENDIENTE' && $pedido->estado !== 'PENDIENTE_PAGO' && $pedido->estado !== 'CANCELADO')
+                                <form method="POST" action="{{ route('mesero.pedidos.registrar-cobro', $pedido->id) }}" style="margin: 0;">
+                                    @csrf
+                                    <button type="submit" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(59,130,246,0.3); transition: all 0.2s;">
+                                        💲 Cobrar
+                                    </button>
+                                </form>
+                                @endif
+                                @if($pedido->estado === 'LISTO')
+                                <form method="POST" action="{{ route('mesero.pedidos.entregar', $pedido->id) }}" style="margin: 0;">
+                                    @csrf
+                                    <button type="submit" style="background: linear-gradient(135deg, #10B981, #059669); color: white; border: none; padding: 0.4rem 1rem; border-radius: 6px; font-size: 0.8rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(16,185,129,0.3); transition: all 0.2s;">
+                                        Entregar
+                                    </button>
+                                </form>
+                                @endif
+                            </div>
                         </div>
                     </div>
                     @endforeach

@@ -36,14 +36,12 @@ return new class extends Migration
 
         // 3. Modificar reservas_mesa
         Schema::table('reservas_mesa', function (Blueprint $table) {
-            // Eliminar index compuesto primero
             $table->dropIndex('idx_disponibilidad');
             
-            // Eliminar foreign key
-            $table->dropForeign(['mesa_id']);
-            
-            // Eliminar columna
-            $table->dropColumn('mesa_id');
+            if (DB::getDriverName() !== 'sqlite') {
+                $table->dropForeign(['mesa_id']);
+                $table->dropColumn('mesa_id');
+            }
         });
     }
 

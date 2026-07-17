@@ -103,7 +103,9 @@
             $mensajes = [
             'CREADO' => 'Tu pedido ha sido recibido y está en cola de espera.',
             'EN_PREPARACION' => 'El chef está preparando tus deliciosos platillos.',
-            'LISTO' => '¡Tu pedido está listo! El mesero te lo llevará en breve.',
+            'LISTO' => $pedido->tipo === 'domicilio' 
+                ? '¡Tu pedido está listo! El domiciliario va en camino con tu pedido en breve.' 
+                : '¡Tu pedido está listo! El mesero te lo llevará en breve.',
             ];
             @endphp
             <div class="tracker-mensaje">
@@ -319,10 +321,10 @@
         }
 
         // Polling para actualizar en vivo el estado del pedido
-        @if(!in_array($pedido - > estado, ['ENTREGADO', 'CANCELADO']))
+        @if(!in_array($pedido->estado, ['ENTREGADO', 'CANCELADO']))
         setTimeout(function() {
             location.reload();
-        }, 10000); // Recargar cada 10 segundos para ver actualizaciones en vivo
+        }, 10000); // Recargar cada 10 segundos para ver updates
         @endif
     </script>
 </body>

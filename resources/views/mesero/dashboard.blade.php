@@ -75,7 +75,9 @@
 
                 <div class="pedido-total">
                     ${{ number_format($p->total, 0, ',', '.') }}
-                    <small>Total cobrado</small>
+                    <small style="color: {{ $p->estado_pago === 'PENDIENTE' ? '#F59E0B' : '#10B981' }}; font-weight: 700;">
+                        {{ $p->estado_pago === 'PENDIENTE' ? '⏳ Por cobrar' : '✓ Pagado' }}
+                    </small>
                 </div>
 
                 <div class="pedido-estado">
@@ -178,14 +180,16 @@
                 csrf: '{{ csrf_token() }}',
                 pedidos: {!! json_encode(
                     $pedidosActivos->map(fn($p) => [
-                        'id'       => $p->id,
-                        'short_id' => $p->short_id,
-                        'estado'   => $p->estado,
-                        'total'    => $p->total,
-                        'mesa'    => $p->sesionMesa?->mesa?->numero ?? '—',
-                        'hora'    => $p->created_at?->format('g:i A'),
-                        'mesero'  => $p->mesero?->nombre ?? '—',
-                        'detalles'=> $p->detalles->map(fn($d) => [
+                        'id'          => $p->id,
+                        'short_id'    => $p->short_id,
+                        'estado'      => $p->estado,
+                        'estado_pago' => $p->estado_pago,
+                        'metodo_pago' => $p->metodo_pago,
+                        'total'       => $p->total,
+                        'mesa'        => $p->sesionMesa?->mesa?->numero ?? '—',
+                        'hora'        => $p->created_at?->format('g:i A'),
+                        'mesero'      => $p->mesero?->nombre ?? '—',
+                        'detalles'    => $p->detalles->map(fn($d) => [
                             'nombre'   => $d->producto?->nombre ?? '—',
                             'cantidad' => $d->cantidad,
                             'notas'    => $d->notas ?? null,

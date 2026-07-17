@@ -14,6 +14,7 @@ use App\Http\Controllers\Cliente\ReservaController;
 // Formulario y creación de reserva
 Route::get('/s/{slug}/reservar',       [ReservaController::class, 'formulario'])->name('cliente.reservas.formulario');
 Route::get('/s/{slug}/reservar/slots', [ReservaController::class, 'slots'])->middleware('throttle:60,1')->name('cliente.reservas.slots');
+Route::get('/s/{slug}/reservar/mesas-ocupadas', [ReservaController::class, 'mesasOcupadas'])->middleware('throttle:60,1')->name('cliente.reservas.mesas-ocupadas');
 Route::post('/s/{slug}/reservar',      [ReservaController::class, 'crear'])->middleware('throttle:15,1')->name('cliente.reservas.crear');
 
 // Pago del depósito

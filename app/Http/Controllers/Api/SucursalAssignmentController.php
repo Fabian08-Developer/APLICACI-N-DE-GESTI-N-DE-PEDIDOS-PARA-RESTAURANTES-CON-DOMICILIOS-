@@ -53,7 +53,7 @@ class SucursalAssignmentController extends Controller
      */
     public function barrios(string $empresaId): JsonResponse
     {
-        $barrios = Barrio::whereHas('tarifas', function ($q) use ($empresaId) {
+        $barrios = Barrio::withoutGlobalScopes()->whereHas('tarifas', function ($q) use ($empresaId) {
                 $q->where('activo', true)
                   ->whereHas('sucursal', function ($sq) use ($empresaId) {
                       $sq->where('activo', true)

@@ -7,6 +7,8 @@
 <div x-data="{
     showDetail: false,
     showCancel: false,
+    showPostpone: false,
+    showBulkPostpone: false,
     activeTab: 'calendario',
     fecha: '{{ $fechaGantt }}',
     filterEstado: '',
@@ -37,6 +39,10 @@
  @close-detail-drawer.window="showDetail = false"
  @open-cancel-modal.window="showCancel = true"
  @close-cancel-modal.window="showCancel = false"
+ @open-postpone-modal.window="showPostpone = true"
+ @close-postpone-modal.window="showPostpone = false"
+ @open-bulk-postpone-modal.window="showBulkPostpone = true"
+ @close-bulk-postpone-modal.window="showBulkPostpone = false"
 >
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
@@ -490,6 +496,17 @@
     <div class="tarjeta">
         <div class="tarjeta-header" style="display:flex;align-items:center;justify-content:space-between;">
             <span>Historial · {{ $reservasHistorial->count() }} resultado(s)</span>
+            @if(!empty($reservasSeleccionadas))
+            <div style="display:flex;align-items:center;gap:.75rem;background:#eff6ff;border:1px solid #bfdbfe;border-radius:8px;padding:.5rem 1rem;">
+                <span style="font-size:.82rem;color:#1d4ed8;font-weight:600;">{{ count($reservasSeleccionadas) }} seleccionadas</span>
+                <button type="button" wire:click="openBulkPostponeModal"
+                        style="background:#0369a1;color:#fff;border:none;padding:.45rem 1rem;border-radius:6px;font-size:.8rem;font-weight:600;cursor:pointer;display:flex;align-items:center;gap:5px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="13" height="13" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                    Posponer seleccionadas
+                </button>
+                <button type="button" wire:click="limpiarSeleccion" style="background:transparent;border:none;color:#64748b;font-size:.8rem;cursor:pointer;text-decoration:underline;">Desmarcar todo</button>
+            </div>
+            @endif
         </div>
 
         @if($reservasHistorial->isEmpty())
@@ -498,6 +515,7 @@
         <table>
             <thead>
                 <tr>
+                    <th style="width:32px;padding:.5rem .6rem;"><span style="font-size:.7rem;color:#94a3b8;">✓</span></th>
                     <th>Fecha y Hora</th>
                     <th>Cliente</th>
                     <th>Mesas</th>
@@ -509,7 +527,15 @@
             </thead>
             <tbody>
                 @foreach($reservasHistorial as $reserva)
-                <tr wire:key="reserva-{{ $reserva->id }}">
+                <tr wire:key="reserva-{{ $reserva->id }}" style="{{ in_array($reserva->id, $reservasSeleccionadas) ? 'background:#eff6ff;' : '' }}">
+                    <td style="padding:.5rem .6rem;text-align:center;">
+                        @if(in_array($reserva->estado->value, ['pendiente_pago','pendiente','confirmada']))
+                        <input type="checkbox"
+                               wire:click="toggleReservaSeleccionada({{ $reserva->id }})"
+                               @checked(in_array($reserva->id, $reservasSeleccionadas))
+                               style="cursor:pointer;accent-color:#0369a1;width:15px;height:15px;">
+                        @endif
+                    </td>
                     <td style="white-space:nowrap;">
                         <strong>{{ \Carbon\Carbon::parse($reserva->fecha_reserva)->format('d/m/Y') }}</strong><br>
                         <span class="texto-gris">{{ substr($reserva->hora_inicio,0,5) }} – {{ substr($reserva->hora_fin,0,5) }}</span>
@@ -688,6 +714,13 @@
                         @endif
 
                         @if(in_array($selectedReserva->estado->value, ['pendiente_pago', 'pendiente', 'confirmada']))
+                        {{-- Botón Posponer --}}
+                        <button type="button" wire:click="openPostponeModal('{{ $selectedReserva->id }}')"
+                                style="background:transparent;color:#f59e0b;border:1px solid #f59e0b;padding:1rem;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:.9rem;transition:all .2s;margin-top:.25rem;"
+                                onmouseover="this.style.background='#fffbeb'" onmouseout="this.style.background='transparent'">
+                            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                            Posponer / Reprogramar
+                        </button>
                         <button type="button" wire:click="openCancelModal('{{ $selectedReserva->id }}')"
                                 style="background:transparent;color:#ef4444;border:1px solid #ef4444;padding:1rem;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:.9rem;transition:all .2s;margin-top:.25rem;"
                                 onmouseover="this.style.background='#fef2f2'" onmouseout="this.style.background='transparent'">
@@ -729,4 +762,242 @@
     </div>
 </div>
 
+{{-- ─── MODAL POSPONER / REPROGRAMAR (multi-paso) ─── --}}
+<div class="modal-overlay" :class="{ 'show': showPostpone }" @click.self="showPostpone = false; $wire.closePostponeModal()" wire:ignore.self>
+    <div class="modal-content" @click.stop wire:ignore.self style="max-width:480px;">
+        <div class="modal-header" style="background:#fffbeb; border-bottom:1px solid #fde68a;">
+            <h3 style="color:#92400e; display:flex; align-items:center; gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Reprogramar Reserva
+            </h3>
+            <button type="button" class="btn-close-modal" @click="showPostpone = false; $wire.closePostponeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+
+            @if(session()->has('error'))
+                <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:8px;padding:.75rem 1rem;margin-bottom:1rem;color:#b91c1c;font-size:.85rem;">
+                    {{ session('error') }}
+                </div>
+            @endif
+
+            {{-- PASO 1: Selección de fecha/hora --}}
+            @if($postponeStep === 'seleccion')
+                <p style="font-size:.88rem;color:#555;margin-bottom:1.25rem;line-height:1.5;">
+                    Elige la nueva fecha y hora. Si la mesa está ocupada, podrás reasignar automáticamente o elegir manualmente.
+                </p>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div>
+                        <label style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;display:block;margin-bottom:6px;">Nueva Fecha</label>
+                        <input type="date" wire:model="postponeFecha" min="{{ now()->toDateString() }}"
+                               style="width:100%;padding:.65rem .9rem;border:1px solid rgba(44,36,27,.15);border-radius:8px;font-size:.9rem;box-sizing:border-box;">
+                        @error('postponeFecha')<span style="color:#ef4444;font-size:.78rem;display:block;margin-top:4px;">{{ $message }}</span>@enderror
+                    </div>
+                    <div>
+                        <label style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;display:block;margin-bottom:6px;">Nueva Hora</label>
+                        <input type="time" wire:model="postponeHoraInicio"
+                               style="width:100%;padding:.65rem .9rem;border:1px solid rgba(44,36,27,.15);border-radius:8px;font-size:.9rem;box-sizing:border-box;">
+                        @error('postponeHoraInicio')<span style="color:#ef4444;font-size:.78rem;display:block;margin-top:4px;">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                @if($selectedReserva)
+                <div style="background:#faf9f6;border:1px solid rgba(44,36,27,.08);border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.82rem;color:#64748b;">
+                    <strong style="color:#2c241b;">Actual:</strong>
+                    {{ \Carbon\Carbon::parse($selectedReserva->fecha_reserva)->format('d/m/Y') }}
+                    · {{ substr($selectedReserva->hora_inicio,0,5) }} – {{ substr($selectedReserva->hora_fin,0,5) }}
+                    @if($selectedReserva->mesas->count() > 0)
+                    · Mesa(s): {{ $selectedReserva->mesas->pluck('numero')->join(', ') }}
+                    @endif
+                </div>
+                @endif
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.7rem 1rem;margin-bottom:1.25rem;font-size:.8rem;color:#92400e;display:flex;gap:8px;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2" style="flex-shrink:0;margin-top:1px"><path stroke-linecap="round" stroke-linejoin="round" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                    <span>Se enviará un correo al cliente con la nueva fecha y hora.</span>
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" @click="showPostpone=false; $wire.closePostponeModal()" style="background:transparent;border:1px solid rgba(44,36,27,.15);padding:.65rem 1.25rem;border-radius:8px;color:#64748b;font-size:.9rem;cursor:pointer;margin-right:.5rem;">Cancelar</button>
+                    <button type="button" wire:click="verificarPostponer" wire:loading.attr="disabled"
+                            style="background:#f59e0b;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;"
+                            onmouseover="this.style.background='#d97706'" onmouseout="this.style.background='#f59e0b'">
+                        <span wire:loading.remove wire:target="verificarPostponer">Verificar Disponibilidad →</span>
+                        <span wire:loading wire:target="verificarPostponer">Verificando…</span>
+                    </button>
+                </div>
+
+            {{-- PASO 2: Conflicto detectado --}}
+            @elseif($postponeStep === 'conflicto')
+                <div style="background:#fef2f2;border:1px solid #fca5a5;border-left:4px solid #ef4444;border-radius:8px;padding:1rem 1.25rem;margin-bottom:1.5rem;">
+                    <div style="font-weight:700;color:#b91c1c;margin-bottom:.5rem;display:flex;align-items:center;gap:6px;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
+                        Mesa(s) ocupada(s)
+                    </div>
+                    <p style="color:#991b1b;font-size:.88rem;margin:0;">{{ $postponeConflictoMsg }}</p>
+                </div>
+
+                <p style="font-size:.9rem;color:#2c241b;font-weight:600;margin-bottom:1rem;">¿Cómo deseas continuar?</p>
+
+                <div style="display:flex;flex-direction:column;gap:.75rem;margin-bottom:1.5rem;">
+                    @if(!empty($postponeMesasDisponibles))
+                    <button type="button" wire:click="posponerConAutoAsignacion" wire:loading.attr="disabled"
+                            style="background:#10b981;color:#fff;border:none;padding:1rem;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:background .2s;"
+                            onmouseover="this.style.background='#059669'" onmouseout="this.style.background='#10b981'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"/></svg>
+                        <div>
+                            <div>Reasignar automáticamente</div>
+                            <div style="font-weight:400;font-size:.78rem;opacity:.85;">{{ count($postponeMesasDisponibles) }} mesa(s) disponibles para ese horario.</div>
+                        </div>
+                    </button>
+                    @else
+                    <div style="background:#f1f5f9;border-radius:10px;padding:1rem;font-size:.85rem;color:#64748b;text-align:center;">
+                        ⚠️ No hay mesas alternativas disponibles para este horario.
+                    </div>
+                    @endif
+
+                    <button type="button" wire:click="irASeleccionManual"
+                            style="background:transparent;color:#3b82f6;border:1px solid #3b82f6;padding:1rem;border-radius:10px;font-weight:600;font-size:.9rem;cursor:pointer;text-align:left;display:flex;align-items:center;gap:10px;transition:all .2s;"
+                            onmouseover="this.style.background='#eff6ff'" onmouseout="this.style.background='transparent'">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 10h16M4 14h16M4 18h16"/></svg>
+                        <div>
+                            <div>Elegir mesa manualmente</div>
+                            <div style="font-weight:400;font-size:.78rem;opacity:.85;">Selecciona tú mismo las mesas disponibles.</div>
+                        </div>
+                    </button>
+                </div>
+
+                <div style="text-align:left;">
+                    <button type="button" wire:click="$set('postponeStep', 'seleccion')" style="color:#64748b;background:none;border:none;cursor:pointer;font-size:.85rem;text-decoration:underline;">
+                        ← Cambiar fecha u hora
+                    </button>
+                </div>
+
+            {{-- PASO 3: Selección manual de mesas --}}
+            @elseif($postponeStep === 'manual')
+                <p style="font-size:.88rem;color:#555;margin-bottom:1rem;">Selecciona las mesa(s) disponibles para el nuevo horario:</p>
+                @if(empty($postponeMesasDisponibles))
+                    <div style="text-align:center;color:#94a3b8;padding:1.5rem;">No hay mesas disponibles para este horario.</div>
+                @else
+                <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(120px,1fr));gap:.75rem;margin-bottom:1.25rem;">
+                    @foreach($postponeMesasDisponibles as $mesa)
+                    <label style="display:flex;flex-direction:column;align-items:center;justify-content:center;border:2px solid {{ in_array($mesa['id'], array_map('intval', $postponeMesasSeleccionadas)) ? '#3b82f6' : 'rgba(44,36,27,.12)' }};border-radius:10px;padding:.85rem;cursor:pointer;transition:all .15s;background:{{ in_array($mesa['id'], array_map('intval', $postponeMesasSeleccionadas)) ? '#eff6ff' : '#fff' }};">
+                        <input type="checkbox" wire:model="postponeMesasSeleccionadas" value="{{ $mesa['id'] }}" style="display:none;">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="{{ in_array($mesa['id'], array_map('intval', $postponeMesasSeleccionadas)) ? '#3b82f6' : '#94a3b8' }}" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6z"/></svg>
+                        <span style="font-weight:700;font-size:.9rem;color:#2c241b;margin-top:4px;">Mesa {{ $mesa['numero'] }}</span>
+                        <span style="font-size:.72rem;color:#94a3b8;">Cap. {{ $mesa['capacidad'] }}</span>
+                    </label>
+                    @endforeach
+                </div>
+                @error('postponeMesasSeleccionadas')<p style="color:#ef4444;font-size:.8rem;margin-bottom:.75rem;">{{ $message }}</p>@enderror
+                @endif
+                <div style="display:flex;justify-content:space-between;align-items:center;">
+                    <button type="button" wire:click="$set('postponeStep', 'conflicto')" style="color:#64748b;background:none;border:none;cursor:pointer;font-size:.85rem;text-decoration:underline;">← Volver</button>
+                    <button type="button" wire:click="posponerConMesasManual" wire:loading.attr="disabled"
+                            style="background:#3b82f6;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;"
+                            onmouseover="this.style.background='#2563eb'" onmouseout="this.style.background='#3b82f6'">
+                        <span wire:loading.remove wire:target="posponerConMesasManual">✓ Confirmar Reprogramación</span>
+                        <span wire:loading wire:target="posponerConMesasManual">Guardando…</span>
+                    </button>
+                </div>
+            @endif
+        </div>
+    </div>
+</div>
+
+{{-- ─── MODAL BULK POSPONER ─── --}}
+<div class="modal-overlay" :class="{ 'show': showBulkPostpone }" @click.self="showBulkPostpone = false; $wire.closeBulkPostponeModal()" wire:ignore.self>
+    <div class="modal-content" @click.stop wire:ignore.self style="max-width:560px;">
+        <div class="modal-header" style="background:#f0f9ff; border-bottom:1px solid #bae6fd;">
+            <h3 style="color:#0369a1; display:flex; align-items:center; gap:8px;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg>
+                Reprogramar en Masa
+            </h3>
+            <button type="button" class="btn-close-modal" @click="showBulkPostpone = false; $wire.closeBulkPostponeModal()">✕</button>
+        </div>
+        <div class="modal-body">
+
+            {{-- PASO 1 bulk: selección de fecha/hora --}}
+            @if($bulkPostponeStep === 'seleccion')
+                <div style="background:#f0f9ff;border:1px solid #bae6fd;border-radius:8px;padding:.85rem 1rem;margin-bottom:1.25rem;font-size:.85rem;color:#0369a1;">
+                    <strong>{{ count($reservasSeleccionadas) }} reservas seleccionadas.</strong>
+                    Para cada una: si su mesa está libre → se conserva. Si está ocupada → se reasigna automáticamente. Si no hay alternativa → se reporta como conflicto.
+                </div>
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1rem;">
+                    <div>
+                        <label style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;display:block;margin-bottom:6px;">Nueva Fecha</label>
+                        <input type="date" wire:model="bulkPostponeFecha" min="{{ now()->toDateString() }}"
+                               style="width:100%;padding:.65rem .9rem;border:1px solid rgba(44,36,27,.15);border-radius:8px;font-size:.9rem;box-sizing:border-box;">
+                        @error('bulkPostponeFecha')<span style="color:#ef4444;font-size:.78rem;display:block;margin-top:4px;">{{ $message }}</span>@enderror
+                    </div>
+                    <div>
+                        <label style="font-size:.75rem;font-weight:700;text-transform:uppercase;letter-spacing:.05em;color:#64748b;display:block;margin-bottom:6px;">Nueva Hora</label>
+                        <input type="time" wire:model="bulkPostponeHoraInicio"
+                               style="width:100%;padding:.65rem .9rem;border:1px solid rgba(44,36,27,.15);border-radius:8px;font-size:.9rem;box-sizing:border-box;">
+                        @error('bulkPostponeHoraInicio')<span style="color:#ef4444;font-size:.78rem;display:block;margin-top:4px;">{{ $message }}</span>@enderror
+                    </div>
+                </div>
+                <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.7rem 1rem;margin-bottom:1.25rem;font-size:.8rem;color:#92400e;">
+                    ⚠️ Cada cliente recibirá un correo de notificación si su reserva es reprogramada.
+                </div>
+                <div style="text-align:right;">
+                    <button type="button" @click="showBulkPostpone=false; $wire.closeBulkPostponeModal()" style="background:transparent;border:1px solid rgba(44,36,27,.15);padding:.65rem 1.25rem;border-radius:8px;color:#64748b;font-size:.9rem;cursor:pointer;margin-right:.5rem;">Cancelar</button>
+                    <button type="button" wire:click="posponerEnMasa" wire:loading.attr="disabled"
+                            style="background:#0369a1;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;"
+                            onmouseover="this.style.background='#075985'" onmouseout="this.style.background='#0369a1'">
+                        <span wire:loading.remove wire:target="posponerEnMasa">Procesar {{ count($reservasSeleccionadas) }} Reservas →</span>
+                        <span wire:loading wire:target="posponerEnMasa">Procesando…</span>
+                    </button>
+                </div>
+
+            {{-- PASO 2 bulk: resultados --}}
+            @elseif($bulkPostponeStep === 'resultados')
+                <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:.75rem;margin-bottom:1.5rem;">
+                    <div style="background:#f0fdf4;border:1px solid #86efac;border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:#15803d;">{{ $bulkResultados['exitosas'] ?? 0 }}</div>
+                        <div style="font-size:.75rem;color:#16a34a;font-weight:600;">✅ Exitosas</div>
+                    </div>
+                    <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:#d97706;">{{ $bulkResultados['conflictos'] ?? 0 }}</div>
+                        <div style="font-size:.75rem;color:#b45309;font-weight:600;">⚠️ Conflictos</div>
+                    </div>
+                    <div style="background:#fef2f2;border:1px solid #fca5a5;border-radius:10px;padding:1rem;text-align:center;">
+                        <div style="font-size:1.6rem;font-weight:700;color:#dc2626;">{{ $bulkResultados['errores'] ?? 0 }}</div>
+                        <div style="font-size:.75rem;color:#b91c1c;font-weight:600;">❌ Errores</div>
+                    </div>
+                </div>
+
+                @if(!empty($bulkResultados['detalle']))
+                <div style="max-height:240px;overflow-y:auto;border:1px solid rgba(44,36,27,.08);border-radius:10px;">
+                    @foreach($bulkResultados['detalle'] as $item)
+                    @php
+                        $bg = match($item['resultado']) {
+                            'exitosa', 'exitosa_reasignada' => '#f0fdf4',
+                            'conflicto' => '#fffbeb',
+                            default => '#fef2f2',
+                        };
+                        $icon = match($item['resultado']) {
+                            'exitosa', 'exitosa_reasignada' => '✅',
+                            'conflicto' => '⚠️',
+                            default => '❌',
+                        };
+                    @endphp
+                    <div style="display:flex;align-items:flex-start;gap:.75rem;padding:.75rem 1rem;border-bottom:1px solid rgba(44,36,27,.06);background:{{ $bg }};">
+                        <span style="font-size:1rem;">{{ $icon }}</span>
+                        <div>
+                            <div style="font-weight:600;font-size:.85rem;color:#2c241b;">{{ $item['codigo'] }} — {{ $item['nombre'] }}</div>
+                            <div style="font-size:.78rem;color:#64748b;">{{ $item['mensaje'] }}</div>
+                        </div>
+                    </div>
+                    @endforeach
+                </div>
+                @endif
+
+                <div style="text-align:right;margin-top:1.25rem;">
+                    <button type="button" @click="showBulkPostpone=false; $wire.closeBulkPostponeModal()"
+                            style="background:#2c241b;color:#fff;border:none;padding:.65rem 1.5rem;border-radius:8px;font-weight:600;font-size:.9rem;cursor:pointer;">Cerrar</button>
+                </div>
+            @endif
+    </div>
+</div>
+
 </div>{{-- end root --}}
+
+
+

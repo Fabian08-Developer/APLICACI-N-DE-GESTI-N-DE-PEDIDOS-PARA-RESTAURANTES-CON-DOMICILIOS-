@@ -8,6 +8,7 @@ use App\Http\Controllers\Controller;
 use App\Traits\OrderEmailNotifications;
 use App\Models\HistorialEstadoPedido;
 use App\Models\Mesa;
+use App\Models\Pago;
 use App\Models\Pedido;
 use App\Models\SesionCliente;
 use Illuminate\Http\Request;
@@ -42,6 +43,11 @@ class DashboardController extends Controller
                 ->orWhere(function ($q) {
                     $q->where('estado', EstadoPedido::PENDIENTE_PAGO->value)
                       ->where('metodo_pago', 'Efectivo');
+                })
+                ->orWhere(function ($q) {
+                    $q->where('estado', EstadoPedido::ENTREGADO->value)
+                      ->where('estado_pago', EstadoPago::PENDIENTE->value)
+                      ->whereDate('creado_en', today());
                 });
             })
             ->latest()
@@ -127,6 +133,85 @@ class DashboardController extends Controller
             ]);
 
             return response()->json(['ok' => false, 'mensaje' => 'Error al confirmar pago. Intenta de nuevo.'], 500);
+        }
+    }
+
+    // =========================================================================
+    // Registrar cobro de un pedido (manual o en curso/entregado)
+    // Ruta: POST /mesero/pedidos/{id}/registrar-cobro
+    // =========================================================================
+    public function registrarCobro(Request $request, string $id)
+    {
+        $usuarioId = auth()->id();
+
+        $pedido = Pedido::where('id', $id)
+            ->where('mesero_id', $usuarioId)
+            ->where('estado_pago', EstadoPago::PENDIENTE->value)
+            ->firstOrFail();
+
+        $metodo = $request->input('metodo_pago', $pedido->metodo_pago ?? 'Efectivo');
+
+        try {
+            DB::transaction(function () use ($pedido, $metodo, $usuarioId) {
+                $pedido->update([
+                    'estado_pago' => EstadoPago::COMPLETADO->value,
+                    'metodo_pago' => $metodo,
+                    'pagado_en'   => now(),
+                ]);
+
+                $pagoPendiente = $pedido->pagos()
+                    ->where('estado', EstadoPago::PENDIENTE->value)
+                    ->first();
+
+                if ($pagoPendiente) {
+                    $pagoPendiente->update([
+                        'estado'         => EstadoPago::COMPLETADO->value,
+                        'metodo'         => $metodo,
+                        'actualizado_en' => now(),
+                    ]);
+                } else {
+                    $pedido->pagos()->create([
+                        'sucursal_id' => $pedido->sucursal_id,
+                        'monto'       => $pedido->total,
+                        'metodo'      => $metodo,
+                        'estado'      => EstadoPago::COMPLETADO->value,
+                        'referencia'  => 'COBRO-MESERO-' . time(),
+                        'intentos'    => 0,
+                    ]);
+                }
+            });
+
+            $pagoCompletado = $pedido->pagos()->where('estado', EstadoPago::COMPLETADO->value)->first();
+            if ($pagoCompletado) {
+                $this->enviarEmailPago($pagoCompletado, EstadoPago::COMPLETADO->value);
+            }
+
+            Log::info('Cobro de pedido registrado por mesero', [
+                'pedido_id'   => $pedido->id,
+                'mesero_id'   => $usuarioId,
+                'metodo_pago' => $metodo,
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'ok'      => true,
+                    'mensaje' => "Cobro de \${$pedido->total} ({$metodo}) registrado correctamente.",
+                ]);
+            }
+
+            return redirect()->back()->with('exito', "Cobro de \${$pedido->total} ({$metodo}) registrado correctamente.");
+        } catch (\Throwable $e) {
+            Log::error('Mesero: error al registrar cobro de pedido', [
+                'pedido_id' => $pedido->id,
+                'mesero_id' => $usuarioId,
+                'error'     => $e->getMessage(),
+            ]);
+
+            if ($request->expectsJson()) {
+                return response()->json(['ok' => false, 'mensaje' => 'Error al registrar cobro. Intenta de nuevo.'], 500);
+            }
+
+            return redirect()->back()->with('error', 'Error al registrar el cobro.');
         }
     }
 

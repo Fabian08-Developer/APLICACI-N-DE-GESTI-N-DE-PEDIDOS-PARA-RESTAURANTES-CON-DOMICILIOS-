@@ -463,6 +463,7 @@
                         <th>Mesa</th>
                         <th>Productos</th>
                         <th>Estado</th>
+                        <th>Pago</th>
                         <th>Total</th>
                     </tr>
                 </thead>
@@ -485,6 +486,22 @@
                                     default          => $p->estado,
                                 } }}
                             </span>
+                        </td>
+                        <td>
+                            @if($p->estado_pago === 'PENDIENTE' && $p->estado !== 'CANCELADO')
+                                <form method="POST" action="{{ route('mesero.pedidos.registrar-cobro', $p->id) }}" style="display:inline;">
+                                    @csrf
+                                    <button type="submit" style="background: rgba(245,158,11,0.1); color: #F59E0B; border: 1px solid rgba(245,158,11,0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700; cursor: pointer; transition: all 0.2s;" title="Haz clic para registrar el cobro">
+                                        ⏳ Por cobrar
+                                    </button>
+                                </form>
+                            @elseif($p->estado_pago === 'COMPLETADO')
+                                <span style="background: rgba(16,185,129,0.1); color: #10B981; border: 1px solid rgba(16,185,129,0.3); padding: 3px 8px; border-radius: 6px; font-size: 0.7rem; font-weight: 700;">
+                                    ✓ Pagado
+                                </span>
+                            @else
+                                <span class="dim">—</span>
+                            @endif
                         </td>
                         <td>
                             <span class="total-cell {{ $p->estado === 'CANCELADO' ? 'total-cancelado' : '' }}">

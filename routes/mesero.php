@@ -9,6 +9,7 @@ Route::prefix('mesero')->name('mesero.')
         Route::get('/mesas',                  [\App\Http\Controllers\Mesero\DashboardController::class, 'mesas'])->name('mesas');
         Route::get('/historial',              [\App\Http\Controllers\Mesero\DashboardController::class, 'historial'])->name('historial');
         Route::post('/pedidos/{id}/confirmar-pago', [\App\Http\Controllers\Mesero\DashboardController::class, 'confirmarPago'])->name('pedidos.confirmar-pago');
+        Route::post('/pedidos/{id}/registrar-cobro', [\App\Http\Controllers\Mesero\DashboardController::class, 'registrarCobro'])->name('pedidos.registrar-cobro');
         Route::post('/pedidos/{id}/entregar', [\App\Http\Controllers\Mesero\DashboardController::class, 'entregar'])->name('pedidos.entregar');
         Route::post('/pedidos/{id}/cancelar', [\App\Http\Controllers\Mesero\DashboardController::class, 'cancelarPedido'])->name('pedidos.cancelar');
         Route::post('/mesas/{id}/liberar',    [\App\Http\Controllers\Mesero\DashboardController::class, 'liberarMesa'])->name('mesas.liberar');

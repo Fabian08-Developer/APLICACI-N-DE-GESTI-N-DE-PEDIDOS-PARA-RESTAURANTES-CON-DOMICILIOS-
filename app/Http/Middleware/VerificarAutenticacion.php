@@ -12,20 +12,26 @@ class VerificarAutenticacion
 {
     public function handle(Request $request, Closure $next)
     {
+        // ─── PRIORIDAD MÁXIMA: Super-admin y Gerente usan sesión PHP tradicional ─────────────
+        // Debe verificarse ANTES de leer el staff_token para evitar que un token residual
+        // de una sesión staff anterior suplante su identidad vía Auth::onceUsingId().
+        if (Auth::check() && Auth::user()->hasRole(['super-admin', 'gerente'])) {
+            $user = Auth::user();
+
+            // Limpiar cualquier staff_token residual en sesión Y cookie del navegador
+            // para evitar que future requests lo lean y suplanten la identidad.
+            session()->forget('staff_token');
+
+            return $next($request)->withCookie(
+                \Illuminate\Support\Facades\Cookie::forget('staff_token')
+            );
+        }
+
         // Leer token desde cookie HTTP-only de forma segura, o header X-Staff-Token para apps
+        // (solo para usuarios staff: administrador, mesero, cocina, domiciliario)
         $token = $request->cookie('staff_token')
               ?? $request->header('X-Staff-Token')
               ?? session('staff_token');
-
-        // 1. Si NO hay token de staff, verificamos si es un super-admin o gerente (sesión tradicional)
-        if (!$token && Auth::check() && Auth::user()->hasRole(['super-admin', 'gerente'])) {
-            $user = Auth::user();
-            if ($user && ($user->ultimo_acceso_en === null || Carbon::parse($user->ultimo_acceso_en)->diffInMinutes(now()) >= 5)) {
-                $user->ultimo_acceso_en = now();
-                $user->save();
-            }
-            return $next($request);
-        }
 
         if (!$token) {
             $route = $request->route();

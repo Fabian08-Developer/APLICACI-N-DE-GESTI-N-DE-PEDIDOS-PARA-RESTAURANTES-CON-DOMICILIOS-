@@ -29,6 +29,26 @@ class ManageReservas extends Component
     public $showCancelModal = false;
     public $motivoCancelacion = '';
 
+    // Modal Posponer — estado multi-paso
+    public $showPostponeModal    = false;
+    public $postponeFecha        = '';
+    public $postponeHoraInicio   = '';
+    // 'seleccion' | 'conflicto' | 'manual'
+    public $postponeStep         = 'seleccion';
+    public $postponeConflictoMsg = '';
+    public $postponeNuevaHoraFin = '';
+    public $postponeMesasDisponibles  = [];   // [{id, numero, capacidad}]
+    public $postponeMesasSeleccionadas = [];  // IDs seleccionados manualmente
+
+    // Bulk (selección masiva en historial)
+    public $reservasSeleccionadas    = [];
+    public $showBulkPostponeModal    = false;
+    public $bulkPostponeFecha        = '';
+    public $bulkPostponeHoraInicio   = '';
+    // 'seleccion' | 'resultados'
+    public $bulkPostponeStep         = 'seleccion';
+    public $bulkResultados           = [];
+
     protected ReservaService $reservaService;
 
     public function boot(ReservaService $reservaService): void
@@ -150,6 +170,250 @@ class ManageReservas extends Component
         } else {
             session()->flash('error', 'No se puede cancelar esta reserva.');
         }
+    }
+
+    // ─── Modal de Posponer (individual, multi-paso) ──────────────────────────
+
+    public function openPostponeModal($id): void
+    {
+        $this->selectedReservaId         = $id;
+        $this->showPostponeModal         = true;
+        $this->postponeFecha             = '';
+        $this->postponeHoraInicio        = '';
+        $this->postponeStep              = 'seleccion';
+        $this->postponeConflictoMsg      = '';
+        $this->postponeNuevaHoraFin      = '';
+        $this->postponeMesasDisponibles  = [];
+        $this->postponeMesasSeleccionadas = [];
+        $this->dispatch('open-postpone-modal');
+    }
+
+    public function closePostponeModal(): void
+    {
+        $this->showPostponeModal         = false;
+        $this->postponeFecha             = '';
+        $this->postponeHoraInicio        = '';
+        $this->postponeStep              = 'seleccion';
+        $this->postponeConflictoMsg      = '';
+        $this->postponeNuevaHoraFin      = '';
+        $this->postponeMesasDisponibles  = [];
+        $this->postponeMesasSeleccionadas = [];
+        $this->dispatch('close-postpone-modal');
+    }
+
+    /**
+     * Paso 1: Verifica disponibilidad sin guardar.
+     *  - Sin conflicto → guarda directamente.
+     *  - Con conflicto → cambia a paso 'conflicto' mostrando opciones.
+     */
+    public function verificarPostponer(): void
+    {
+        $this->validate([
+            'postponeFecha'      => 'required|date|after_or_equal:today',
+            'postponeHoraInicio' => 'required|date_format:H:i',
+        ], [
+            'postponeFecha.required'       => 'Debes elegir una nueva fecha.',
+            'postponeFecha.after_or_equal' => 'La fecha no puede ser en el pasado.',
+            'postponeHoraInicio.required'  => 'Debes elegir una nueva hora.',
+            'postponeHoraInicio.date_format' => 'El formato de hora debe ser HH:MM.',
+        ]);
+
+        $reserva = ReservaMesa::with(['mesas'])->find($this->selectedReservaId);
+        if (!$reserva || !$reserva->sucursal) {
+            session()->flash('error', 'No se pudo cargar la reserva.');
+            return;
+        }
+
+        try {
+            $info = $this->reservaService->verificarConflictoPostponer(
+                $reserva,
+                $this->postponeFecha,
+                $this->postponeHoraInicio,
+                $reserva->sucursal
+            );
+
+            if (!$info['conflicto']) {
+                // Sin conflicto → guardar directamente
+                $this->reservaService->posponerReservaConMesas(
+                    $reserva,
+                    $this->postponeFecha,
+                    $this->postponeHoraInicio,
+                    $info['nuevaHoraFin'],
+                    $info['mesasActualesIds'],
+                    $reserva->sucursal
+                );
+                session()->flash('success', 'Reserva reprogramada. El cliente fue notificado por correo.');
+                $this->closePostponeModal();
+                $this->closeDetailModal();
+            } else {
+                // Hay conflicto → mostrar pantalla de decisión
+                $this->postponeStep     = 'conflicto';
+                $this->postponeNuevaHoraFin = $info['nuevaHoraFin'];
+                $mesasConId = Mesa::whereIn('id', $info['mesasConflicto'])->pluck('numero', 'id')->toArray();
+                $nums = implode(', ', array_map(fn($num) => "Mesa $num", array_values($mesasConId)));
+                $this->postponeConflictoMsg = "Las siguientes mesas ya están ocupadas en ese horario: {$nums}.";
+                $this->postponeMesasDisponibles = $info['mesasAlternativas']->map(fn($m) => [
+                    'id'       => $m->id,
+                    'numero'   => $m->numero,
+                    'capacidad'=> $m->capacidad,
+                ])->values()->toArray();
+            }
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $this->addError('postponeFecha', collect($e->errors())->flatten()->first());
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al verificar disponibilidad.');
+        }
+    }
+
+    /** Paso 2a: Reasignar automáticamente al confirmar conflicto con auto. */
+    public function posponerConAutoAsignacion(): void
+    {
+        $reserva = ReservaMesa::with(['mesas'])->find($this->selectedReservaId);
+        if (!$reserva || !$reserva->sucursal) {
+            session()->flash('error', 'Reserva no encontrada.');
+            return;
+        }
+
+        if (empty($this->postponeMesasDisponibles)) {
+            session()->flash('error', 'No hay mesas disponibles para este horario. Elige otra fecha u hora.');
+            $this->postponeStep = 'seleccion';
+            return;
+        }
+
+        try {
+            $mesasIds = collect($this->postponeMesasDisponibles)->pluck('id')->take(
+                $reserva->mesas->count() ?: 1
+            )->toArray();
+
+            $this->reservaService->posponerReservaConMesas(
+                $reserva,
+                $this->postponeFecha,
+                $this->postponeHoraInicio,
+                $this->postponeNuevaHoraFin,
+                $mesasIds,
+                $reserva->sucursal
+            );
+            session()->flash('success', 'Reserva reprogramada con mesas reasignadas. Cliente notificado.');
+            $this->closePostponeModal();
+            $this->closeDetailModal();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            session()->flash('error', collect($e->errors())->flatten()->first());
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al reprogramar. Intenta de nuevo.');
+        }
+    }
+
+    /** Paso 2b: Avanza al paso de selección manual de mesas. */
+    public function irASeleccionManual(): void
+    {
+        $this->postponeStep              = 'manual';
+        $this->postponeMesasSeleccionadas = [];
+    }
+
+    /** Paso 3: Confirmar con mesas elegidas manualmente. */
+    public function posponerConMesasManual(): void
+    {
+        if (empty($this->postponeMesasSeleccionadas)) {
+            $this->addError('postponeMesasSeleccionadas', 'Debes seleccionar al menos una mesa.');
+            return;
+        }
+
+        $reserva = ReservaMesa::with(['mesas'])->find($this->selectedReservaId);
+        if (!$reserva || !$reserva->sucursal) {
+            session()->flash('error', 'Reserva no encontrada.');
+            return;
+        }
+
+        try {
+            $this->reservaService->posponerReservaConMesas(
+                $reserva,
+                $this->postponeFecha,
+                $this->postponeHoraInicio,
+                $this->postponeNuevaHoraFin,
+                array_map('intval', $this->postponeMesasSeleccionadas),
+                $reserva->sucursal
+            );
+            session()->flash('success', 'Reserva reprogramada con las mesas seleccionadas. Cliente notificado.');
+            $this->closePostponeModal();
+            $this->closeDetailModal();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            session()->flash('error', collect($e->errors())->flatten()->first());
+        } catch (\Exception $e) {
+            session()->flash('error', 'Error al guardar. Intenta de nuevo.');
+        }
+    }
+
+    // ─── Selección masiva (historial) ────────────────────────────────────────
+
+    public function toggleReservaSeleccionada($id): void
+    {
+        if (in_array($id, $this->reservasSeleccionadas)) {
+            $this->reservasSeleccionadas = array_values(array_diff($this->reservasSeleccionadas, [$id]));
+        } else {
+            $this->reservasSeleccionadas[] = $id;
+        }
+    }
+
+    public function limpiarSeleccion(): void
+    {
+        $this->reservasSeleccionadas = [];
+    }
+
+    // ─── Modal Bulk Posponer ─────────────────────────────────────────────────
+
+    public function openBulkPostponeModal(): void
+    {
+        if (empty($this->reservasSeleccionadas)) {
+            session()->flash('error', 'Selecciona al menos una reserva.');
+            return;
+        }
+        $this->showBulkPostponeModal  = true;
+        $this->bulkPostponeFecha      = '';
+        $this->bulkPostponeHoraInicio = '';
+        $this->bulkPostponeStep       = 'seleccion';
+        $this->bulkResultados         = [];
+        $this->dispatch('open-bulk-postpone-modal');
+    }
+
+    public function closeBulkPostponeModal(): void
+    {
+        $this->showBulkPostponeModal  = false;
+        $this->bulkPostponeFecha      = '';
+        $this->bulkPostponeHoraInicio = '';
+        $this->bulkPostponeStep       = 'seleccion';
+        $this->bulkResultados         = [];
+        $this->dispatch('close-bulk-postpone-modal');
+    }
+
+    public function posponerEnMasa(): void
+    {
+        $this->validate([
+            'bulkPostponeFecha'      => 'required|date|after_or_equal:today',
+            'bulkPostponeHoraInicio' => 'required|date_format:H:i',
+        ], [
+            'bulkPostponeFecha.required'       => 'Debes elegir una nueva fecha.',
+            'bulkPostponeFecha.after_or_equal' => 'La fecha no puede ser en el pasado.',
+            'bulkPostponeHoraInicio.required'  => 'Debes elegir una nueva hora.',
+            'bulkPostponeHoraInicio.date_format' => 'Formato inválido (HH:MM).',
+        ]);
+
+        $user     = auth()->user();
+        $sucursal = \App\Models\Sucursal::find($user->sucursal_id);
+        if (!$sucursal) {
+            session()->flash('error', 'No se pudo determinar la sucursal.');
+            return;
+        }
+
+        $resultados = $this->reservaService->posponerReservasEnMasa(
+            $this->reservasSeleccionadas,
+            $this->bulkPostponeFecha,
+            $this->bulkPostponeHoraInicio,
+            $sucursal
+        );
+
+        $this->bulkResultados   = $resultados;
+        $this->bulkPostponeStep = 'resultados';
+        $this->reservasSeleccionadas = [];
     }
 
     // ─── Render ──────────────────────────────────────────────────────────────

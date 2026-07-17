@@ -173,6 +173,8 @@
         }
         .mesa-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
         .mesa-btn.active { background: rgba(196,139,87,0.1); border-color: var(--gold); box-shadow: 0 5px 15px rgba(196,139,87,0.2); }
+        .mesa-btn.disabled { opacity: 0.55; cursor: not-allowed; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
+        .mesa-btn.disabled:hover { transform: none; border-color: rgba(239,68,68,0.3); }
         .mesa-btn .icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
         .mesa-btn .name { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--gold); }
 
@@ -268,7 +270,7 @@
                         <template x-for="slot in slots" :key="slot.hora_inicio">
                             <div class="slot-btn" 
                                  :class="{'active': horaSeleccionada === slot.hora_inicio, 'disabled': !slot.disponible}"
-                                 @click="if(slot.disponible) { horaSeleccionada = slot.hora_inicio; validarAnticipacion(); }">
+                                 @click="if(slot.disponible) { horaSeleccionada = slot.hora_inicio; validarAnticipacion(); fetchMesasOcupadas(); }">
                                 <span x-text="slot.hora_inicio.substring(0,5)"></span>
                             </div>
                         </template>
@@ -286,13 +288,13 @@
                 </div>
 
                 <div class="btn-actions" style="justify-content: flex-end;">
-                    <button type="button" class="btn btn-next" @click="step = 2" :disabled="!fecha || !personas || !horaSeleccionada || !!errorHora">Continuar →</button>
+                    <button type="button" class="btn btn-next" @click="step = 2; fetchMesasOcupadas();" :disabled="!fecha || !personas || !horaSeleccionada || !!errorHora">Continuar →</button>
                 </div>
             </div>
 
             <!-- STEP 2: Selección de Mesa -->
             <div x-show="step === 2" x-transition x-cloak>
-                <p style="color:var(--text-dim); margin-bottom:1.5rem;">Elige una mesa específica o deja que nosotros te asignemos la mejor disponible.</p>
+                <p style="color:var(--text-dim); margin-bottom:1.5rem;">Elige una mesa específica o deja que nosotros te asignemos la mejor disponible entre las no ocupadas.</p>
                 
                 <div class="mesas-grid">
                     <div class="mesa-btn" :class="{'active': mesaSeleccionada === ''}" @click="mesaSeleccionada = ''">
@@ -302,10 +304,13 @@
                     </div>
 
                     @foreach($mesas as $mesa)
-                    <div class="mesa-btn" :class="{'active': mesaSeleccionada === '{{ $mesa->id }}'}" @click="mesaSeleccionada = '{{ $mesa->id }}'">
-                        <span class="icon">🪑</span>
+                    <div class="mesa-btn" 
+                         :class="{'active': mesaSeleccionada === '{{ $mesa->id }}', 'disabled': mesasOcupadas.includes('{{ $mesa->id }}')}" 
+                         @click="if(!mesasOcupadas.includes('{{ $mesa->id }}')) { mesaSeleccionada = '{{ $mesa->id }}' }">
+                        <span class="icon" x-text="mesasOcupadas.includes('{{ $mesa->id }}') ? '🚫' : '🪑'">🪑</span>
                         <span class="name">Mesa {{ $mesa->numero }}</span>
                         <span style="display:block; font-size:0.8rem; color:var(--text-dim); margin-top:0.5rem;">Capacidad: {{ $mesa->capacidad }}</span>
+                        <span x-show="mesasOcupadas.includes('{{ $mesa->id }}')" style="display:block; font-size:0.75rem; color:#ef4444; font-weight:600; margin-top:0.4rem; background:rgba(239,68,68,0.12); padding:0.2rem 0.5rem; border-radius:6px;">Reservada en este horario</span>
                     </div>
                     @endforeach
                 </div>
@@ -381,9 +386,9 @@
         <div style="margin-top:2rem; padding-top:1.5rem; border-top:1px solid var(--border);">
             <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.5rem;">
                 <span class="summary-label">Depósito de Garantía</span>
-                <span class="summary-value" style="color:var(--gold); font-size:1.2rem;">${{ number_format($montoDeposito, 0, ',', '.') }}</span>
+                <span class="summary-value" style="color:var(--gold); font-size:1.2rem;">${{ number_format($montoDeposito, 0, ',', '.') }} <span style="font-size:0.8rem; color:var(--text-dim); font-weight:normal;">(por mesa)</span></span>
             </div>
-            <p style="font-size:0.8rem; color:var(--text-dim);">Requerido para confirmar. Se pagará en el siguiente paso.</p>
+            <p style="font-size:0.8rem; color:var(--text-dim);">Requerido para confirmar (${{ number_format($montoDeposito, 0, ',', '.') }} COP por cada mesa asignada). Se abonará o pagará en el siguiente paso.</p>
         </div>
         @endif
     </div>
@@ -402,9 +407,16 @@ document.addEventListener('alpine:init', () => {
         isLoadingSlots: false,
         errorHora: '',
         mesasObj: @json($mesas),
+        mesasOcupadas: [],
 
         init() {
             this.fetchSlots();
+            if (this.horaSeleccionada) {
+                this.fetchMesasOcupadas();
+            }
+            this.$watch('step', value => {
+                if (value === 2) this.fetchMesasOcupadas();
+            });
             @if($errors->any())
                 this.step = 3;
             @endif
@@ -446,6 +458,25 @@ document.addEventListener('alpine:init', () => {
             .finally(() => {
                 this.isLoadingSlots = false;
             });
+        },
+
+        fetchMesasOcupadas() {
+            if (!this.fecha || !this.horaSeleccionada) {
+                this.mesasOcupadas = [];
+                return;
+            }
+            let url = `{{ route('cliente.reservas.mesas-ocupadas', $sucursal->slug) }}?fecha=${this.fecha}&hora_inicio=${this.horaSeleccionada}`;
+            fetch(url, {
+                headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
+            })
+            .then(res => res.json())
+            .then(data => {
+                this.mesasOcupadas = data.mesas_ocupadas_ids || [];
+                if (this.mesasOcupadas.includes(this.mesaSeleccionada)) {
+                    this.mesaSeleccionada = '';
+                }
+            })
+            .catch(err => console.error(err));
         },
 
         getMesaNombre(id) {

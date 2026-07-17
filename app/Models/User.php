@@ -77,6 +77,11 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Notificacion::class, 'usuario_id')->latest('creado_en');
     }
 
+    public function pedidos(): HasMany
+    {
+        return $this->hasMany(Pedido::class, 'mesero_id');
+    }
+
     // Mantiene la compatibilidad con las vistas que llamaban a $user->rol->nombre
     public function getRolAttribute()
     {

@@ -11,6 +11,8 @@ use App\Scopes\TenantScope;
 use App\Services\ReservaService;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Carbon\Carbon;
 
 class ReservaController extends Controller
 {
@@ -100,6 +102,35 @@ class ReservaController extends Controller
         }
 
         return response()->json(['slots' => $slots]);
+    }
+
+    /**
+     * GET /s/{slug}/reservar/mesas-ocupadas (AJAX)
+     * Devuelve las mesas ocupadas para una fecha y hora específicas.
+     */
+    public function mesasOcupadas(Request $request, string $slug)
+    {
+        $sucursal = Sucursal::where('slug', $slug)->where('activo', true)->firstOrFail();
+        TenantScope::setTenantId($sucursal->id);
+
+        $request->validate([
+            'fecha'       => 'required|date',
+            'hora_inicio' => 'required|date_format:H:i',
+        ]);
+
+        $fecha      = $request->fecha;
+        $horaInicio = $request->hora_inicio;
+        $duracion   = $this->reservaService->duracionTurno($sucursal);
+
+        $tz      = $sucursal->timezone ?? config('app.timezone', 'America/Bogota');
+        $horaFin = Carbon::parse($fecha . ' ' . $horaInicio, $tz)->addMinutes($duracion)->format('H:i');
+
+        $mesasOcupadasIds = $this->reservaService->mesasOcupadasEnSlot($sucursal, $fecha, $horaInicio, $horaFin);
+
+        return response()->json([
+            'mesas_ocupadas_ids' => $mesasOcupadasIds,
+            'hora_fin'           => $horaFin,
+        ]);
     }
 
     /**
@@ -203,6 +234,23 @@ class ReservaController extends Controller
         TenantScope::setTenantId($reserva->sucursal_id);
 
         return view('cliente.reservas.confirmada', compact('reserva'));
+    }
+
+    /**
+     * GET /reserva/{codigo}/pdf
+     * Descarga del comprobante en PDF de la reserva.
+     */
+    public function descargarPdf(string $codigo)
+    {
+        $reserva = ReservaMesa::withoutGlobalScopes()->where('codigo_reserva', $codigo)
+            ->with(['sucursal', 'mesas'])
+            ->firstOrFail();
+
+        TenantScope::setTenantId($reserva->sucursal_id);
+
+        $pdf = Pdf::loadView('cliente.reservas.confirmada', compact('reserva'));
+
+        return $pdf->download('Reserva_' . $reserva->codigo_reserva . '.pdf');
     }
 
     /**
