@@ -14,7 +14,7 @@ return new class extends Migration
         if (DB::getDriverName() !== 'sqlite') {
             Schema::table('sucursales', function (Blueprint $table) {
                 // Drop the old global unique index
-                $table->dropUnique('sucursales_slug_unico');
+                $table->dropUnique('sucursales_slug_unique');
                 // Add a new composite unique index
                 $table->unique(['empresa_id', 'slug'], 'sucursales_empresa_slug_unique');
             });
