@@ -19,12 +19,16 @@ class VerificarAutenticacion
             $user = Auth::user();
 
             // Limpiar cualquier staff_token residual en sesión Y cookie del navegador
-            // para evitar que future requests lo lean y suplanten la identidad.
-            session()->forget('staff_token');
+            // solo si existe, para evitar sobreescribir la sesión en cada request.
+            if (session()->has('staff_token') || $request->hasCookie('staff_token')) {
+                session()->forget('staff_token');
 
-            return $next($request)->withCookie(
-                \Illuminate\Support\Facades\Cookie::forget('staff_token')
-            );
+                return $next($request)->withCookie(
+                    \Illuminate\Support\Facades\Cookie::forget('staff_token')
+                );
+            }
+
+            return $next($request);
         }
 
         // Leer token desde cookie HTTP-only de forma segura, o header X-Staff-Token para apps

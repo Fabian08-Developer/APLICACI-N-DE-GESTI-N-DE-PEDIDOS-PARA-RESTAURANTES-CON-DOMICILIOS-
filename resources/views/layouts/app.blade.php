@@ -271,7 +271,7 @@
     </script>
     
     @auth
-        @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocina') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
+        @if(!auth()->user()->hasRole(['super-admin', 'gerente']) && auth()->user()->hasRole(['administrador', 'cocina', 'mesero', 'domiciliario']))
             @include('partials.staff-token')
         @endif
     @endauth
