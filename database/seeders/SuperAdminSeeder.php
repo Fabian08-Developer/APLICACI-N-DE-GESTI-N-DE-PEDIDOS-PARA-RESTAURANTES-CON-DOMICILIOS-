@@ -14,7 +14,7 @@ class SuperAdminSeeder extends Seeder
     public function run(): void
     {
         $superAdmin = User::firstOrCreate(
-            ['correo' => 'soporte.sgpd@gmail.com'],
+            ['correo' => 'soportesgpd@gmail.com'],
             [
                 'nombre' => 'Super Administrador',
                 'contrasena' => Hash::make('admin123'), // Recomiendo cambiarla después

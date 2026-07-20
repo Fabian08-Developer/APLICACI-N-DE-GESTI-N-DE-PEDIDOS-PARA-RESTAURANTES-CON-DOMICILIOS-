@@ -180,7 +180,7 @@ class RegisterManager extends Component
             $user->assignRole('gerente');
 
             // 4. Notificar al Super Admin (RF-Nuevo)
-            $superAdmin = User::where('rol', 'super-admin')->first();
+            $superAdmin = User::role('super-admin')->first();
             if ($superAdmin) {
                 $superAdmin->notify(new NuevaSolicitudRegistroGerente($empresa, $user));
             } else {

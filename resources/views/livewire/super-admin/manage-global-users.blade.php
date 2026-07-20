@@ -79,7 +79,7 @@
                                         </button>
                                     @endif
 
-                                    <button wire:click="toggleUserStatus('{{ $user->id }}')" 
+                                    <button wire:click="toggleStatus('{{ $user->id }}')" 
                                             class="p-2 rounded-xl {{ ($user->empresa && $user->empresa->activo) ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B]' : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-[#2C241B]' }} transition-all"
                                             title="Cambiar estado del negocio">
                                         @if($user->empresa && $user->empresa->activo)
