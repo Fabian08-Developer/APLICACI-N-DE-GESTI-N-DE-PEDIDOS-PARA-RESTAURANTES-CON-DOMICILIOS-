@@ -99,6 +99,70 @@ class ManageGlobalUsers extends Component
         ]);
     }
 
+    public function impersonate($userId)
+    {
+        $userToImpersonate = User::findOrFail($userId);
+
+        if ($userToImpersonate->hasRole('super-admin')) {
+            $this->dispatch('swal', [
+                'title' => 'Error',
+                'text'  => 'No puedes suplantar a otro Super Administrador.',
+                'icon'  => 'error'
+            ]);
+            return;
+        }
+
+        if ($userToImpersonate->hasRole('gerente')) {
+            Auth::login($userToImpersonate);
+            return redirect()->to('/dashboard');
+        } else {
+            Auth::logout();
+            
+            \App\Models\Sesion::withoutGlobalScope(\App\Scopes\TenantScope::class)
+                ->where('usuario_id', $userToImpersonate->id)
+                ->update(['activa' => false]);
+
+            $token = \Illuminate\Support\Str::random(80);
+            \App\Models\Sesion::create([
+                'sucursal_id'      => $userToImpersonate->sucursal_id,
+                'usuario_id'       => $userToImpersonate->id,
+                'token'            => $token,
+                'ip'               => request()->ip(),
+                'user_agent'       => request()->userAgent(),
+                'fecha_expiracion' => now()->addDays(7),
+                'activa'           => true,
+            ]);
+
+            $roleName = $userToImpersonate->roles->first()->name ?? '';
+            $redirectUrl = match ($roleName) {
+                'administrador' => '/admin/dashboard',
+                'cocina'        => '/cocina/dashboard',
+                'mesero'        => '/mesero/dashboard',
+                'domiciliario'  => '/domiciliario/dashboard',
+                default         => '/dashboard',
+            };
+            
+            $redirectUrl .= '?_token_init=' . $token;
+
+            $cookie = \Illuminate\Support\Facades\Cookie::make(
+                'staff_token', 
+                $token, 
+                60 * 24 * 7, 
+                '/', 
+                null, 
+                config('app.env') === 'production', 
+                true, 
+                false, 
+                'Lax'
+            );
+
+            \Illuminate\Support\Facades\Cookie::queue($cookie);
+            session(['staff_token' => $token]);
+            
+            return redirect()->to($redirectUrl);
+        }
+    }
+
     public function render()
     {
         $query = User::where('rol', '!=', 'super-admin')
