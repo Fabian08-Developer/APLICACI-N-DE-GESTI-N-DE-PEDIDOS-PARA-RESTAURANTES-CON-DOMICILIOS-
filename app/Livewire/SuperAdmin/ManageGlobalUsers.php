@@ -165,14 +165,14 @@ class ManageGlobalUsers extends Component
 
     public function render()
     {
-        $query = User::where('rol', '!=', 'super-admin')
+        $query = User::withoutRole('super-admin')
             ->where(function ($q) {
                 $q->where('nombre', 'ilike', '%' . $this->search . '%')
                   ->orWhere('correo', 'ilike', '%' . $this->search . '%');
             });
 
         if ($this->roleFilter) {
-            $query->where('rol', $this->roleFilter);
+            $query->role($this->roleFilter);
         }
 
         $users = $query->with(['empresa'])->paginate(10);

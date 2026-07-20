@@ -23,7 +23,8 @@ class ManageTenants extends Component
             $empresa->usuarios()->update(['activo' => false]);
         } else {
             // Si la activamos, activamos al menos al gerente
-            $empresa->usuarios()->where('rol', 'gerente')->update(['activo' => true]);
+            $gerentesIds = $empresa->usuarios()->role('gerente')->pluck('usuarios.id');
+            \App\Models\User::whereIn('id', $gerentesIds)->update(['activo' => true]);
         }
 
         $this->dispatch('swal', [

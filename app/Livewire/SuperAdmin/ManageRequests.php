@@ -116,7 +116,7 @@ class ManageRequests extends Component
             $empresa->save();
 
             // Notify manager
-            $manager = $empresa->usuarios()->where('rol', 'gerente')->first();
+            $manager = $empresa->usuarios()->role('gerente')->first();
             if ($manager) {
                 try {
                     $manager->notify(new SolicitudNitAprobada($manager->nombre, $empresa->nombre));
@@ -169,7 +169,7 @@ class ManageRequests extends Component
             $empresa->save();
 
             // Notify manager with the reason
-            $manager = $empresa->usuarios()->where('rol', 'gerente')->first();
+            $manager = $empresa->usuarios()->role('gerente')->first();
             if ($manager) {
                 try {
                     $manager->notify(new SolicitudNitRechazada($manager->nombre, $empresa->nombre, $this->motivoRechazo));
@@ -190,14 +190,14 @@ class ManageRequests extends Component
 
     public function render()
     {
-        $requests = User::where('rol', 'gerente')
+        $requests = User::role('gerente')
             ->where('activo', false)
             ->with('empresa')
             ->paginate(10, ['*'], 'requests_page');
 
         $nitRequests = Empresa::whereNotNull('documento_pendiente_path')
             ->with(['usuarios' => function($query) {
-                $query->where('rol', 'gerente');
+                $query->role('gerente');
             }])
             ->paginate(10, ['*'], 'nit_page');
 

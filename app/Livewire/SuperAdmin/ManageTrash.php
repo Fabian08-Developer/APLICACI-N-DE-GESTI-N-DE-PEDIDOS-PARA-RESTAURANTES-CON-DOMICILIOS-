@@ -130,7 +130,7 @@ class ManageTrash extends Component
     public function render()
     {
         $query = User::onlyTrashed()
-            ->where('rol', 'gerente')
+            ->role('gerente')
             ->where(function($q) {
                 $q->where('nombre', 'ilike', '%' . $this->search . '%')
                   ->orWhere('correo', 'ilike', '%' . $this->search . '%');
