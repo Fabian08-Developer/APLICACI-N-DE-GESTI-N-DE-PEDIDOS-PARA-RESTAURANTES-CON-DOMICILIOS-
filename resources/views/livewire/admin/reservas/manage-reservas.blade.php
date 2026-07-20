@@ -13,26 +13,48 @@
     fecha: '{{ $fechaGantt }}',
     filterEstado: '',
 
+    pendingFechaTimeout: null,
+    formatLocalDate(fechaStr) {
+        if (!fechaStr) return '';
+        let parts = fechaStr.split('-');
+        let d = new Date(parts[0], parts[1] - 1, parts[2]);
+        return d.toLocaleDateString('es-ES', {weekday:'long', day:'numeric', month:'long'});
+    },
+    addDays(fechaStr, days) {
+        if (!fechaStr) return '';
+        let parts = fechaStr.split('-');
+        let d = new Date(parts[0], parts[1] - 1, parts[2]);
+        d.setDate(d.getDate() + days);
+        let y = d.getFullYear();
+        let m = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        return `${y}-${m}-${day}`;
+    },
+    updateServerFecha() {
+        if (this.pendingFechaTimeout) clearTimeout(this.pendingFechaTimeout);
+        this.pendingFechaTimeout = setTimeout(() => {
+            $wire.setFechaGantt(this.fecha);
+        }, 150);
+    },
     prevDay() { 
-        let d = new Date(this.fecha + 'T00:00:00');
-        d.setDate(d.getDate() - 1);
-        this.fecha = d.toISOString().split('T')[0];
-        $wire.setFechaGantt(this.fecha);
+        this.fecha = this.addDays(this.fecha, -1);
+        this.updateServerFecha();
     },
     nextDay() { 
-        let d = new Date(this.fecha + 'T00:00:00');
-        d.setDate(d.getDate() + 1);
-        this.fecha = d.toISOString().split('T')[0];
-        $wire.setFechaGantt(this.fecha);
+        this.fecha = this.addDays(this.fecha, 1);
+        this.updateServerFecha();
     },
     goToday() {
-        let today = new Date().toISOString().split('T')[0];
-        this.fecha = today;
-        $wire.setFechaGantt(today);
+        let d = new Date();
+        let y = d.getFullYear();
+        let m = String(d.getMonth() + 1).padStart(2, '0');
+        let day = String(d.getDate()).padStart(2, '0');
+        this.fecha = `${y}-${m}-${day}`;
+        this.updateServerFecha();
     },
     setFecha(val) {
         this.fecha = val;
-        $wire.setFechaGantt(val);
+        this.updateServerFecha();
     }
 }"
  @open-detail-drawer.window="showDetail = true"
@@ -46,6 +68,7 @@
 >
 
 <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.js'></script>
+<script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/locales-all.global.min.js'></script>
 
 @vite(['resources/css/pedidos.css'])
 
@@ -150,6 +173,24 @@
 
 /* ── Historial ── */
 .historial-search { width:100%; padding:.6rem 1rem; border:1px solid rgba(44,36,27,.12); border-radius:10px; font-size:.85rem; font-family:'DM Sans',sans-serif; color:#2c241b; margin-bottom:1rem; }
+
+/* ── Phone Responsive Tweak ── */
+@media (max-width: 479.98px) {
+    .pagina-header { flex-direction: column !important; align-items: stretch !important; gap: 0.8rem !important; }
+    .pagina-header a { width: 100%; justify-content: center; }
+
+    .kpi-card { padding: 0.85rem; gap: 0.6rem; }
+    .kpi-num { font-size: 1.4rem; }
+    .kpi-label { font-size: 0.65rem; }
+    .kpi-icon { width: 36px; height: 36px; }
+
+    .date-command-bar { padding: 0.75rem; justify-content: space-between; }
+    .dcb-date-label { width: 100%; text-align: center; order: -1; margin-bottom: 0.5rem; font-size: 1.1rem; }
+    .legend-chips { width: 100%; justify-content: center; margin-top: 0.5rem; }
+
+    .cal-wrapper { padding: 0.85rem; }
+    .fc-toolbar-title { font-size: 1.1rem !important; }
+}
 </style>
 
 {{-- ─── HEADER con alertas ─── --}}
@@ -240,8 +281,6 @@
 
         <input type="date" class="dcb-date-input" :value="fecha" @change="setFecha($event.target.value)" wire:ignore>
 
-        <span class="dcb-date-label" x-text="(() => { let d=new Date(fecha+'T00:00:00'); return d.toLocaleDateString('es-ES',{weekday:'long',day:'numeric',month:'long'}); })()"></span>
-
         <div class="legend-chips">
             <div class="chip chip-confirmada" :class="{active: filterEstado==='confirmada'}" @click="filterEstado = filterEstado==='confirmada' ? '' : 'confirmada'">
                 <span class="chip-dot" style="background:#10b981;"></span> Confirmada
@@ -317,6 +356,14 @@
             </div>
 
             {{-- Filas de mesas --}}
+            @php
+                $todosEstados = collect($ganttData)->pluck('reservas')->flatten(1)->pluck('estado_value')->unique()->values()->toArray();
+            @endphp
+            <div x-show="filterEstado !== '' && !{{ json_encode($todosEstados) }}.includes(filterEstado)" class="gantt-empty" style="padding:3rem; text-align:center; color:#94a3b8; border-bottom:1px solid rgba(44,36,27,.05);">
+                <div style="font-weight:600; font-size:1rem; color:#64748b; margin-bottom:.2rem;">Sin resultados</div>
+                <div style="font-size:.8rem;">No hay mesas con el estado seleccionado para este día.</div>
+            </div>
+
             @forelse($ganttData as $mesaInfo)
             @php
                 // Filtrar reservas por estado si se pasa el filtro del chip (lo hacemos desde el backend en el render)
@@ -384,64 +431,7 @@
         </div>
     </div>
 
-    {{-- ─── FULLCALENDAR (vista semana con horas) ─── --}}
-    <div class="cal-wrapper"
-         x-data="{
-            calendar: null,
-            init() {
-                let el = document.getElementById('reservas-calendar');
-                this.calendar = new FullCalendar.Calendar(el, {
-                    initialView: 'timeGridWeek',
-                    locale: 'es',
-                    height: 600,
-                    slotMinTime: '09:00:00',
-                    slotMaxTime: '24:00:00',
-                    slotDuration: '00:30:00',
-                    nowIndicator: true,
-                    allDaySlot: false,
-                    headerToolbar: {
-                        left: 'prev,next today',
-                        center: 'title',
-                        right: 'timeGridWeek,timeGridDay,dayGridMonth'
-                    },
-                    buttonText: { today:'Hoy', week:'Semana', day:'Día', month:'Mes' },
-                    events: @js(json_decode($eventosCalendario ?? '[]')),
-                    eventDidMount(info) {
-                        let p = info.event.extendedProps;
-                        info.el.title = [
-                            info.event.title,
-                            `Estado: ${p.estado}`,
-                            `${p.personas} personas`,
-                            p.mesas ? `Mesa(s): ${p.mesas}` : '',
-                            `Depósito: ${p.deposito}`,
-                        ].filter(Boolean).join('\n');
-                    },
-                    eventClick(info) {
-                        window.dispatchEvent(new CustomEvent('open-detail-drawer'));
-                        $wire.openDetailModal(info.event.id);
-                    },
-                    dateClick(info) {
-                        /* future: pre-fill new reservation */
-                    },
-                    datesSet(info) {
-                        /* sync with gantt when user navigates */
-                    }
-                });
-                this.calendar.render();
 
-                window.addEventListener('update-calendar-events', evt => {
-                    if (this.calendar) {
-                        this.calendar.removeAllEventSources();
-                        let events = typeof evt.detail.events === 'string' ? JSON.parse(evt.detail.events) : evt.detail.events;
-                        this.calendar.addEventSource(events);
-                    }
-                });
-            }
-         }">
-        <div wire:ignore>
-            <div id="reservas-calendar"></div>
-        </div>
-    </div>
 
 </div>{{-- end tab calendario --}}
 
@@ -451,12 +441,20 @@
 <div x-show="activeTab === 'historial'" style="display:none;" x-transition.opacity>
 
     {{-- Filtros del historial --}}
-    <div class="elegant-filter-card" style="margin-bottom:1rem;">
-        <div class="filter-header">
-            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
-            FILTROS DEL HISTORIAL
+    <div class="elegant-filter-card" style="margin-bottom:1rem;" x-data="{ openFilters: window.innerWidth >= 768 }" @resize.window="openFilters = window.innerWidth >= 768">
+        <div class="filter-header" @click="openFilters = !openFilters" style="cursor: pointer; justify-content: space-between; user-select: none;">
+            <div style="display: flex; align-items: center; gap: 0.5rem;">
+                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"/></svg>
+                FILTROS DEL HISTORIAL
+            </div>
+            <div style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #E07A5F;">
+                <span x-text="openFilters ? 'Ocultar' : 'Mostrar'"></span>
+                <svg x-bind:style="openFilters ? 'transform: rotate(180deg);' : ''" style="transition: transform 0.2s;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+            </div>
         </div>
-        <div class="elegant-filter-grid">
+        <div class="elegant-filter-grid" x-show="openFilters" x-transition>
             <div class="elegant-group">
                 <label>BUSCAR</label>
                 <input type="text" wire:model.live.debounce.300ms="busquedaHistorial" placeholder="Cliente, código, teléfono…">
@@ -518,9 +516,9 @@
                     <th style="width:32px;padding:.5rem .6rem;"><span style="font-size:.7rem;color:#94a3b8;">✓</span></th>
                     <th>Fecha y Hora</th>
                     <th>Cliente</th>
-                    <th>Mesas</th>
-                    <th>Pers.</th>
-                    <th>Depósito</th>
+                    <th class="hide-on-mobile">Mesas</th>
+                    <th class="hide-on-mobile">Pers.</th>
+                    <th class="hide-on-mobile">Depósito</th>
                     <th>Estado</th>
                     <th>Acción</th>
                 </tr>
@@ -546,15 +544,15 @@
                             <span class="cliente-tel">{{ $reserva->telefono_cliente }}</span>
                         </div>
                     </td>
-                    <td>
+                    <td class="hide-on-mobile">
                         @if($reserva->mesas->count() > 0)
                             <span class="meta-badge">M: {{ $reserva->mesas->pluck('numero')->join(', ') }}</span>
                         @else
                             <span class="texto-gris">—</span>
                         @endif
                     </td>
-                    <td class="texto-gris">{{ $reserva->numero_personas }}</td>
-                    <td>
+                    <td class="texto-gris hide-on-mobile">{{ $reserva->numero_personas }}</td>
+                    <td class="hide-on-mobile">
                         @if($reserva->monto_deposito > 0)
                             ${{ number_format($reserva->monto_deposito,0) }}<br>
                             <small class="texto-gris">{{ $reserva->deposito_pagado ? 'Pagado' : 'Pend.' }}</small>
@@ -848,7 +846,7 @@
                     </button>
                     @else
                     <div style="background:#f1f5f9;border-radius:10px;padding:1rem;font-size:.85rem;color:#64748b;text-align:center;">
-                        ⚠️ No hay mesas alternativas disponibles para este horario.
+                        No hay mesas alternativas disponibles para este horario.
                     </div>
                     @endif
 
@@ -934,7 +932,7 @@
                     </div>
                 </div>
                 <div style="background:#fffbeb;border:1px solid #fde68a;border-radius:8px;padding:.7rem 1rem;margin-bottom:1.25rem;font-size:.8rem;color:#92400e;">
-                    ⚠️ Cada cliente recibirá un correo de notificación si su reserva es reprogramada.
+                    Cada cliente recibirá un correo de notificación si su reserva es reprogramada.
                 </div>
                 <div style="text-align:right;">
                     <button type="button" @click="showBulkPostpone=false; $wire.closeBulkPostponeModal()" style="background:transparent;border:1px solid rgba(44,36,27,.15);padding:.65rem 1.25rem;border-radius:8px;color:#64748b;font-size:.9rem;cursor:pointer;margin-right:.5rem;">Cancelar</button>

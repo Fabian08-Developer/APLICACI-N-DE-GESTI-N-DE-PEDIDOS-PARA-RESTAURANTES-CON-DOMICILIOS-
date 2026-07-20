@@ -21,8 +21,8 @@
     <!-- Header Premium -->
     <div class="order-card-header">
         <div style="display:flex; align-items:center; gap: 0.6rem;">
-            <span style="background: rgba(255,255,255,0.1); color: #fff; padding: 0.2rem 0.5rem; border-radius: 4px; font-weight: 800; font-size: 0.85rem; letter-spacing: 0.05em; border: 1px solid rgba(255,255,255,0.05);">#{{ $pedido->short_id }}</span>
-            <span style="color: #34D399; font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:0.25rem;">
+            <span style="background: var(--surface); color: var(--text-main); padding: 0.2rem 0.6rem; border-radius: var(--radius-sm); font-weight: 700; font-size: 0.85rem; letter-spacing: 0.05em; border: 1px solid var(--border-light); box-shadow: var(--shadow-sm);">#{{ $pedido->short_id }}</span>
+            <span style="color: var(--primary); font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; display:flex; align-items:center; gap:0.25rem;">
                 @if(strtolower($pedido->tipo) === 'domicilio')
                     <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
                     Domicilio
@@ -71,7 +71,7 @@
 
             @if($detalle->notas)
                 <div class="order-item-notes">
-                    <div style="font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.1rem; color: #F87171;">Nota del cliente:</div>
+                    <div style="font-weight: 700; font-size: 0.65rem; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.1rem; color: #DC2626;">Nota del cliente:</div>
                     {{ $detalle->notas }}
                 </div>
             @endif

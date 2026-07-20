@@ -13,6 +13,14 @@ class RoleSeeder extends Seeder
      */
     public function run(): void
     {
+        // Corregir discrepancia heredada ('cocinero' -> 'cocina') si existe
+        $roleCocinero = Role::where('name', 'cocinero')->first();
+        if ($roleCocinero) {
+            $roleCocinero->name = 'cocina';
+            $roleCocinero->save();
+        }
+        \Illuminate\Support\Facades\DB::table('usuarios')->where('rol', 'cocinero')->update(['rol' => 'cocina']);
+
         // Roles principales
         $roles = ['super-admin', 'gerente', 'administrador', 'cocina', 'mesero', 'domiciliario'];
         foreach ($roles as $roleName) {

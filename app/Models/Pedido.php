@@ -97,8 +97,8 @@ class Pedido extends Model
         return substr($this->id, 0, 8);
     }
 
-    public function pagos(): HasMany
+    public function pagos()
     {
-        return $this->hasMany(Pago::class, 'pedido_id');
+        return $this->morphMany(Pago::class, 'payable');
     }
 }

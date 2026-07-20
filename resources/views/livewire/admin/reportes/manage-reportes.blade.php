@@ -61,7 +61,7 @@
     .exp-body { padding: 1.5rem; overflow-y: auto; flex: 1; }
     .exp-footer { padding: 1rem 1.5rem; display: flex; justify-content: flex-end; gap: 0.5rem; border-top: 1px solid var(--border); background: var(--surface); }
     .exp-label { font-size: 0.875rem; font-weight: 500; color: var(--text-main); display: block; margin-bottom: 0.5rem; }
-    .exp-tabs { display: grid; grid-template-columns: repeat(3, 1fr); background: rgba(0,0,0,0.2); border-radius: 0.5rem; padding: 0.25rem; margin-bottom: 1rem; }
+    .exp-tabs { display: grid; grid-template-columns: repeat(2, 1fr); background: rgba(0,0,0,0.2); border-radius: 0.5rem; padding: 0.25rem; margin-bottom: 1rem; }
     .exp-tab { padding: 0.5rem 1rem; font-size: 0.875rem; font-weight: 500; color: var(--text-sec); background: none; border: none; border-radius: 0.375rem; cursor: pointer; font-family: inherit; transition: all 0.2s; }
     .exp-tab.active { background: var(--surface); color: var(--text-main); box-shadow: 0 1px 3px rgba(0,0,0,0.3); }
     .exp-tab-content { display: none; } .exp-tab-content.active { display: block; }
@@ -154,14 +154,53 @@
     .sch-tag-remove:hover { color: #F87171; }
     .sch-summary { margin-top: 1.5rem; padding: 1rem; background: rgba(52, 211, 153, 0.05); border-radius: 0.75rem; border: 1px solid rgba(52, 211, 153, 0.2); }
     .sch-summary-title { font-size: 0.75rem; font-weight: 600; color: #34D399; display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; text-transform: uppercase; letter-spacing: 0.05em; }
-    .sch-summary-text { font-size: 0.8rem; color: #A7F3D0; line-height: 1.4; }
-    .sch-hint { font-size: 0.7rem; color: var(--text-sec); font-weight: 400; margin-left: 0.25rem; }
+    .reportes-sidebar-panel {
+        position: fixed;
+        top: 0;
+        right: 0;
+        height: 100vh;
+        background: var(--surface);
+        border-left: 1px solid var(--border);
+        z-index: 400;
+        box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+    }
+    /* ── Responsive adjustments ── */
+    .reportes-header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem; gap: 1rem; }
+    .reportes-kpis { grid-template-columns: repeat(4, 1fr); }
+    .reportes-chart-grid { display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: center; padding: 1rem 1.5rem 2rem; }
+    
+    @media (max-width: 991.98px) {
+        .reportes-kpis { grid-template-columns: repeat(2, 1fr); }
+        .reportes-chart-grid { grid-template-columns: 1fr; gap: 1rem; }
+    }
+    @media (max-width: 767.98px) {
+        .reportes-header { flex-direction: column; align-items: flex-start; gap: 1rem; margin-bottom: 1.5rem; }
+        .reportes-header h1 { font-size: 1.4rem !important; flex-wrap: wrap; line-height: 1.3; }
+        /* Botón de exportar a ancho completo en móvil */
+        .reportes-header > div:last-child { width: 100%; }
+        .reportes-header > div:last-child button { width: 100%; justify-content: center; padding: 0.75rem !important; font-size: 1rem !important; }
+        
+        .shadcn-filters { display: grid; grid-template-columns: 1fr 1fr; gap: 0.75rem; align-items: stretch; }
+        .shadcn-select-wrapper { grid-column: span 2; }
+        .shadcn-filters > .shadcn-btn:nth-child(2) { grid-column: span 2; justify-content: flex-start; }
+        .shadcn-filters > .shadcn-btn:nth-child(2) input { flex: 1; min-width: 0; background: transparent !important; }
+        .shadcn-filters > .shadcn-btn:nth-child(3) { grid-column: span 1; justify-content: center; }
+        .shadcn-filters > .shadcn-btn:nth-child(4) { grid-column: span 1; justify-content: center; margin-left: 0 !important; border-color: var(--border) !important; background: var(--surface) !important; color: var(--text-main) !important; box-shadow: 0 1px 2px rgba(0,0,0,0.05) !important; }
+        .shadcn-select-wrapper, .shadcn-btn, .shadcn-select, .shadcn-btn input { width: 100% !important; text-align: left; }
+        .reportes-kpis { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; }
+        .reportes-sidebar-panel { width: 100% !important; max-width: 100vw !important; }
+        .reportes-kpis .tarjeta-stat { flex-direction: column !important; align-items: flex-start !important; padding: 0.8rem !important; }
+        .reportes-kpis .tarjeta-stat > div:first-child { width: 100%; margin-bottom: 0.5rem !important; }
+        .reportes-kpis .stat-numero { font-size: 1.35rem !important; }
+        .reportes-kpis .stat-label { font-size: 0.75rem !important; }
+        .reportes-chart-grid { padding: 1rem; }
+    }
 </style>
 
 
 <div x-data="salesReport()" x-effect="document.body.style.overflow = (showExportSidebar || showScheduleSidebar || showAiAssistant) ? 'hidden' : ''">
     {{-- ENCABEZADO Y CONTROLES --}}
-    <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 2rem;">
+    <div class="reportes-header">
         <div>
             <h1 style="font-family: 'DM Serif Display', serif; font-size: 1.8rem; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 10px;">
                 Reporte de Ventas - Cafetería
@@ -273,7 +312,7 @@
     </div>
 
     {{-- TARJETAS KPIs --}}
-    <div class="grid-tarjetas" style="grid-template-columns: repeat(4, 1fr);">
+    <div class="grid-tarjetas reportes-kpis">
         <!-- Ventas Totales -->
         <div class="tarjeta-stat" style="position: relative; padding: 1.2rem;">
             <div style="display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 0.8rem;">
@@ -347,25 +386,31 @@
 
     <div class="tarjeta">
         <div class="tarjeta-header" style="border-bottom: none; padding-bottom: 0;">Ventas por Categoría</div>
-        <div style="display: grid; grid-template-columns: 1fr 1.5fr; gap: 2rem; align-items: center; padding: 1rem 1.5rem 2rem;">
+        <div class="reportes-chart-grid">
             <div id="chart-categorias" wire:ignore></div>
             <div>
                 @foreach($categoriasChart as $cat)
-                    <div style="margin-bottom: 1rem;">
-                        <div style="display: flex; justify-content: space-between; font-size: 0.85rem; margin-bottom: 0.4rem;">
-                            <span style="color: var(--text-main);">{{ is_string($cat) ? $cat : (is_array($cat) ? ($cat['nombre'] ?? 'N/A') : $cat->nombre) }}</span>
-                            <div style="display: flex; gap: 15px;">
-                                <strong style="color: var(--text-main);">${{ number_format(is_string($cat) ? 0 : (is_array($cat) ? ($cat['total'] ?? 0) : $cat->total), 0, ',', '.') }}</strong>
-                                <span style="color: var(--text-sec); font-size: 0.75rem;">
-                                    @php
-                                        $catTotal = is_string($cat) ? 0 : (is_array($cat) ? ($cat['total'] ?? 0) : $cat->total);
-                                    @endphp
-                                    {{ $currentMetrics['ventasTotales'] > 0 ? round(($catTotal / $currentMetrics['ventasTotales']) * 100) : 0 }}%
+                    @php
+                        $chartColors = ['#E07A5F', '#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'];
+                        $catColor = $chartColors[$loop->index % count($chartColors)];
+                        $catTotal = is_string($cat) ? 0 : (is_array($cat) ? ($cat['total'] ?? 0) : $cat->total);
+                        $catPercent = $currentMetrics['ventasTotales'] > 0 ? round(($catTotal / $currentMetrics['ventasTotales']) * 100) : 0;
+                    @endphp
+                    <div style="margin-bottom: 1.2rem;">
+                        <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.85rem; margin-bottom: 0.5rem;">
+                            <div style="display: flex; align-items: center; gap: 8px;">
+                                <div style="width: 10px; height: 10px; border-radius: 50%; background: {{ $catColor }}; box-shadow: 0 2px 4px rgba(0,0,0,0.1);"></div>
+                                <span style="color: var(--text-main); font-weight: 500;">{{ is_string($cat) ? $cat : (is_array($cat) ? ($cat['nombre'] ?? 'N/A') : $cat->nombre) }}</span>
+                            </div>
+                            <div style="display: flex; gap: 15px; align-items: center;">
+                                <strong style="color: var(--text-main); font-size: 0.9rem;">${{ number_format($catTotal, 0, ',', '.') }}</strong>
+                                <span style="color: {{ $catColor }}; font-weight: 600; font-size: 0.75rem; background: {{ $catColor }}15; padding: 2px 6px; border-radius: 4px;">
+                                    {{ $catPercent }}%
                                 </span>
                             </div>
                         </div>
-                        <div class="progreso-vacia" style="height: 6px; background: rgba(255,255,255,0.05);">
-                            <div class="progreso-llena" style="width: {{ $currentMetrics['ventasTotales'] > 0 ? ($catTotal / $currentMetrics['ventasTotales']) * 100 : 0 }}%; background: var(--primary);"></div>
+                        <div class="progreso-vacia" style="height: 6px; background: rgba(0,0,0,0.05); border-radius: 4px; overflow: hidden;">
+                            <div class="progreso-llena" style="height: 100%; width: {{ $catPercent }}%; background: {{ $catColor }}; border-radius: 4px; transition: width 1s ease-in-out;"></div>
                         </div>
                     </div>
                 @endforeach
@@ -375,7 +420,8 @@
 
     {{-- ASISTENTE IA SIDEBAR (MOCK) --}}
     <div x-show="showAiAssistant" 
-         style="display: none; position: fixed; top: 0; right: 0; width: 380px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 400; box-shadow: -10px 0 30px rgba(0,0,0,0.5);"
+         class="reportes-sidebar-panel"
+         style="display: none; width: 380px;"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="transform translate-x-full"
          x-transition:enter-end="transform translate-x-0"
@@ -419,7 +465,8 @@
     
     {{-- SIDEBAR: EXPORTAR REPORTE --}}
     <div x-show="showExportSidebar"
-         style="display:none;position:fixed;top:0;right:0;width:480px;height:100vh;z-index:400;box-shadow:-10px 0 30px rgba(0,0,0,0.3);"
+         class="reportes-sidebar-panel"
+         style="display:none; width:480px;"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="transform translate-x-full"
          x-transition:enter-end="transform translate-x-0"
@@ -437,7 +484,6 @@
                 {{-- Tabs --}}
                 <div class="exp-tabs" id="expTabs">
                     <button class="exp-tab" :class="{ 'active': exportTab === 'quick' }" @click="exportTab = 'quick'">Exportación rápida</button>
-                    <button class="exp-tab" :class="{ 'active': exportTab === 'templates' }" @click="exportTab = 'templates'">Plantillas</button>
                     <button class="exp-tab" :class="{ 'active': exportTab === 'history' }" @click="exportTab = 'history'">Historial</button>
                 </div>
 
@@ -466,37 +512,6 @@
                             </div>
                         </div>
 
-                        {{-- Sections --}}
-                        <div>
-                            <label class="exp-label">Secciones a incluir</label>
-                            <div class="exp-sections-grid">
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('kpis') }" @click="toggleExportSection('kpis')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">KPIs principales</div><div class="exp-section-desc">Ventas, transacciones, ticket promedio</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('chart') }" @click="toggleExportSection('chart')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Gráfica de tendencia</div><div class="exp-section-desc">Visualización de ventas en el tiempo</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('categories') }" @click="toggleExportSection('categories')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Desglose por categorías</div><div class="exp-section-desc">Distribución de ventas</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('products') }" @click="toggleExportSection('products')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Productos destacados</div><div class="exp-section-desc">Top productos y tendencias</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('comparison') }" @click="toggleExportSection('comparison')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Comparación de períodos</div><div class="exp-section-desc">vs. período anterior</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': exportSections.includes('predictions') }" @click="toggleExportSection('predictions')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Proyecciones</div><div class="exp-section-desc">Estimaciones de cierre</div></div>
-                                </div>
-                            </div>
-                        </div>
-
                         {{-- Schedule --}}
                         <div class="exp-schedule-card">
                             <div class="exp-schedule-header">
@@ -510,46 +525,6 @@
                     </div>
                 </div>
 
-                {{-- Tab: Templates --}}
-                <div class="exp-tab-content" :class="{ 'active': exportTab === 'templates' }" id="exp-tab-templates">
-                    <!-- Guardar plantilla actual -->
-                    <div style="margin-bottom: 1rem; padding: 1rem; border: 1px solid var(--border); border-radius: 0.5rem; background: rgba(255,255,255,0.01);">
-                        <label class="exp-label">Guardar configuración actual como plantilla</label>
-                        <div style="display:flex; gap:0.5rem;">
-                            <input type="text" class="exp-input" x-model="newTemplateName" placeholder="Ej: Reporte semanal de ventas">
-                            <button type="button" class="exp-btn exp-btn-outline" @click="saveTemplate()" :disabled="!newTemplateName.trim()">
-                                <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V9a2 2 0 00-2-2h-3m-1 4l-3 3m0 0l-3-3m3 3V4"/></svg>
-                                Guardar
-                            </button>
-                        </div>
-                    </div>
-
-                    <!-- Lista de plantillas guardadas -->
-                    <template x-if="savedTemplates.length === 0">
-                        <div style="text-align:center; padding: 2.5rem 1rem; color: var(--text-sec);">
-                            <svg width="40" height="40" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin: 0 auto 0.75rem; opacity:0.3;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                            <p style="font-size:0.875rem;">No hay plantillas guardadas todavía.</p>
-                            <p style="font-size:0.75rem; margin-top:0.25rem;">Configura un formato y secciones, luego guarda.</p>
-                        </div>
-                    </template>
-                    <template x-for="tpl in savedTemplates" :key="tpl.id">
-                        <div class="exp-tpl-item">
-                            <div class="exp-tpl-info">
-                                <svg class="exp-tpl-icon" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"/></svg>
-                                <div>
-                                    <div class="exp-tpl-name" x-text="tpl.name"></div>
-                                    <div class="exp-tpl-meta" x-text="tpl.format.toUpperCase() + ' – ' + tpl.sections.join(', ')"></div>
-                                </div>
-                            </div>
-                            <div class="exp-tpl-actions">
-                                <button type="button" class="exp-btn exp-btn-outline exp-btn-sm" @click="loadTemplate(tpl)">Usar</button>
-                                <button type="button" class="exp-btn-ghost" @click="deleteTemplate(tpl.id)" style="color:#F87171; border-radius:0.375rem;">
-                                    <svg style="width:1rem;height:1rem;" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
-                            </div>
-                        </div>
-                    </template>
-                </div>
 
                 {{-- Tab: History --}}
                 <div class="exp-tab-content" :class="{ 'active': exportTab === 'history' }" id="exp-tab-history">
@@ -597,7 +572,8 @@
 
 
     <div x-show="showScheduleSidebar"
-         style="display: none; position: fixed; top: 0; right: 0; width: 480px; height: 100vh; background: var(--surface); border-left: 1px solid var(--border); z-index: 400; box-shadow: -10px 0 30px rgba(0,0,0,0.5);"
+         class="reportes-sidebar-panel"
+         style="display: none; width: 480px;"
          x-transition:enter="transition ease-out duration-300"
          x-transition:enter-start="transform translate-x-full"
          x-transition:enter-end="transform translate-x-0"
@@ -626,17 +602,17 @@
                         <template x-for="sch in activeSchedules" :key="sch.id">
                             <div style="border: 1px solid var(--border); padding: 0.85rem 1rem; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; background: rgba(255,255,255,0.02);">
                                 <div style="display: flex; gap: 12px; align-items: center;">
-                                    <div :class="sch.method === 'email' ? 'exp-status-success' : 'exp-status-pending'" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
-                                        <template x-if="sch.method === 'email'">
+                                    <div :class="sch.metodo === 'email' ? 'exp-status-success' : 'exp-status-pending'" style="width: 32px; height: 32px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                                        <template x-if="sch.metodo === 'email'">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
                                         </template>
-                                        <template x-if="sch.method === 'whatsapp'">
+                                        <template x-if="sch.metodo === 'whatsapp'">
                                             <svg width="16" height="16" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"/></svg>
                                         </template>
                                     </div>
                                     <div>
-                                        <strong style="display: block; font-size: 0.85rem;" x-text="sch.frequency.charAt(0).toUpperCase() + sch.frequency.slice(1) + ' a las ' + sch.time.substring(0, 5)"></strong>
-                                        <span style="font-size: 0.75rem; color: var(--text-sec);" x-text="sch.method === 'email' ? (sch.recipients ? sch.recipients[0] : '') : sch.whatsapp_number"></span>
+                                        <strong style="display: block; font-size: 0.85rem;" x-text="sch.frecuencia.charAt(0).toUpperCase() + sch.frecuencia.slice(1) + ' a las ' + sch.hora_envio.substring(0, 5)"></strong>
+                                        <span style="font-size: 0.75rem; color: var(--text-sec);" x-text="sch.metodo === 'email' ? (sch.destinatarios && sch.destinatarios.length > 0 ? sch.destinatarios.join(', ') : 'Sin correos') : sch.whatsapp_number"></span>
                                     </div>
                                 </div>
                                 <button @click="deleteSchedule(sch.id)" class="exp-btn-ghost" style="color: #F87171;"><svg width="18" height="18" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg></button>
@@ -646,35 +622,13 @@
                 </div>
 
                 <div style="height: 1px; background: var(--border); margin: 1.5rem 0;" x-show="activeSchedules.length > 0"></div>
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1.5rem; padding: 1rem; background: rgba(255,255,255,0.02); border-radius: 0.75rem; border: 1px solid var(--border);">
 
-                <template x-if="scheduleActive">
-                    <div x-transition>
-                        <!-- Secciones a incluir -->
-                        <div class="sch-group">
-                            <label class="sch-label">Secciones a incluir en el reporte</label>
-                            <div class="exp-sections-grid">
-                                <div class="exp-section-item" :class="{ 'selected': selectedSections.includes('kpis') }" @click="toggleSection('kpis')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">KPIs principales</div><div class="exp-section-desc">Ventas, ticket promedio</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': selectedSections.includes('chart') }" @click="toggleSection('chart')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Gráfica de tendencia</div><div class="exp-section-desc">Visualización de ventas</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': selectedSections.includes('categories') }" @click="toggleSection('categories')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Categorías</div><div class="exp-section-desc">Desglose por grupos</div></div>
-                                </div>
-                                <div class="exp-section-item" :class="{ 'selected': selectedSections.includes('products') }" @click="toggleSection('products')">
-                                    <div class="exp-checkbox"><svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M5 13l4 4L19 7"/></svg></div>
-                                    <div><div class="exp-section-title">Productos Top</div><div class="exp-section-desc">Ranking de lo más vendido</div></div>
-                                </div>
-                            </div>
-                        </div>
+                <div style="margin-bottom: 1.5rem;">
+                    <label class="sch-label">Nueva Programación</label>
+                </div>
 
-                        <div style="height: 1px; background: var(--border); margin: 1.5rem 0;"></div>
-
+                <div>
+                    <div>
                         <!-- Frecuencia -->
                         <div class="sch-group">
                             <label class="sch-label">Frecuencia de envío</label>
@@ -830,13 +784,8 @@
                             </div>
                             <div class="sch-summary-text" x-text="getSummaryText()"></div>
                         </div>
+                        </div>
                     </div>
-                </template>
-
-                <div x-show="!scheduleActive" style="text-align: center; padding: 3rem 1rem; color: var(--text-sec);">
-                    <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" style="margin-bottom: 1rem; opacity: 0.2;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-                    <p>La programación automática está desactivada.</p>
-                </div>
 
             </div>
 
@@ -885,13 +834,12 @@
             startDate: new Date().toISOString().split('T')[0],
             endDate: '',
             method: 'email',
-            recipients: ['admin@cafeteria.com'],
+            recipients: [],
             recipientInput: '',
             config: {
                 whatsappNumber: ''
             },
             activeSchedules: [],
-            selectedSections: ['kpis', 'chart'],
             isSendingTest: false,
             isLoading: false,
 
@@ -924,17 +872,9 @@
 
             async fetchSchedules() {
                 try {
-                    this.activeSchedules = await this.apiRequest('{{ '#' }}');
+                    this.activeSchedules = await this.apiRequest('{{ route('admin.reportes.programacion.index') }}');
                 } catch (e) {
                     console.error('Error cargando programaciones:', e);
-                }
-            },
-
-            toggleSection(section) {
-                if (this.selectedSections.includes(section)) {
-                    this.selectedSections = this.selectedSections.filter(s => s !== section);
-                } else {
-                    this.selectedSections.push(section);
                 }
             },
 
@@ -977,8 +917,12 @@
             },
 
             async sendTestReport() {
+                if (this.method === 'email' && this.recipientInput.trim() !== '') {
+                    this.addRecipient();
+                }
+
                 if (this.method === 'email' && this.recipients.length === 0) {
-                    alert('Por favor agrega al menos un destinatario.');
+                    alert('Debes agregar al menos un correo destinatario.');
                     return;
                 }
                 if (this.method === 'whatsapp' && !this.config.whatsappNumber) {
@@ -987,16 +931,15 @@
                 }
 
                 this.isSendingTest = true;
-                const target = this.method === 'email' ? this.recipients[0] : this.config.whatsappNumber;
+                const target = this.method === 'email' ? (this.recipients[0] || 'correo') : (this.config.whatsappNumber || 'whatsapp');
 
                 try {
-                    await this.apiRequest('{{ '#' }}', 'POST', {
+                    const testResp = await this.apiRequest('{{ route('admin.reportes.programacion.test') }}', 'POST', {
                         method: this.method,
-                        sections: this.selectedSections,
                         recipients: this.recipients,
                         whatsapp_number: this.config.whatsappNumber
                     });
-                    alert(`✅ Reporte de prueba enviado exitosamente a ${target}.`);
+                    alert(`✅ ${testResp.message || 'Reporte de prueba enviado exitosamente a ' + target}.`);
                 } catch (e) {
                     alert('Error enviando prueba: ' + e.message);
                 } finally {
@@ -1015,10 +958,14 @@
                 if (this.method === 'email') methodText = `vía email a ${this.recipients.length} destinatario(s)`;
                 else if (this.method === 'whatsapp') methodText = `vía WhatsApp al ${this.config.whatsappNumber}`;
 
-                return `Se enviará ${freqText} a las ${this.time} ${methodText}. Se incluirán las secciones: ${this.selectedSections.join(', ')}.`;
+                return `Se enviará ${freqText} a las ${this.time} ${methodText}.`;
             },
 
             async saveSchedule() {
+                if (this.method === 'email' && this.recipientInput.trim() !== '') {
+                    this.addRecipient();
+                }
+
                 this.isLoading = true;
                 try {
                     const data = {
@@ -1027,17 +974,18 @@
                         time: this.time,
                         days: this.selectedDays,
                         month_days: this.selectedMonthDays,
-                        custom_config: { value: this.customValue, unit: this.customUnit, start: this.startDate, end: this.endDate },
                         method: this.method,
                         recipients: this.recipients,
                         whatsapp_number: this.config.whatsappNumber,
-                        sections: this.selectedSections
                     };
 
-                    const response = await this.apiRequest('{{ '#' }}', 'POST', data);
+                    const response = await this.apiRequest('{{ route('admin.reportes.programacion.store') }}', 'POST', data);
                     
                     this.activeSchedules.unshift(response.schedule);
                     alert('¡Programación guardada exitosamente!');
+                    this.showScheduleSidebar = false;
+                    this.recipients = [];
+                    this.recipientInput = '';
                 } catch (e) {
                     alert('Error al guardar: ' + e.message);
                 } finally {
@@ -1064,7 +1012,6 @@
             productos_top: @entangle('productos_top').live,
             
             exportFormat: 'pdf',
-            exportSections: ['kpis', 'chart', 'categories'],
             exportTab: 'quick',
             scheduleOn: false,
             recipients: [''],
@@ -1201,14 +1148,6 @@
                 }, 1500);
             },
 
-            toggleExportSection(sec) {
-                if (this.exportSections.includes(sec)) {
-                    this.exportSections = this.exportSections.filter(x => x !== sec);
-                } else {
-                    this.exportSections.push(sec);
-                }
-            },
-
             addRecipient() {
                 this.recipients.push('');
             },
@@ -1225,7 +1164,7 @@
                     id: Date.now(),
                     name,
                     format: this.exportFormat,
-                    sections: [...this.exportSections],
+                    schedule: this.scheduleActive,
                     createdAt: new Date().toLocaleString('es-CO')
                 };
                 this.savedTemplates.unshift(tpl);
@@ -1235,7 +1174,6 @@
 
             loadTemplate(tpl) {
                 this.exportFormat = tpl.format;
-                this.exportSections = [...tpl.sections];
                 this.exportTab = 'quick'; // Volver al tab de exportación
             },
 
@@ -1250,7 +1188,6 @@
                     id: Date.now(),
                     format,
                     period,
-                    sections: [...this.exportSections],
                     date: new Date().toLocaleString('es-CO'),
                     params: {
                         period: this.datePeriod,
@@ -1271,8 +1208,7 @@
 
             retryExport(entry) {
                 // Restaurar parámetros del historial y re-exportar
-                this.exportFormat = entry.format;
-                this.exportSections = [...(entry.sections || this.exportSections)];
+                this.exportFormat = entry.format || this.exportFormat;
                 if (entry.params) {
                     this.datePeriod = entry.params.period || this.datePeriod;
                     this.start = entry.params.start || this.start;
@@ -1285,7 +1221,6 @@
                 this.isExporting = true;
                 const params = new URLSearchParams();
                 params.append('format', this.exportFormat);
-                this.exportSections.forEach(sec => params.append('sections[]', sec));
                 params.append('period', this.datePeriod);
                 if (this.start) params.append('start', this.start);
                 if (this.end) params.append('end', this.end);
@@ -1346,13 +1281,18 @@
                     series: [{ name: 'Ventas ($)', data: trendData }],
                     chart: {
                         type: 'area', height: 280, toolbar: { show: false },
-                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0
+                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0,
+                        dropShadow: { enabled: true, top: 4, left: 0, blur: 4, opacity: 0.1, color: '#E07A5F' }
                     },
                     colors: ['#E07A5F'],
-                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 90, 100] } },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, type: 'vertical', opacityFrom: 0.45, opacityTo: 0.0, stops: [0, 100] } },
                     dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: 2 },
-                    markers: { size: trendData.length === 1 ? 5 : 0 },
+                    stroke: { curve: 'smooth', width: 3 },
+                    markers: { 
+                        size: trendData.length === 1 ? 5 : 4,
+                        colors: ['#ffffff'], strokeColors: '#E07A5F', strokeWidth: 2,
+                        hover: { size: 7 }
+                    },
                     xaxis: {
                         categories: trendCats,
                         labels: { style: { colors: '#94A3B8', fontSize: '11px' } },
@@ -1409,13 +1349,18 @@
                     series: [{ name: 'Ventas ($)', data: trendData }],
                     chart: {
                         type: 'area', height: 280, toolbar: { show: false },
-                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0
+                        background: 'transparent', fontFamily: 'DM Sans, sans-serif', parentHeightOffset: 0,
+                        dropShadow: { enabled: true, top: 4, left: 0, blur: 4, opacity: 0.1, color: '#E07A5F' }
                     },
                     colors: ['#E07A5F'],
-                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, opacityFrom: 0.3, opacityTo: 0.05, stops: [0, 90, 100] } },
+                    fill: { type: 'gradient', gradient: { shadeIntensity: 1, type: 'vertical', opacityFrom: 0.45, opacityTo: 0.0, stops: [0, 100] } },
                     dataLabels: { enabled: false },
-                    stroke: { curve: 'smooth', width: 2 },
-                    markers: { size: trendData.length === 1 ? 5 : 0 },
+                    stroke: { curve: 'smooth', width: 3 },
+                    markers: { 
+                        size: trendData.length === 1 ? 5 : 4,
+                        colors: ['#ffffff'], strokeColors: '#E07A5F', strokeWidth: 2,
+                        hover: { size: 7 }
+                    },
                     xaxis: {
                         categories: trendCats,
                         labels: { style: { colors: '#94A3B8', fontSize: '11px' } },
@@ -1435,9 +1380,12 @@
                 const opts = {
                     series: catData.map(v => parseInt(v) || 0),
                     labels: catLabels,
-                    chart: { type: 'donut', height: 280, background: 'transparent', fontFamily: 'DM Sans, sans-serif' },
+                    chart: { 
+                        type: 'donut', height: 280, background: 'transparent', fontFamily: 'DM Sans, sans-serif',
+                        dropShadow: { enabled: true, top: 4, left: 0, blur: 5, opacity: 0.1, color: '#000' }
+                    },
                     colors: ['#E07A5F', '#D97706', '#F59E0B', '#FBBF24', '#FCD34D', '#FDE68A'],
-                    stroke: { show: true, colors: ['#FFFFFF'], width: 3 },
+                    stroke: { show: true, colors: ['#ffffff'], width: 3 },
                     dataLabels: { enabled: false },
                     plotOptions: {
                         pie: { donut: {

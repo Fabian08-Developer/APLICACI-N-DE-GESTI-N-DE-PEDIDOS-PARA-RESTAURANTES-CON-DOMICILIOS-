@@ -103,15 +103,23 @@
 </div>
 
 {{-- FILTROS AVANZADOS REACTIVOS --}}
-<div class="elegant-filter-card">
-    <div class="filter-header">
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-            <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
-        </svg>
-        FILTROS DE BÚSQUEDA
+<div class="elegant-filter-card" x-data="{ openFilters: window.innerWidth >= 768 }" @resize.window="openFilters = window.innerWidth >= 768">
+    <div class="filter-header" @click="openFilters = !openFilters" style="cursor: pointer; justify-content: space-between; user-select: none;">
+        <div style="display: flex; align-items: center; gap: 0.5rem;">
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
+            </svg>
+            FILTROS DE BÚSQUEDA
+        </div>
+        <div style="display: flex; align-items: center; gap: 0.3rem; font-size: 0.7rem; color: #E07A5F;">
+            <span x-text="openFilters ? 'Ocultar' : 'Mostrar'"></span>
+            <svg x-bind:style="openFilters ? 'transform: rotate(180deg);' : ''" style="transition: transform 0.2s;" xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+        </div>
     </div>
     
-    <div class="elegant-filter-grid">
+    <div class="elegant-filter-grid" x-show="openFilters" x-transition>
         <div class="elegant-group">
             <label>DESDE</label>
             <input type="date" wire:model.live="filtroFechaInicio">
@@ -199,17 +207,17 @@
                     <th>#</th>
                     @if($tab === 'local')
                         <th>Mesa</th>
-                        <th>Mesero</th>
+                        <th class="hide-on-mobile">Mesero</th>
                     @else
                         <th>Cliente</th>
-                        <th>Dirección</th>
+                        <th class="hide-on-mobile">Dirección</th>
                         <th>Domiciliario</th>
-                        <th>Zona</th>
+                        <th class="hide-on-mobile">Zona</th>
                     @endif
-                    <th>Items</th>
+                    <th class="hide-on-mobile">Items</th>
                     <th>Total</th>
                     <th>Estado</th>
-                    <th>Fecha</th>
+                    <th class="hide-on-mobile">Fecha</th>
                     <th>Acciones</th>
                 </tr>
             </thead>
@@ -223,7 +231,7 @@
                     
                     @if($tab === 'local')
                         <td>Mesa {{ $pedido->sesionCliente?->mesa?->numero ?? '—' }}</td>
-                        <td>{{ $pedido->mesero?->nombre ?? '—' }}</td>
+                        <td class="hide-on-mobile">{{ $pedido->mesero?->nombre ?? '—' }}</td>
                     @else
                         <td>
                             <div class="cliente-info-col">
@@ -231,7 +239,7 @@
                                 <span class="cliente-tel">{{ $pedido->sesionCliente?->telefono_cliente ?? '' }}</span>
                             </div>
                         </td>
-                        <td class="direccion-col" title="{{ $pedido->direccion_entrega }}">
+                        <td class="direccion-col hide-on-mobile" title="{{ $pedido->direccion_entrega }}">
                             {{ Str::limit($pedido->direccion_entrega ?? '—', 35) }}
                         </td>
                         <td>
@@ -241,15 +249,15 @@
                                 <span class="sin-asignar">Sin Asignar</span>
                             @endif
                         </td>
-                        <td>{{ $pedido->zona?->nombre ?? '—' }}</td>
+                        <td class="hide-on-mobile">{{ $pedido->zona?->nombre ?? '—' }}</td>
                     @endif
 
-                    <td class="texto-gris">{{ $pedido->detalles_count }} items</td>
+                    <td class="texto-gris hide-on-mobile">{{ $pedido->detalles_count }} items</td>
                     <td class="precio">${{ number_format($pedido->total, 2) }}</td>
                     <td>
                         <span class="badge {{ $claseEstado }}">{{ $pedido->estado }}</span>
                     </td>
-                    <td class="texto-gris">{{ $pedido->creado_en?->format('d/m H:i') ?? 'N/A' }}</td>
+                    <td class="texto-gris hide-on-mobile">{{ $pedido->creado_en?->format('d/m H:i') ?? 'N/A' }}</td>
                     <td>
                         <div class="acciones">
                             <button type="button" class="btn-ver" wire:click="openDetailModal('{{ $pedido->id }}')" @click="showDetail = true">

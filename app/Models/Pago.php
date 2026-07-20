@@ -15,28 +15,39 @@ class Pago extends Model
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
 
+    const ESTADO_PENDIENTE   = 'pendiente';
+    const ESTADO_APROBADO    = 'aprobado';
+    const ESTADO_RECHAZADO   = 'rechazado';
+    const ESTADO_REEMBOLSADO = 'reembolsado';
+
     protected $fillable = [
-        'pedido_id',
+        'payable_type',
+        'payable_id',
         'sucursal_id',
         'metodo',
         'monto',
+        'monto_devuelto',
         'estado',
         'nequi_telefono',
         'nequi_correo',
         'referencia',
+        'referencia_externa',
         'intentos',
         'ultimo_intento_en',
+        'aprobado_en',
         'reembolsado_en',
+        'notas',
     ];
 
     protected $casts = [
         'ultimo_intento_en' => 'datetime',
+        'aprobado_en' => 'datetime',
         'reembolsado_en' => 'datetime',
     ];
 
-    public function pedido(): BelongsTo
+    public function payable()
     {
-        return $this->belongsTo(Pedido::class, 'pedido_id');
+        return $this->morphTo();
     }
 
     public function sucursal(): BelongsTo

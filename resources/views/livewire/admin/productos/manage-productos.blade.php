@@ -246,7 +246,7 @@
                             <span style="font-size: 0.65rem; background: rgba(52, 211, 153, 0.15); color: #34D399; padding: 0.1rem 0.3rem; border-radius: 4px; border: 1px solid rgba(52, 211, 153, 0.3); margin-left: 0.4rem;" title="Tiene receta configurada">📖 Receta</span>
                         @endif
                         @if($producto->descripcion)
-                            <div class="texto-gris">{{ Str::limit($producto->descripcion, 40) }}</div>
+                            <div class="texto-gris descripcion-movil">{{ Str::limit($producto->descripcion, 40) }}</div>
                         @endif
                     </td>
                     <td>
@@ -281,42 +281,71 @@
                         </div>
                     </td>
                     <td>
-                        <div class="acciones" style="flex-wrap: wrap; max-width: 320px;">
-                            <button type="button" class="btn-editar"
-                                wire:click="edit('{{ $producto->id }}')" @click="isOpen = true">Editar</button>
-
-                            <button type="button" class="btn-editar" style="background: rgba(79, 142, 247, 0.1); color: #90cdf4; border-color: rgba(79, 142, 247, 0.25);" wire:click="openVariantesModal('{{ $producto->id }}')">
-                                Variantes ({{ $producto->variantes->count() }})
+                        <div class="acciones" x-data="{ openDropdown: false }" @click.away="openDropdown = false" style="position: relative; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                            <button type="button" class="btn-editar" style="display: inline-flex; align-items: center; gap: 0.4rem;"
+                                wire:click="edit('{{ $producto->id }}')" @click="isOpen = true">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" /></svg>
+                                Editar
                             </button>
 
-                            <button type="button" class="btn-editar" style="background: rgba(201, 168, 76, 0.1); color: #c9a84c; border-color: rgba(201, 168, 76, 0.25);" wire:click="openAdicionesModalForProducto('{{ $producto->id }}')">
-                                Adiciones ({{ $producto->adiciones->count() }})
+                            <button type="button" class="btn-opciones-dropdown" @click="openDropdown = !openDropdown" :class="{ 'activo': openDropdown }">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 5v.01M12 12v.01M12 19v.01M12 6a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2zm0 7a1 1 0 110-2 1 1 0 010 2z"/></svg>
+                                Opciones
                             </button>
 
-                            @if($producto->activo)
-                                <button type="button" class="btn-eliminar" style="background: rgba(245, 158, 11, 0.1); color: #fbbf24; border-color: rgba(245, 158, 11, 0.25);" wire:click="toggleActivo('{{ $producto->id }}')">
-                                    Ocultar
+                            <!-- Menú Desplegable -->
+                            <div x-show="openDropdown" x-transition.opacity x-transition:enter.duration.150ms x-transition:leave.duration.100ms class="dropdown-menu-flotante" style="display: none;" x-cloak>
+                                <!-- Variantes -->
+                                <button type="button" class="dropdown-item" wire:click="openVariantesModal('{{ $producto->id }}')" @click="openDropdown = false">
+                                    <span class="dropdown-icon" style="background: rgba(79, 142, 247, 0.1); color: #4F8EF7;">🎨</span>
+                                    <span style="flex:1; text-align:left;">Variantes</span>
+                                    <span style="font-weight:700; color:var(--text-main);">{{ $producto->variantes->count() }}</span>
                                 </button>
-                            @else
-                                <button type="button" class="btn-editar" style="background: rgba(76, 175, 125, 0.12); color: #4caf7d; border-color: rgba(76, 175, 125, 0.3);" wire:click="toggleActivo('{{ $producto->id }}')">
-                                    Mostrar
-                                </button>
-                            @endif
 
-                            @if($producto->disponible)
-                                <button type="button" class="btn-eliminar" style="background: rgba(220, 38, 38, 0.1); color: #f87171; border-color: rgba(220, 38, 38, 0.25);" wire:click="toggleDisponible('{{ $producto->id }}')">
-                                    Agotar
+                                <!-- Adiciones -->
+                                <button type="button" class="dropdown-item" wire:click="openAdicionesModalForProducto('{{ $producto->id }}')" @click="openDropdown = false">
+                                    <span class="dropdown-icon" style="background: rgba(201, 168, 76, 0.15); color: #C9A84C;">➕</span>
+                                    <span style="flex:1; text-align:left;">Adiciones</span>
+                                    <span style="font-weight:700; color:var(--text-main);">{{ $producto->adiciones->count() }}</span>
                                 </button>
-                            @else
-                                <button type="button" class="btn-editar" style="background: rgba(76, 175, 125, 0.12); color: #4caf7d; border-color: rgba(76, 175, 125, 0.3);" wire:click="toggleDisponible('{{ $producto->id }}')">
-                                    Habilitar
-                                </button>
-                            @endif
+                                
+                                <div class="dropdown-divider"></div>
 
-                            <button type="button" class="btn-eliminar"
-                                    @click.prevent.stop="deleteId = '{{ $producto->id }}'; deleteName = {{ json_encode($producto->nombre) }}; showModalEliminar = true;">
-                                Eliminar
-                            </button>
+                                <!-- Mostrar / Ocultar -->
+                                @if($producto->activo)
+                                    <button type="button" class="dropdown-item" wire:click="toggleActivo('{{ $producto->id }}')" @click="openDropdown = false">
+                                        <span class="dropdown-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">👁️</span>
+                                        <span style="flex:1; text-align:left;">Ocultar del menú</span>
+                                    </button>
+                                @else
+                                    <button type="button" class="dropdown-item" wire:click="toggleActivo('{{ $producto->id }}')" @click="openDropdown = false">
+                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">👁️</span>
+                                        <span style="flex:1; text-align:left; color:#4CAF7D; font-weight:600;">Mostrar en menú</span>
+                                    </button>
+                                @endif
+
+                                <!-- Disponible / Agotado -->
+                                @if($producto->disponible)
+                                    <button type="button" class="dropdown-item" wire:click="toggleDisponible('{{ $producto->id }}')" @click="openDropdown = false">
+                                        <span class="dropdown-icon" style="background: rgba(220, 38, 38, 0.1); color: #DC2626;">❌</span>
+                                        <span style="flex:1; text-align:left;">Marcar Agotado</span>
+                                    </button>
+                                @else
+                                    <button type="button" class="dropdown-item" wire:click="toggleDisponible('{{ $producto->id }}')" @click="openDropdown = false">
+                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">✅</span>
+                                        <span style="flex:1; text-align:left; color:#4CAF7D; font-weight:600;">Marcar Disponible</span>
+                                    </button>
+                                @endif
+
+                                <div class="dropdown-divider"></div>
+
+                                <!-- Eliminar -->
+                                <button type="button" class="dropdown-item dropdown-item-danger"
+                                        @click.prevent.stop="deleteId = '{{ $producto->id }}'; deleteName = {{ json_encode($producto->nombre) }}; showModalEliminar = true; openDropdown = false;">
+                                    <span class="dropdown-icon" style="background: transparent;">🗑️</span>
+                                    <span style="flex:1; text-align:left; font-weight:600;">Eliminar Producto</span>
+                                </button>
+                            </div>
                         </div>
                     </td>
                 </tr>
@@ -551,6 +580,125 @@
 
     .btn-modal-confirm:hover {
         background: #dc2626;
+    }
+
+    /* ══════════════════════════════════════════
+       RESPONSIVE — MANAGE PRODUCTOS
+    ══════════════════════════════════════════ */
+
+    /* Tablet Landscape (768–1023px) */
+    @media (min-width: 768px) and (max-width: 1023.98px) {
+        .pagina-header {
+            gap: 0.85rem;
+        }
+        .pagina-header > div:last-child {
+            flex-wrap: wrap;
+        }
+        .modal-confirm {
+            max-width: 680px;
+        }
+    }
+
+    /* Tablet Portrait (480–767px) */
+    @media (min-width: 480px) and (max-width: 767.98px) {
+        /* Page header: título arriba, acciones abajo */
+        .pagina-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.85rem;
+            margin-bottom: 1.25rem;
+        }
+        /* Filtros en columna */
+        .filtros-form {
+            flex-direction: column;
+        }
+        /* Grid de 2 cols del modal → 1 col */
+        .grid-dos-columnas {
+            grid-template-columns: 1fr !important;
+        }
+        /* Tabla: scroll horizontal */
+        .tarjeta table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+        }
+    }
+
+    /* Phone (< 480px) */
+    @media (max-width: 479.98px) {
+        /* Page header compacto */
+        .pagina-header {
+            flex-direction: column;
+            align-items: flex-start;
+            gap: 0.75rem;
+            margin-bottom: 1rem;
+        }
+        .pagina-header h1 { font-size: 1.2rem; }
+        .pagina-header p  { font-size: 0.78rem; }
+
+        /* Botones de excel → horizontal scroll */
+        .excel-actions {
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            width: 100%;
+        }
+        /* Botón nuevo producto ancho completo */
+        .btn-nuevo {
+            width: 100%;
+            justify-content: center !important;
+        }
+        /* Filtros en columna */
+        .filtros-form {
+            flex-direction: column;
+            gap: 0.75rem;
+        }
+        /* Tabla: scroll horizontal */
+        .tarjeta table {
+            display: block;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            white-space: nowrap;
+            min-width: 600px;
+        }
+        /* Acciones en tabla: envolver */
+        .acciones {
+            flex-wrap: wrap;
+            max-width: 200px !important;
+            gap: 0.3rem !important;
+        }
+        /* Modal de variantes y adiciones → 1 columna */
+        .modal-confirm {
+            width: 98%;
+            padding: 1.25rem;
+            border-radius: 1rem;
+            max-height: 92dvh;
+            overflow-y: auto;
+        }
+        .modal-confirm .grid-dos-columnas {
+            grid-template-columns: 1fr !important;
+        }
+        /* Modal eliminar */
+        .modal-eliminar-caja {
+            width: 96%;
+            padding: 1.75rem 1.25rem;
+        }
+        .modal-eliminar-acciones {
+            flex-direction: column;
+        }
+        .btn-modal-cancelar,
+        .btn-modal-eliminar {
+            width: 100%;
+            min-height: 48px;
+        }
+        /* Modal footer */
+        .modal-footer-large,
+        .modal-header-large {
+            padding: 0.75rem 1rem;
+        }
+        .modal-body-scroll {
+            padding: 0 !important;
+        }
     }
 </style>
 {{-- MODAL DE IMPORTACIÓN DE EXCEL --}}

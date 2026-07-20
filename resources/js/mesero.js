@@ -419,3 +419,19 @@ window.ejecutarCancelacion = ejecutarCancelacion;
 window.confirmarPagoEfectivo = confirmarPagoEfectivo;
 window.registrarCobroPedido = registrarCobroPedido;
 window.initMesero = initMesero;
+
+/* ── Preservación de Scroll del Sidebar (Mesero) ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    if (!sidebarNav) return;
+
+    const savedScroll = sessionStorage.getItem('sgpd_mesero_sidebar_scroll');
+    if (savedScroll !== null) {
+        sidebarNav.scrollTop = parseInt(savedScroll, 10);
+    }
+
+    sidebarNav.addEventListener('scroll', () => {
+        sessionStorage.setItem('sgpd_mesero_sidebar_scroll', sidebarNav.scrollTop);
+    }, { passive: true });
+});
+

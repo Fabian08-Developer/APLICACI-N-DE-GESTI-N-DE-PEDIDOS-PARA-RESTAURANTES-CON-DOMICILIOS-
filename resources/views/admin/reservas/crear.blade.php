@@ -1,21 +1,21 @@
 @extends('layouts.admin')
 
 @section('content')
-<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,600;0,700;1,400&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:ital,opsz,wght@0,9..40,100..1000;1,9..40,100..1000&display=swap" rel="stylesheet">
 <style>
     /* ── Estilos base del Wizard de Reservas ── */
     .wizard-theme {
-        --gold:     #C48B57;
-        --gold-light: #d8aa7e;
-        --dark:     #0D0B09;
-        --surface:  rgba(25, 20, 16, 0.7);
-        --border:   rgba(196,139,87,0.2);
-        --text:     #F5EFE6;
-        --text-dim: #A0907A;
-        --radius:   20px;
-        --shadow:   0 15px 40px rgba(0,0,0,0.5);
+        --gold:     #E07A5F;
+        --gold-light: #e6927a;
+        --dark:     #ffffff;
+        --surface:  #ffffff;
+        --border:   rgba(44,36,27,0.12);
+        --text:     #2c241b;
+        --text-dim: #64748b;
+        --radius:   16px;
+        --shadow:   0 4px 16px rgba(0,0,0,0.06);
         --transition: all 0.3s ease;
-        font-family: 'Inter', sans-serif;
+        font-family: 'DM Sans', sans-serif;
     }
 
     .wizard-theme-wrapper {
@@ -23,11 +23,9 @@
         color: var(--text);
         border-radius: var(--radius);
         padding: 2rem;
-        background-image: radial-gradient(circle at top right, rgba(196,139,87,0.1), transparent 50%),
-                          radial-gradient(circle at bottom left, rgba(196,139,87,0.05), transparent 50%);
     }
 
-    .wizard-theme .serif { font-family: 'Playfair Display', serif; }
+    .wizard-theme .serif { font-family: 'DM Serif Display', serif; }
 
     .wizard-theme .wizard-container {
         display: grid;
@@ -38,6 +36,15 @@
 
     @media (max-width: 850px) {
         .wizard-theme .wizard-container { grid-template-columns: 1fr; }
+    }
+
+    @media (max-width: 600px) {
+        .wizard-theme-wrapper { padding: 1rem 0.5rem; border: none; border-radius: 0; box-shadow: none; background: transparent; }
+        .wizard-theme .glass-panel { padding: 1.5rem 1rem; }
+        .wizard-theme .page-header h1 { font-size: 2rem; }
+        .wizard-theme .btn-actions { flex-direction: column-reverse; gap: 1rem; }
+        .wizard-theme .btn { width: 100%; }
+        .wizard-theme .mesas-grid { grid-template-columns: 1fr; }
     }
 
     .wizard-theme .glass-panel {
@@ -94,12 +101,12 @@
     .wizard-theme .step.active .step-num {
         border-color: var(--gold);
         color: var(--gold);
-        box-shadow: 0 0 15px rgba(196,139,87,0.3);
+        box-shadow: 0 0 15px rgba(224,122,95,0.3);
     }
     .wizard-theme .step.done .step-num {
         background: var(--gold);
         border-color: var(--gold);
-        color: var(--dark);
+        color: #fff;
     }
     .wizard-theme .step-label { font-size: 0.8rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); }
     .wizard-theme .step.active .step-label { color: var(--gold); }
@@ -108,17 +115,18 @@
     .wizard-theme .form-label { display: block; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.1em; color: var(--text-dim); margin-bottom: 0.5rem; }
     .wizard-theme .form-control {
         width: 100%;
-        background: rgba(0,0,0,0.3);
+        background: #fff;
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1rem;
         color: var(--text);
-        font-family: 'Inter', sans-serif;
+        font-family: 'DM Sans', sans-serif;
         transition: var(--transition);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .wizard-theme .form-control:focus { outline: none; border-color: var(--gold); }
     .wizard-theme .form-control[type="date"]::-webkit-calendar-picker-indicator,
-    .wizard-theme .form-control[type="time"]::-webkit-calendar-picker-indicator { filter: invert(1); cursor: pointer; }
+    .wizard-theme .form-control[type="time"]::-webkit-calendar-picker-indicator { cursor: pointer; }
 
     .wizard-theme .slots-grid {
         display: grid;
@@ -127,17 +135,18 @@
         margin-top: 1rem;
     }
     .wizard-theme .slot-btn {
-        background: rgba(0,0,0,0.3);
+        background: #fff;
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 0.75rem 0.5rem;
         text-align: center;
         cursor: pointer;
         transition: var(--transition);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .wizard-theme .slot-btn:hover { border-color: var(--gold); }
-    .wizard-theme .slot-btn.active { background: rgba(196,139,87,0.2); border-color: var(--gold); box-shadow: inset 0 0 10px rgba(196,139,87,0.2); }
-    .wizard-theme .slot-btn.disabled { opacity: 0.3; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
+    .wizard-theme .slot-btn.active { background: rgba(224,122,95,0.08); border-color: var(--gold); box-shadow: inset 0 0 10px rgba(224,122,95,0.1); color: var(--gold); font-weight:600; }
+    .wizard-theme .slot-btn.disabled { opacity: 0.4; cursor: not-allowed; text-decoration: line-through; border-color: transparent; }
     
     .wizard-theme .mesas-grid {
         display: grid;
@@ -145,7 +154,7 @@
         gap: 1rem;
     }
     .wizard-theme .mesa-btn {
-        background: rgba(0,0,0,0.3);
+        background: #fff;
         border: 1px solid var(--border);
         border-radius: 12px;
         padding: 1.5rem 1rem;
@@ -153,13 +162,14 @@
         cursor: pointer;
         transition: var(--transition);
         position: relative;
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .wizard-theme .mesa-btn:hover { border-color: var(--gold); transform: translateY(-2px); }
-    .wizard-theme .mesa-btn.active { background: rgba(196,139,87,0.1); border-color: var(--gold); box-shadow: 0 5px 15px rgba(196,139,87,0.2); }
+    .wizard-theme .mesa-btn.active { background: rgba(224,122,95,0.05); border-color: var(--gold); box-shadow: 0 5px 15px rgba(224,122,95,0.15); }
     .wizard-theme .mesa-btn.disabled { opacity: 0.55; cursor: not-allowed; border-color: rgba(239,68,68,0.3); background: rgba(239,68,68,0.05); }
     .wizard-theme .mesa-btn.disabled:hover { transform: none; border-color: rgba(239,68,68,0.3); }
     .wizard-theme .mesa-btn .icon { font-size: 2rem; margin-bottom: 0.5rem; display: block; }
-    .wizard-theme .mesa-btn .name { font-family: 'Playfair Display', serif; font-size: 1.2rem; color: var(--gold); }
+    .wizard-theme .mesa-btn .name { font-family: 'DM Serif Display', serif; font-size: 1.2rem; color: var(--text); font-weight:600; }
     .wizard-theme .mesa-btn .check { position: absolute; top: 10px; right: 10px; color: var(--gold); font-size: 1.2rem; display: none; }
     .wizard-theme .mesa-btn.active .check { display: block; }
 
@@ -167,32 +177,33 @@
     .wizard-theme .btn {
         padding: 1rem 2rem;
         border-radius: 12px;
-        font-family: 'Inter', sans-serif;
-        font-weight: 500;
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 600;
         cursor: pointer;
         transition: var(--transition);
         border: none;
     }
-    .wizard-theme .btn-prev { background: rgba(255,255,255,0.05); color: var(--text); }
-    .wizard-theme .btn-prev:hover { background: rgba(255,255,255,0.1); }
-    .wizard-theme .btn-next, .wizard-theme .btn-submit { background: var(--gold); color: var(--dark); }
-    .wizard-theme .btn-next:hover, .wizard-theme .btn-submit:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(196,139,87,0.3); }
+    .wizard-theme .btn-prev { background: #f1f5f9; color: var(--text-dim); border: 1px solid var(--border); }
+    .wizard-theme .btn-prev:hover { background: #e2e8f0; color: var(--text); }
+    .wizard-theme .btn-next, .wizard-theme .btn-submit { background: var(--gold); color: #fff; }
+    .wizard-theme .btn-next:hover, .wizard-theme .btn-submit:hover { background: var(--gold-light); transform: translateY(-2px); box-shadow: 0 5px 15px rgba(224,122,95,0.3); }
     .wizard-theme .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; box-shadow: none; }
 
     .wizard-theme .summary-panel { position: sticky; top: 2rem; }
-    .wizard-theme .summary-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--gold); margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
+    .wizard-theme .summary-title { font-family: 'DM Serif Display', serif; font-size: 1.5rem; color: var(--text); margin-bottom: 1.5rem; border-bottom: 1px solid var(--border); padding-bottom: 1rem; }
     .wizard-theme .summary-item { display: flex; align-items: center; gap: 1rem; margin-bottom: 1.2rem; }
-    .wizard-theme .summary-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(196,139,87,0.1); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
+    .wizard-theme .summary-icon { width: 40px; height: 40px; border-radius: 10px; background: rgba(224,122,95,0.1); color: var(--gold); display: flex; align-items: center; justify-content: center; font-size: 1.2rem; }
     .wizard-theme .summary-detail span { display: block; }
     .wizard-theme .summary-label { font-size: 0.75rem; text-transform: uppercase; color: var(--text-dim); }
-    .wizard-theme .summary-value { font-size: 1rem; font-weight: 500; color: var(--text); }
+    .wizard-theme .summary-value { font-size: 1rem; font-weight: 600; color: var(--text); }
     
-    .wizard-theme .errors { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; color: #f87171; font-size: 0.9rem; }
+    .wizard-theme .errors { background: rgba(239,68,68,0.1); border: 1px solid rgba(239,68,68,0.3); border-radius: 12px; padding: 1rem; margin-bottom: 1.5rem; color: #ef4444; font-size: 0.9rem; }
     [x-cloak] { display: none !important; }
 
     .wizard-theme .checkbox-label {
         display: flex; align-items: flex-start; gap: 0.75rem; cursor: pointer; font-size: 0.95rem; color: var(--text); line-height: 1.4; font-weight: 500;
-        margin-top: 1.5rem; background: rgba(0,0,0,0.3); padding: 1rem; border-radius: 12px; border: 1px solid var(--border);
+        margin-top: 1.5rem; background: #fff; padding: 1rem; border-radius: 12px; border: 1px solid var(--border);
+        box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .wizard-theme .checkbox-label input[type="checkbox"] { margin-top: 0.2rem; width: 1.2rem; height: 1.2rem; accent-color: var(--gold); cursor: pointer; }
 </style>
@@ -330,7 +341,7 @@
                             <input type="tel" name="telefono_cliente" class="form-control" value="{{ old('telefono_cliente') }}" required>
                         </div>
                         <div class="form-group">
-                            <label class="form-label">Correo Electrónico *</label>
+                            <label class="form-label">Correo *</label>
                             <input type="email" name="correo_cliente" class="form-control" value="{{ old('correo_cliente') }}" required>
                         </div>
                     </div>

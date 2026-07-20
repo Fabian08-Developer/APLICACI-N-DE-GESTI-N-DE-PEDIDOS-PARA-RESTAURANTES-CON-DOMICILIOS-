@@ -3,12 +3,12 @@
 @section('titulo', 'Disponibilidad')
 
 @section('contenido')
-<div class="page-header" style="margin-bottom: 1.5rem;">
+<header class="page-header" style="margin-bottom: 1.5rem;">
     <div>
-        <h1 style="color: var(--text-main); font-family: 'DM Serif Display', serif; font-size: 1.6rem;">Disponibilidad de Productos y Adiciones</h1>
+        <h1>Disponibilidad <span>de Menú</span></h1>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Controla en tiempo real qué elementos se pueden ordenar. Los cambios se reflejan instantáneamente.</p>
     </div>
-</div>
+</header>
 
 <!-- Barra de Filtros y Búsqueda -->
 <div class="filters-bar" style="flex-direction: column; align-items: stretch; gap: 1rem;">
@@ -25,7 +25,7 @@
     
     <!-- COLUMNA 1: PRODUCTOS, VARIANTES Y ADICIONES -->
     <div style="display: flex; flex-direction: column; gap: 1rem;">
-        <h2 style="font-size: 1rem; color: var(--accent); border-bottom: 1px solid var(--border); padding-bottom: 0.5rem; font-weight: 600;">Productos del Menú</h2>
+        <h2 style="font-size: 1rem; color: var(--primary); border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem; font-weight: 600;">Productos del Menú</h2>
         
         @if($productos->isEmpty())
             <div class="col-empty">No hay productos registrados en esta sucursal.</div>
@@ -68,14 +68,14 @@
 
                         <!-- Variantes -->
                         @if($producto->variantes->isNotEmpty())
-                            <div style="border-top: 1px solid var(--border); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
+                            <div style="border-top: 1px solid var(--border-light); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: auto;">
                                 <h4 style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Opciones</h4>
                                 @foreach($producto->variantes as $variante)
                                     <div style="display: flex; flex-direction: column; gap: 0.3rem;">
                                         @foreach($variante->opciones as $opcion)
                                             @php $opcDisponible = $opcion['disponible'] ?? true; @endphp
                                             <div style="display: flex; justify-content: space-between; align-items: center; font-size: 0.75rem;">
-                                                <span style="color: {{ $opcDisponible ? '#fff' : 'var(--text-dim)' }};">{{ $opcion['nombre'] }}</span>
+                                                <span style="color: {{ $opcDisponible ? 'var(--text-main)' : 'var(--text-muted)' }}; font-weight: 500;">{{ $opcion['nombre'] }}</span>
                                                 <label class="switch" style="transform: scale(0.7); transform-origin: right;">
                                                     <input type="checkbox" class="toggle-switch-variante" data-vid="{{ $variante->id }}" data-nombre="{{ $opcion['nombre'] }}" {{ $opcDisponible ? 'checked' : '' }}>
                                                     <span class="slider"></span>
@@ -91,7 +91,7 @@
                         
                         <!-- Adiciones -->
                         @if($producto->adiciones->isNotEmpty())
-                            <div style="border-top: 1px solid var(--border); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
+                            <div style="border-top: 1px solid var(--border-light); padding-top: 0.75rem; display: flex; flex-direction: column; gap: 0.5rem; margin-top: 0.5rem;">
                                 <h4 style="font-size: 0.65rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase;">Adiciones</h4>
                                 @foreach($producto->adiciones as $adicion)
                                     @php 
@@ -102,8 +102,8 @@
                                     <div class="disp-card {{ $adicionDisponible ? '' : 'agotado' }} item-searchable" data-type="adicion" data-available="{{ $adicionDisponible ? '1' : '0' }}" data-id="{{ $adicion->id }}" data-search="{{ strtolower($adicion->nombre) }}" {{ !$adicionDisponible && $expira ? 'data-expires='.$expira : '' }} style="display: flex; justify-content: space-between; align-items: center; padding: 0; background: transparent; border: none; box-shadow: none; margin-bottom: 0.25rem;">
                                         
                                         <div style="display: flex; align-items: center; gap: 0.5rem; flex: 1;">
-                                            <span style="font-size: 0.75rem; color: {{ $adicionDisponible ? '#fff' : 'var(--text-dim)' }};">{{ $adicion->nombre }} <small style="color: #c9a84c;">(+${{ number_format($adicion->precio, 2) }})</small></span>
-                                            <span class="status-label" style="font-size: 0.6rem; font-weight: 600; color: {{ $adicionDisponible ? 'transparent' : '#F87171' }};" data-base="{{ $adicionDisponible ? 'Disponible' : 'Agotado' }}">
+                                            <span style="font-size: 0.75rem; color: {{ $adicionDisponible ? 'var(--text-main)' : 'var(--text-muted)' }}; font-weight: 500;">{{ $adicion->nombre }} <small style="color: var(--primary); font-weight: 600;">(+${{ number_format($adicion->precio, 2) }})</small></span>
+                                            <span class="status-label" style="font-size: 0.6rem; font-weight: 600; color: {{ $adicionDisponible ? 'transparent' : '#DC2626' }};" data-base="{{ $adicionDisponible ? 'Disponible' : 'Agotado' }}">
                                                 {{ $adicionDisponible ? '' : 'Agotado' }}
                                             </span>
                                         </div>
@@ -137,11 +137,11 @@
         <div class="pause-desc" id="pauseModalDesc">Selecciona por cuánto tiempo estará agotado.</div>
         
         <div class="pause-opts">
-            <button class="pause-btn" onclick="submitPause('3s')" style="border-color: #34D399; color: #34D399;">Prueba: Pausar 3 Segundos</button>
+            <button class="pause-btn" onclick="submitPause('3s')" style="border-color: var(--status-ready); color: var(--status-ready);">Prueba: Pausar 3 Segundos</button>
             <button class="pause-btn" onclick="submitPause(30)">Pausar 30 Minutos</button>
             <button class="pause-btn" onclick="submitPause(60)">Pausar 1 Hora</button>
             <button class="pause-btn" onclick="submitPause('resto_dia')">Agotado por Hoy</button>
-            <button class="pause-btn" onclick="submitPause('indefinido')" style="color: #F87171; border-color: rgba(248, 113, 113, 0.3);">Agotado Indefinido</button>
+            <button class="pause-btn" onclick="submitPause('indefinido')" style="color: #DC2626; border-color: rgba(220, 38, 38, 0.3);">Agotado Indefinido</button>
         </div>
         
         <div class="pause-cancel" onclick="closePauseModal()">Cancelar</div>

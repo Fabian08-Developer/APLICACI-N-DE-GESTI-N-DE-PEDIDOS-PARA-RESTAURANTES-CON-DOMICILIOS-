@@ -137,10 +137,10 @@
     {{-- MODAL VARIABLES GLOBALES --}}
     @if($showVariablesModal)
     <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#FDFBF7] backdrop-blur-xl" x-transition>
-        <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-lg border border-[#2C241B]/10 overflow-hidden relative">
-            <div class="px-10 py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
+        <div class="bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl w-full max-w-lg border border-[#2C241B]/10 overflow-hidden relative max-h-[90vh] overflow-y-auto">
+            <div class="px-6 sm:px-10 py-6 sm:py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
                 <div>
-                    <h3 class="text-2xl font-black text-[#2C241B] uppercase tracking-tight">Variables Globales</h3>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#2C241B] uppercase tracking-tight">Variables Globales</h3>
                     <p class="text-[#5C5246] text-xs mt-1 font-bold">Configuración del sistema</p>
                 </div>
                 <button wire:click="$set('showVariablesModal', false)" class="p-3 rounded-xl hover:bg-[#E6E2DB] text-[#5C5246] transition-colors border border-[#2C241B]/10 hover:border-[#2C241B]/10">
@@ -148,23 +148,23 @@
                 </button>
             </div>
             
-            <form wire:submit.prevent="actualizarVariables" class="p-10 space-y-6">
+            <form wire:submit.prevent="actualizarVariables" class="p-6 sm:p-10 space-y-6">
                 <div>
                     <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-3">Nombre de la Plataforma</label>
-                    <input wire:model="plataforma_nombre" type="text" class="w-full px-6 py-4 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
+                    <input wire:model="plataforma_nombre" type="text" class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
                     @error('plataforma_nombre') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-3">Correo Electrónico de Soporte</label>
-                    <input wire:model="soporte_correo" type="email" class="w-full px-6 py-4 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
+                    <input wire:model="soporte_correo" type="email" class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
                     @error('soporte_correo') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div>
                         <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-3">Límite de Carga (MB)</label>
-                        <input wire:model="subida_limite" type="number" class="w-full px-6 py-4 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
+                        <input wire:model="subida_limite" type="number" class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none">
                         @error('subida_limite') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                     </div>
 
@@ -179,11 +179,11 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4 pt-6 border-t border-[#2C241B]/10">
-                    <button type="button" wire:click="$set('showVariablesModal', false)" class="flex-1 px-6 py-4 bg-[#FDFBF7] text-[#5C5246] font-black rounded-xl transition-all uppercase text-[9px] tracking-widest border border-[#2C241B]/10 hover:bg-[#E6E2DB]">
+                <div class="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-[#2C241B]/10">
+                    <button type="button" wire:click="$set('showVariablesModal', false)" class="w-full sm:flex-1 px-6 py-4 bg-[#FDFBF7] text-[#5C5246] font-black rounded-xl transition-all uppercase text-[9px] tracking-widest border border-[#2C241B]/10 hover:bg-[#E6E2DB]">
                         Cancelar
                     </button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-[#E07A5F] text-white font-black rounded-xl transition-all shadow-xl uppercase text-[9px] tracking-widest hover:bg-amber-700">
+                    <button type="submit" class="w-full sm:flex-1 px-6 py-4 bg-[#E07A5F] text-white font-black rounded-xl transition-all shadow-xl uppercase text-[9px] tracking-widest hover:bg-amber-700">
                         Guardar
                     </button>
                 </div>
@@ -195,10 +195,10 @@
     {{-- MODAL AVISO MASIVO --}}
     @if($showAvisoModal)
     <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#FDFBF7] backdrop-blur-xl" x-transition>
-        <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-lg border border-[#2C241B]/10 overflow-hidden relative">
-            <div class="px-10 py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
+        <div class="bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl w-full max-w-lg border border-[#2C241B]/10 overflow-hidden relative max-h-[90vh] overflow-y-auto">
+            <div class="px-6 sm:px-10 py-6 sm:py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
                 <div>
-                    <h3 class="text-2xl font-black text-[#2C241B] uppercase tracking-tight">Aviso Masivo</h3>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#2C241B] uppercase tracking-tight">Aviso Masivo</h3>
                     <p class="text-[#5C5246] text-xs mt-1 font-bold">Enviar notificaciones a todos los tenants</p>
                 </div>
                 <button wire:click="$set('showAvisoModal', false)" class="p-3 rounded-xl hover:bg-[#E6E2DB] text-[#5C5246] transition-colors border border-[#2C241B]/10 hover:border-[#2C241B]/10">
@@ -206,14 +206,14 @@
                 </button>
             </div>
             
-            <form wire:submit.prevent="publicarAviso" class="p-10 space-y-6">
+            <form wire:submit.prevent="publicarAviso" class="p-6 sm:p-10 space-y-6">
                 @if($aviso_activo)
-                <div class="bg-[#7f1d1d]/30 border border-[#b91c1c]/40 p-4 rounded-2xl flex items-center justify-between">
+                <div class="bg-[#7f1d1d]/30 border border-[#b91c1c]/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
                     <div>
                         <div class="text-[10px] font-black text-[#fca5a5] uppercase tracking-wider">Aviso Activo Actual</div>
                         <div class="text-xs text-[#fecdd3] mt-1 font-bold">{{ $aviso_titulo }}</div>
                     </div>
-                    <button type="button" wire:click="desactivarAviso" class="px-4 py-2 bg-[#b91c1c] text-[#2C241B] text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">
+                    <button type="button" wire:click="desactivarAviso" class="w-full sm:w-auto px-4 py-2 bg-[#b91c1c] text-[#2C241B] text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">
                         Desactivar
                     </button>
                 </div>
@@ -221,13 +221,13 @@
 
                 <div>
                     <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-3">Título del Aviso</label>
-                    <input wire:model="aviso_titulo" type="text" class="w-full px-6 py-4 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none" placeholder="Ej: Mantenimiento Programado este Domingo">
+                    <input wire:model="aviso_titulo" type="text" class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none" placeholder="Ej: Mantenimiento Programado este Domingo">
                     @error('aviso_titulo') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
                 <div>
                     <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-3">Mensaje del Aviso</label>
-                    <textarea wire:model="aviso_mensaje" rows="3" class="w-full px-6 py-4 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none resize-none" placeholder="Escribe el cuerpo del aviso..."></textarea>
+                    <textarea wire:model="aviso_mensaje" rows="3" class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-sm outline-none resize-none" placeholder="Escribe el cuerpo del aviso..."></textarea>
                     @error('aviso_mensaje') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                 </div>
 
@@ -255,11 +255,11 @@
                     </div>
                 </div>
 
-                <div class="flex items-center gap-4 pt-6 border-t border-[#2C241B]/10">
-                    <button type="button" wire:click="$set('showAvisoModal', false)" class="flex-1 px-6 py-4 bg-[#FDFBF7] text-[#5C5246] font-black rounded-xl transition-all uppercase text-[9px] tracking-widest border border-[#2C241B]/10 hover:bg-[#E6E2DB]">
+                <div class="flex flex-col sm:flex-row items-center gap-3 pt-6 border-t border-[#2C241B]/10">
+                    <button type="button" wire:click="$set('showAvisoModal', false)" class="w-full sm:flex-1 px-6 py-4 bg-[#FDFBF7] text-[#5C5246] font-black rounded-xl transition-all uppercase text-[9px] tracking-widest border border-[#2C241B]/10 hover:bg-[#E6E2DB]">
                         Cancelar
                     </button>
-                    <button type="submit" class="flex-1 px-6 py-4 bg-[#E07A5F] text-white font-black rounded-xl transition-all shadow-xl uppercase text-[9px] tracking-widest hover:bg-amber-700">
+                    <button type="submit" class="w-full sm:flex-1 px-6 py-4 bg-[#E07A5F] text-white font-black rounded-xl transition-all shadow-xl uppercase text-[9px] tracking-widest hover:bg-amber-700">
                         Publicar
                     </button>
                 </div>
@@ -271,10 +271,10 @@
     {{-- MODAL GESTIONAR VERSIONES --}}
     @if($showVersionesModal)
     <div class="fixed inset-0 z-[60] flex items-center justify-center p-4 bg-[#FDFBF7] backdrop-blur-xl" x-transition>
-        <div class="bg-white rounded-[40px] shadow-2xl w-full max-w-4xl border border-[#2C241B]/10 overflow-hidden relative">
-            <div class="px-10 py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
+        <div class="bg-white rounded-[32px] sm:rounded-[40px] shadow-2xl w-full max-w-4xl border border-[#2C241B]/10 overflow-hidden relative max-h-[90vh] overflow-y-auto">
+            <div class="px-6 sm:px-10 py-6 sm:py-8 border-b border-[#2C241B]/10 flex items-center justify-between bg-[#FDFBF7]">
                 <div>
-                    <h3 class="text-2xl font-black text-[#2C241B] uppercase tracking-tight">Estado y Versiones</h3>
+                    <h3 class="text-xl sm:text-2xl font-black text-[#2C241B] uppercase tracking-tight">Estado y Versiones</h3>
                     <p class="text-[#5C5246] text-xs mt-1 font-bold">Control de lanzamientos y mantenimientos del sistema</p>
                 </div>
                 <button wire:click="$set('showVersionesModal', false)" class="p-3 rounded-xl hover:bg-[#E6E2DB] text-[#5C5246] transition-colors border border-[#2C241B]/10 hover:border-[#2C241B]/10">
@@ -282,7 +282,7 @@
                 </button>
             </div>
             
-            <div class="p-10 grid grid-cols-1 md:grid-cols-2 gap-8 max-h-[70vh] overflow-y-auto">
+            <div class="p-6 sm:p-10 grid grid-cols-1 md:grid-cols-2 gap-8">
                 {{-- Sección Izquierda: Próximo Mantenimiento y Agregar Versión --}}
                 <div class="space-y-6">
                     <div>
@@ -290,9 +290,9 @@
                         <div class="space-y-4">
                             <div>
                                 <label class="block text-[9px] font-black text-[#5C5246] uppercase tracking-widest mb-2">Fecha / Detalle</label>
-                                <div class="flex gap-2">
+                                <div class="flex flex-col sm:flex-row gap-2">
                                     <input wire:model="mantenimiento_fecha" type="text" class="flex-1 px-4 py-3 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-xl text-[#2C241B] placeholder-stone-700 focus:ring-2 focus:ring-[#E07A5F] focus:border-[#2C241B]/10 transition-all font-bold text-xs outline-none" placeholder="Ej: Domingo 25 de Mayo, 02:00 AM">
-                                    <button type="button" wire:click="actualizarMantenimiento" class="px-4 bg-[#E07A5F] text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all shadow">
+                                    <button type="button" wire:click="actualizarMantenimiento" class="px-4 py-3 sm:py-0 bg-[#E07A5F] text-white rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-amber-700 transition-all shadow">
                                         Fijar
                                     </button>
                                 </div>
@@ -334,7 +334,7 @@
                             </div>
                             <p class="text-[10px] text-[#8B8175] font-medium leading-relaxed mb-1">{{ $v['notas'] }}</p>
                             
-                            <button type="button" wire:click="eliminarVersion({{ $index }})" class="absolute top-2 right-2 p-1.5 bg-[#FDFBF7] rounded-lg border border-[#2C241B]/10 hover:border-red-500/30 text-[#5C5246] hover:text-red-500 transition-all opacity-0 group-hover:opacity-100" title="Eliminar registro">
+                            <button type="button" wire:click="eliminarVersion({{ $index }})" class="absolute top-2 right-2 p-1.5 bg-[#FDFBF7] rounded-lg border border-[#2C241B]/10 hover:border-red-500/30 text-[#5C5246] hover:text-red-500 transition-all sm:opacity-0 group-hover:opacity-100" title="Eliminar registro">
                                 <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
                             </button>
                         </div>

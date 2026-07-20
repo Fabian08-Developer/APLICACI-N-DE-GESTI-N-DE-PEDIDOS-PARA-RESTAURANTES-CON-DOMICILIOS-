@@ -15,13 +15,46 @@
         <p style="color: var(--text-sec);">No tienes una sede asignada. Contacta al gerente para que te asigne una.</p>
     </div>
     @else
-    <div style="display: grid; grid-template-columns: 1fr; gap: 1.5rem; height: calc(100vh - 180px); min-height: 600px;">
-        <style>
-            @media(min-width: 992px) {
-                .map-grid { grid-template-columns: 320px 1fr; }
+    <style>
+        .map-container-main {
+            display: flex;
+            flex-direction: column;
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+        .map-grid {
+            display: flex;
+            flex-direction: column; /* Sidebar arriba, mapa abajo en móvil */
+            gap: 1.5rem;
+        }
+        .map-wrapper-box {
+            height: 400px;
+            background: #fff;
+            border-radius: 1rem;
+            border: 1px solid var(--border);
+            position: relative;
+            overflow: hidden;
+        }
+        
+        @media(min-width: 992px) {
+            .map-container-main {
+                height: calc(100vh - 180px);
+                min-height: 600px;
+                margin-bottom: 0;
             }
-        </style>
-        <div class="map-grid" style="display: grid; gap: 1.5rem; height: 100%;">
+            .map-grid {
+                display: grid;
+                grid-template-columns: 320px 1fr;
+                height: 100%;
+            }
+            .map-wrapper-box {
+                height: 100%;
+                min-height: 100%;
+            }
+        }
+    </style>
+    <div class="map-container-main">
+        <div class="map-grid">
 
         {{-- Panel lateral --}}
         <aside style="background: #fff; border-radius: 1rem; border: 1px solid var(--border); display: flex; flex-direction: column; overflow: hidden;">
@@ -69,7 +102,7 @@
         </aside>
 
         {{-- Contenedor del mapa --}}
-        <div style="background: #fff; border-radius: 1rem; border: 1px solid var(--border); position: relative; overflow: hidden; min-height: 400px;">
+        <div class="map-wrapper-box">
             <div id="mapa-admin" style="width: 100%; height: 100%; z-index: 1;"></div>
         </div>
         </div>

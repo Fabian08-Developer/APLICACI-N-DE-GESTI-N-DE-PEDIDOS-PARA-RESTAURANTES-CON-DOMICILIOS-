@@ -441,6 +441,139 @@
 .ig-bg { background: rgba(225,48,108,.15); color: #db2777; }
 .fb-bg { background: rgba(24,119,242,.15); color: #2563eb; }
 .tk-bg { background: #000; color: #fff; }
+
+/* ══════════════════════════════════════════════
+   RESPONSIVE — MI PÁGINA
+   Tablet Landscape: 768–1023px
+   Tablet Portrait:  480–767px
+   Phone:            < 480px
+══════════════════════════════════════════════ */
+
+/* Tablet Landscape (768–1023px) */
+@media (min-width: 768px) and (max-width: 1023.98px) {
+    .mi-pagina-wrapper { padding: 1.5rem 1.25rem; }
+    .mp-header { gap: 1.25rem; flex-wrap: wrap; }
+    .mp-link-card { min-width: 260px; }
+    /* Panel preview sticky en tablet */
+    .mp-preview-col { position: sticky; top: 0.75rem; }
+    /* Redes: 1 columna en tablet landscape */
+    .redes-form-grid { grid-template-columns: 1fr; }
+}
+
+/* Tablet Portrait (480–767px) */
+@media (min-width: 480px) and (max-width: 767.98px) {
+    .mi-pagina-wrapper { padding: 1.25rem 1rem; }
+    /* Header: stack vertical */
+    .mp-header {
+        flex-direction: column;
+        gap: 1rem;
+        margin-bottom: 1.5rem;
+    }
+    .mp-link-card {
+        width: 100%;
+        min-width: unset;
+    }
+    /* Tabs scrolleables */
+    .mp-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+        border-bottom: none;
+        margin-bottom: 1.25rem;
+    }
+    .mp-tabs::-webkit-scrollbar { display: none; }
+    .mp-tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: 0.85rem;
+        padding: 0.55rem 1rem;
+    }
+    /* Panel: preview va al final */
+    .mp-panel-grid {
+        grid-template-columns: 1fr;
+        gap: 1.5rem;
+    }
+    /* Redes en 1 columna */
+    .redes-form-grid { grid-template-columns: 1fr; }
+    /* Media grid en 1 columna */
+    .media-grid { grid-template-columns: 1fr; gap: 1.25rem; }
+    .mp-title { font-size: 1.3rem; }
+}
+
+/* Phone (< 480px) */
+@media (max-width: 479.98px) {
+    .mi-pagina-wrapper { padding: 1rem 0.85rem; }
+    /* Header: stack total */
+    .mp-header {
+        flex-direction: column;
+        gap: 0.85rem;
+        margin-bottom: 1.25rem;
+    }
+    .mp-title { font-size: 1.1rem; gap: 0.4rem; }
+    .mp-subtitle { font-size: 0.82rem; }
+    /* Link card: ancho completo */
+    .mp-link-card {
+        width: 100%;
+        min-width: unset;
+        padding: 1rem 1.1rem;
+    }
+    .mp-link-url { font-size: 0.8rem; }
+    .mp-link-actions { flex-wrap: wrap; gap: 0.4rem; }
+    .btn-link-copy, .btn-link-open {
+        flex: 1;
+        justify-content: center;
+        min-height: 40px;
+    }
+    /* Tabs scrolleables en phone */
+    .mp-tabs {
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+        flex-wrap: nowrap;
+        padding-bottom: 0.5rem;
+        scrollbar-width: none;
+        border-bottom: none;
+        margin-bottom: 1rem;
+        gap: 0.3rem;
+    }
+    .mp-tabs::-webkit-scrollbar { display: none; }
+    .mp-tab {
+        flex-shrink: 0;
+        white-space: nowrap;
+        font-size: 0.82rem;
+        padding: 0.5rem 0.9rem;
+    }
+    /* Panel: 1 columna, preview al final */
+    .mp-panel-grid {
+        grid-template-columns: 1fr;
+        gap: 1.25rem;
+    }
+    /* Preview: compacto, no sticky */
+    .mp-preview-col { position: static; }
+    .preview-card { border-radius: 14px; }
+    .preview-hero { padding: 1.5rem 1.25rem; }
+    /* Color row → 1 col en phone */
+    .form-row-2 { grid-template-columns: 1fr; gap: 0.75rem; }
+    /* Toggle rows */
+    .toggle-row { padding: 0.75rem 0.9rem; gap: 0.75rem; }
+    .toggle-label { font-size: 0.82rem; }
+    .toggle-desc { font-size: 0.72rem; }
+    /* Save button ancho completo */
+    .btn-save {
+        width: 100%;
+        justify-content: center;
+        min-height: 48px;
+    }
+    /* Redes: 1 columna */
+    .redes-form-grid { grid-template-columns: 1fr; gap: 0.85rem; }
+    .red-group { padding: 1rem; }
+    /* Media: 1 columna */
+    .media-grid { grid-template-columns: 1fr; gap: 1rem; }
+    .media-card { padding: 1.1rem; }
+    /* Sección title más pequeño */
+    .mp-section-title { font-size: 0.74rem; }
+}
 </style>
 
 <script>

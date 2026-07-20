@@ -73,7 +73,7 @@
         /* Stats Grid */
         .stats-grid {
             display: grid;
-            grid-template-columns: repeat(5, 1fr);
+            grid-template-columns: repeat(4, 1fr);
             gap: 1.2rem;
             margin-bottom: 2.5rem;
         }
@@ -239,6 +239,11 @@
             color: var(--text-sec);
             border: 1px solid var(--border);
         }
+
+        .filter-container { padding: 1.25rem 1.5rem; margin-bottom: 1.5rem; }
+        .filter-flex { display: flex; gap: 1rem; align-items: center; flex-wrap: wrap; }
+        .filter-search-wrapper { flex: 1; min-width: 220px; position: relative; }
+        .filter-buttons-wrapper { display: flex; gap: 0.5rem; flex-wrap: wrap; }
 
         /* Dropdown */
         .dropdown {
@@ -590,11 +595,139 @@
             border-radius: 0.5rem;
             font-size: 0.75rem;
         }
+
+        /* ══════════════════════════════════════════
+           RESPONSIVE — MANAGE DOMICILIARIOS
+           Tablet Landscape: 768–1023px
+           Tablet Portrait:  480–767px
+           Phone:            < 480px
+        ══════════════════════════════════════════ */
+
+        /* Tablet Landscape (768–1023px) */
+        @media (min-width: 768px) and (max-width: 1023.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: 1rem;
+            }
+            .page-header {
+                gap: 1rem;
+            }
+            .sidebar-form {
+                width: 400px;
+                right: -400px;
+            }
+        }
+
+        /* Tablet Portrait (480–767px) */
+        /* Tablet Portrait (480–767px) */
+        @media (min-width: 480px) and (max-width: 767.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.85rem;
+                margin-bottom: 1.5rem;
+            }
+            .page-header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.85rem;
+                margin-bottom: 1.25rem;
+            }
+            .page-title { font-size: 1.4rem; margin-bottom: 0; }
+            .page-subtitle { display: none; }
+            .btn-d.btn-d-primary { width: auto; padding: 0.6rem 1rem; justify-content: center; font-size: 0.9rem; }
+            
+            .tabs-container { gap: 0.3rem; margin-bottom: 1rem; }
+            .tab-btn { padding: 0.6rem 0.9rem; font-size: 0.82rem; }
+            
+            .sidebar-form { width: 100vw; right: -100vw; max-width: 100vw; }
+            .sidebar-form.open { right: 0; }
+            
+            .table-d th:nth-child(4),
+            .table-d td:nth-child(4) { display: none; }
+            
+            .filter-container { padding: 1rem; }
+            .filter-flex { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            .filter-buttons-wrapper { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; scrollbar-width: none; }
+            .filter-buttons-wrapper::-webkit-scrollbar { display: none; }
+            .filter-buttons-wrapper button { flex-shrink: 0; }
+        }
+
+        /* Phone (< 480px) */
+        @media (max-width: 479.98px) {
+            .stats-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: 0.5rem;
+                margin-bottom: 1.25rem;
+            }
+            .stat-value { font-size: 1.25rem; }
+            .card-d-content { padding: 0.65rem; }
+            .stat-label { font-size: 0.55rem; letter-spacing: 0; }
+
+            .page-header {
+                flex-direction: row;
+                align-items: center;
+                justify-content: space-between;
+                gap: 0.5rem;
+                margin-bottom: 1rem;
+            }
+            .page-title { font-size: 1.25rem; margin-bottom: 0; }
+            .page-subtitle { display: none; }
+            .btn-d.btn-d-primary { width: auto; padding: 0.5rem 0.75rem; font-size: 0.85rem; justify-content: center; }
+
+            .tabs-container {
+                display: flex;
+                flex-wrap: nowrap;
+                overflow-x: auto;
+                -webkit-overflow-scrolling: touch;
+                gap: 0.25rem;
+                padding-bottom: 0.5rem;
+                margin-bottom: 1rem;
+                border-bottom: none;
+                scrollbar-width: none;
+            }
+            .tabs-container::-webkit-scrollbar { display: none; }
+            .tab-btn { flex-shrink: 0; padding: 0.55rem 0.85rem; font-size: 0.8rem; white-space: nowrap; }
+
+            .sidebar-form {
+                top: auto;
+                bottom: 0;
+                right: 0;
+                left: 0;
+                width: 100vw;
+                max-width: 100vw;
+                height: 92dvh;
+                border-top-left-radius: 20px;
+                border-top-right-radius: 20px;
+                border-left: none;
+                border-top: 1px solid var(--border);
+                transform: translateY(100%);
+                transition: transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+            }
+            .sidebar-form.open { right: unset; transform: translateY(0); }
+            .sidebar-form-footer { flex-direction: column; gap: 0.6rem; }
+
+            .table-wrapper { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+            .table-d { min-width: 500px; }
+            .table-d th, .table-d td { padding: 0.75rem 1rem; font-size: 0.82rem; }
+            
+            .table-d th:nth-child(4),
+            .table-d td:nth-child(4) { display: none; }
+
+            .modal-content-d { width: 95%; padding: 1rem; border-radius: 1rem; }
+            .modal-footer-d { grid-template-columns: 1fr; gap: 0.6rem; }
+            
+            .filter-container { padding: 1rem; }
+            .filter-flex { flex-direction: column; align-items: stretch; gap: 0.75rem; }
+            .filter-buttons-wrapper { overflow-x: auto; flex-wrap: nowrap; padding-bottom: 0.5rem; scrollbar-width: none; }
+            .filter-buttons-wrapper::-webkit-scrollbar { display: none; }
+            .filter-buttons-wrapper button { flex-shrink: 0; }
+        }
     </style>
 
     <div class="page-header">
         <div>
-            <h1 class="page-title">Domiciliarios</h1>
+            <h1 class="page-title">Domiciliarios ({{ $stats['total'] }})</h1>
             <p class="page-subtitle">Gestión y monitoreo del equipo de entregas</p>
         </div>
         <button class="btn-d btn-d-primary" @click="isOpen = true; openCreateForm()">
@@ -608,12 +741,7 @@
 
     <!-- Stats Dinámicos -->
     <div class="stats-grid">
-        <div class="card-d stat-card">
-            <div class="card-d-content">
-                <p class="stat-value">{{ $stats['total'] }}</p>
-                <p class="stat-label">Total</p>
-            </div>
-        </div>
+        <!-- Total removed, shown in title -->
         <div class="card-d stat-card">
             <div class="card-d-content">
                 <p class="stat-value success">{{ $stats['disponibles'] }}</p>
@@ -640,6 +768,7 @@
         </div>
     </div>
 
+
     <!-- Tabs Nav -->
     <div class="tabs-container">
         <button class="tab-btn {{ $activeTab === 'domiciliarios' ? 'active' : '' }}" wire:click="setTab('domiciliarios')">
@@ -663,9 +792,9 @@
     @if($activeTab === 'domiciliarios')
 
     {{-- RF-135: Barra de búsqueda + RF-136: Filtros de estado --}}
-    <div class="card-d" style="padding: 1.25rem 1.5rem; margin-bottom: 1.5rem;">
-        <div style="display: flex; gap: 1rem; align-items: center; flex-wrap: wrap;">
-            <div style="flex: 1; min-width: 220px; position: relative;">
+    <div class="card-d filter-container">
+        <div class="filter-flex">
+            <div class="filter-search-wrapper">
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="position: absolute; left: 12px; top: 50%; transform: translateY(-50%); color: var(--text-sec);">
                     <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
                 </svg>
@@ -673,7 +802,7 @@
                     placeholder="Buscar por nombre o teléfono..."
                     class="form-input" style="padding-left: 2.5rem;">
             </div>
-            <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
+            <div class="filter-buttons-wrapper">
                 @foreach([''=>'Todos','disponible'=>'Disponible','en_ruta'=>'En Ruta','ocupado'=>'Ocupado','no_disponible'=>'Fuera de Servicio'] as $val => $label)
                 <button wire:click="setFiltroEstado('{{ $val }}')"
                     style="padding: 0.5rem 1rem; border-radius: 0.75rem; font-size: 0.8rem; font-weight: 600; cursor: pointer; border: 1px solid var(--border); transition: all 0.2s;

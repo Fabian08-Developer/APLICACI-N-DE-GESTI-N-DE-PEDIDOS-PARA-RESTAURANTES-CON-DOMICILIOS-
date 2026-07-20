@@ -115,7 +115,7 @@
         }
 
         .table-z th {
-            padding: 1rem 1.5rem;
+            padding: 0.75rem 1rem;
             font-size: 0.75rem;
             text-transform: uppercase;
             color: var(--text-sec);
@@ -123,9 +123,9 @@
         }
 
         .table-z td {
-            padding: 1.25rem 1.5rem;
+            padding: 0.75rem 1rem;
             border-bottom: 1px solid var(--border);
-            font-size: 0.875rem;
+            font-size: 0.85rem;
         }
 
         /* Badge */
@@ -252,7 +252,7 @@
         /* ── ZONAS CARDS GRID ── */
         .zonas-grid {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(min(100%, 320px), 1fr));
             gap: 1.5rem;
             margin-top: 3rem;
         }
@@ -260,8 +260,8 @@
         .zona-card-premium {
             background: #FFFFFF;
             border: 1px solid var(--border);
-            border-radius: 1.5rem;
-            padding: 1.75rem;
+            border-radius: 1.25rem;
+            padding: 1.25rem;
             transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             display: flex;
             flex-direction: column;
@@ -518,7 +518,47 @@
             font-weight: 700;
             text-transform: uppercase;
         }
+        /* ── RESPONSIVE ── */
+        @media (max-width: 991.98px) {
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 1rem; }
+            .sidebar-z { width: 400px; right: -400px; }
+            .stat-value { font-size: 1.5rem; }
+        }
+        @media (max-width: 767.98px) {
+            .page-header { flex-direction: row; align-items: center; justify-content: space-between; gap: 0.5rem; }
+            .page-title { font-size: 1.25rem; }
+            .page-header p { display: none; }
+            .page-header button { width: auto; justify-content: center; padding: 0.6rem 1rem; font-size: 0.9rem; }
+            
+            .stats-grid { grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+            .card-z { padding: 0.75rem; }
+            .stat-value { font-size: 1.2rem; }
+            .stat-label { font-size: 0.55rem; letter-spacing: 0; }
+            
+            .sidebar-z { width: 100%; right: -100%; padding: 1.5rem; }
+            
+            .zonas-grid { grid-template-columns: repeat(2, 1fr); gap: 0.75rem; margin-top: 1.5rem; }
+            .zona-card-premium { padding: 0.9rem; border-radius: 1rem; }
+            .zona-card-header { margin-bottom: 0.6rem; flex-direction: column; gap: 0.5rem; align-items: flex-start; }
+            .zona-icon-wrapper { width: 36px; height: 36px; }
+            .zona-icon-wrapper svg { width: 18px; height: 18px; }
+            .zona-card-title { font-size: 1.15rem; margin-bottom: 0.25rem; }
+            .zona-card-barrios { font-size: 0.75rem; min-height: 1.5rem; margin-bottom: 0.8rem; -webkit-line-clamp: 2; }
+            
+            .zona-card-stats { grid-template-columns: 1fr 1fr; gap: 0.4rem; margin-bottom: 0.8rem; }
+            .zona-stat-box { padding: 0.5rem 0.25rem; border-radius: 0.6rem; }
+            .zona-stat-value { font-size: 0.95rem; margin-bottom: 0.1rem; }
+            .zona-stat-label { font-size: 0.55rem; }
+            
+            .team-avatar-sm { width: 26px; height: 26px; font-size: 0.6rem; }
+            .team-label { font-size: 0.7rem; }
+            .btn-ver-detalle { padding: 0.6rem; font-size: 0.8rem; margin-top: 0.85rem; }
+            
+            .modal-zona-detail { max-width: 95%; margin: 1rem; }
+            .btn-z { width: 100%; justify-content: center; }
+        }
     </style>
+
 
     <div class="page-header">
         <div>
@@ -568,10 +608,8 @@
                         <th>Zona</th>
                         <th>Barrios Cubiertos</th>
                         <th>Costo Envío</th>
-                        <th>Tiempo</th>
-                        <th>Equipo</th>
                         <th>Estado</th>
-                        <th></th>
+                        <th style="text-align: right;">Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -589,10 +627,6 @@
                             @endforelse
                         </td>
                         <td style="font-weight: 600; color: var(--status-info);">${{ number_format($zona->costo_envio, 0) }}</td>
-                        <td>{{ $zona->tiempo_estimado }} min</td>
-                        <td style="text-align: center;">
-                            <span title="Domiciliarios en esta zona">{{ $zona->domiciliarios_count }} </span>
-                        </td>
                         <td>
                             <button type="button" wire:click="toggleActivo('{{ $zona->id }}')" class="badge {{ $zona->activo ? 'badge-success' : 'badge-error' }}" style="cursor: pointer; border: none; font-family: inherit;">
                                 {{ $zona->activo ? 'Activa' : 'Inactiva' }}
@@ -619,7 +653,7 @@
                     </tr>
                     @empty
                     <tr>
-                        <td colspan="7" style="text-align: center; padding: 3rem;">No hay zonas definidas.</td>
+                        <td colspan="5" style="text-align: center; padding: 3rem;">No hay zonas definidas.</td>
                     </tr>
                     @endforelse
                 </tbody>

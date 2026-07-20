@@ -145,7 +145,7 @@
                 <tr wire:key="cat-{{ $categoria->id }}">
                     <td class="texto-gris">{{ $categoria->short_id }}</td>
                     <td>{{ $categoria->nombre }}</td>
-                    <td class="texto-gris">{{ $categoria->descripcion ?? '—' }}</td>
+                    <td class="texto-gris">{{ $categoria->descripcion ?? 'â€”' }}</td>
                     <td>
                         <label class="toggle-switch-wrapper" wire:loading.attr="disabled" style="cursor: pointer;">
                             <input type="checkbox" class="toggle-checkbox"
@@ -252,17 +252,13 @@
             color: var(--text-main);
         }
 
-        .btn-modal-cancel:hover {
-            background: rgba(0,0,0,0.1);
-        }
+        .btn-modal-cancel:hover { background: rgba(0,0,0,0.1); }
 
         .btn-modal-confirm {
             background: #ef4444;
             color: white;
         }
 
-        .btn-modal-confirm:hover {
-            background: #dc2626;
-        }
+        .btn-modal-confirm:hover { background: #dc2626; }
     </style>
 </div>

@@ -4,12 +4,34 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('titulo') — Cocina</title>
-    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500&family=Geist:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;500;600;700&family=Geist:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script src="//unpkg.com/alpinejs" defer></script>
     @vite(['resources/css/cocina.css', 'resources/js/cocina.js'])
 </head>
-<body class="artisan-bg">
+<body x-data="{ sidebarOpen: false }">
+    {{-- OVERLAY CERRAR SIDEBAR --}}
+    <div id="cocina-sidebar-overlay" class="cocina-sidebar-overlay" :class="{'visible': sidebarOpen}" @click="sidebarOpen = false"></div>
 
-    <aside class="sidebar">
+    {{-- HEADER MÓVIL --}}
+    <header class="cocina-mobile-header">
+        <div class="header-logo-mobile">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2z" opacity=".3"/>
+                <path d="M15 8.5c0-1.38-1.12-2.5-2.5-2.5S10 7.12 10 8.5c0 2.5 2.5 4 2.5 6.5"/>
+                <line x1="12.5" y1="17" x2="12.5" y2="17.5" stroke-linecap="round" stroke-width="2.5"/>
+            </svg>
+            Cocina
+        </div>
+        <button id="btn-toggle-sidebar" class="btn-toggle-sidebar" @click="sidebarOpen = !sidebarOpen">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+        </button>
+    </header>
+
+    <aside id="cocina-sidebar" class="sidebar" :class="{'abierto': sidebarOpen}">
         <div class="sidebar-logo">
             <div class="sidebar-logo-name">
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8">

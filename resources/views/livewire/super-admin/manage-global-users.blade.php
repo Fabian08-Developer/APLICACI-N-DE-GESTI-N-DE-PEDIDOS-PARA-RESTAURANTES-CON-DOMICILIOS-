@@ -27,76 +27,84 @@
     </div>
 
     <div class="bg-[#141210] border border-[#2C241B]/10 rounded-[32px] overflow-hidden">
-        <table class="w-full text-left border-collapse">
-            <thead>
-                <tr class="bg-white border-b border-[#2C241B]/10">
-                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Usuario</th>
-                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Empresa</th>
-                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Rol</th>
-                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Estado</th>
-                    <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246] text-right">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-[#2C241B]/10]">
-                @forelse($users as $user)
-                    <tr class="hover:bg-white transition-colors" wire:key="{{ $user->id }}">
-                        <td class="px-6 py-4">
-                            <div class="flex items-center gap-3">
-                                <div class="w-8 h-8 rounded-lg bg-[#E07A5F]/20 text-[#E07A5F] flex items-center justify-center font-black text-xs">
-                                    {{ substr($user->nombre, 0, 1) }}
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse min-w-[750px]">
+                <thead>
+                    <tr class="bg-white border-b border-[#2C241B]/10">
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Usuario</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Empresa</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Rol</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246]">Estado</th>
+                        <th class="px-6 py-4 text-[10px] font-black uppercase tracking-widest text-[#5C5246] text-right">Acciones</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-[#2C241B]/10]">
+                    @forelse($users as $user)
+                        <tr class="hover:bg-white transition-colors" wire:key="{{ $user->id }}">
+                            <td class="px-6 py-4">
+                                <div class="flex items-center gap-3">
+                                    <div class="w-8 h-8 rounded-lg bg-[#E07A5F]/20 text-[#E07A5F] flex items-center justify-center font-black text-xs">
+                                        {{ substr($user->nombre, 0, 1) }}
+                                    </div>
+                                    <div class="flex flex-col">
+                                        <span class="text-sm font-bold text-[#2C241B]">{{ $user->nombre }}</span>
+                                        <span class="text-[11px] text-[#5C5246]">{{ $user->correo }}</span>
+                                    </div>
                                 </div>
-                                <div class="flex flex-col">
-                                    <span class="text-sm font-bold text-[#2C241B]">{{ $user->nombre }}</span>
-                                    <span class="text-[11px] text-[#5C5246]">{{ $user->correo }}</span>
-                                </div>
-                            </div>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="text-xs text-[#8B8175] font-medium">
-                                {{ $user->empresa->nombre ?? 'N/A' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            <span class="px-2 py-0.5 rounded bg-[#E6E2DB] text-[#8B8175] text-[9px] font-black uppercase tracking-widest">
-                                {{ $user->rol?->nombre ?? 'Sin Rol' }}
-                            </span>
-                        </td>
-                        <td class="px-6 py-4">
-                            @if($user->activo)
-                                <span class="px-2 py-1 rounded-full bg-green-500/10 text-green-500 text-[9px] font-black uppercase tracking-widest">Activo</span>
-                            @else
-                                <span class="px-2 py-1 rounded-full bg-rose-500/10 text-rose-500 text-[9px] font-black uppercase tracking-widest">Bloqueado</span>
-                            @endif
-                        </td>
-                        <td class="px-6 py-4 text-right">
-                            <div class="flex items-center justify-end gap-2">
-                                {{-- Toggle Status --}}
-                                <button wire:click="toggleStatus('{{ $user->id }}')" 
-                                        class="p-2 rounded-xl {{ $user->activo ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B]' : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-[#2C241B]' }} transition-all"
-                                        title="{{ $user->activo ? 'Desactivar' : 'Activar' }}">
-                                    @if($user->activo)
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
-                                    @else
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="text-xs text-[#8B8175] font-medium">
+                                    {{ $user->empresa->nombre ?? 'N/A' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                <span class="px-3 py-1 rounded-full bg-blue-500/10 text-blue-500 text-[10px] font-black uppercase tracking-widest">
+                                    {{ $user->roles->first()?->name ?? 'Sin Rol' }}
+                                </span>
+                            </td>
+                            <td class="px-6 py-4">
+                                @if($user->empresa && $user->empresa->activo)
+                                    <span class="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest">Activo</span>
+                                @else
+                                    <span class="px-3 py-1 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest">Inactivo</span>
+                                @endif
+                            </td>
+                            <td class="px-6 py-4 text-right">
+                                <div class="flex items-center justify-end gap-2">
+                                    @if($user->id !== auth()->id() && $user->roles->first()?->name !== 'super_admin')
+                                        <button wire:click="impersonate('{{ $user->id }}')" 
+                                                class="p-2 rounded-xl text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B] transition-all"
+                                                title="Iniciar sesión como este usuario">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
+                                        </button>
                                     @endif
-                                </button>
 
-                                {{-- Delete --}}
-                                <button wire:click="confirmDelete('{{ $user->id }}')"
-                                        class="p-2 rounded-xl text-rose-500 bg-rose-500/10 hover:bg-rose-500 hover:text-[#2C241B] transition-all"
-                                        title="Eliminar usuario">
-                                    <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
-                                </button>
-                            </div>
-                        </td>
-                    </tr>
-                @empty
-                    <tr>
-                        <td colspan="5" class="px-6 py-12 text-center text-[#5C5246] uppercase text-[10px] font-black tracking-widest">No se encontraron usuarios</td>
-                    </tr>
-                @endforelse
-            </tbody>
-        </table>
+                                    <button wire:click="toggleUserStatus('{{ $user->id }}')" 
+                                            class="p-2 rounded-xl {{ ($user->empresa && $user->empresa->activo) ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B]' : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-[#2C241B]' }} transition-all"
+                                            title="Cambiar estado del negocio">
+                                        @if($user->empresa && $user->empresa->activo)
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
+                                        @else
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                                        @endif
+                                    </button>
+
+                                    <button wire:click="confirmDelete('{{ $user->id }}')"
+                                            class="p-2 rounded-xl text-rose-500 bg-rose-500/10 hover:bg-rose-500 hover:text-[#2C241B] transition-all"
+                                            title="Eliminar usuario">
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/></svg>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                    @empty
+                        <tr>
+                            <td colspan="5" class="px-6 py-12 text-center text-[#5C5246] uppercase text-[10px] font-black tracking-widest">No se encontraron usuarios</td>
+                        </tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
         
         <div class="px-6 py-4 border-t border-[#2C241B]/10">
             {{ $users->links() }}
@@ -106,7 +114,7 @@
     {{-- Modal de Confirmación de Eliminación --}}
     @if($confirmingDelete)
         <div class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#2C241B]/80 backdrop-blur-sm">
-            <div class="bg-white border border-rose-500/30 p-8 rounded-[28px] max-w-md w-full shadow-2xl shadow-rose-900/20">
+            <div class="bg-white border border-rose-500/30 p-5 sm:p-8 rounded-[28px] max-w-md w-full shadow-2xl shadow-rose-900/20 max-h-[90vh] overflow-y-auto">
                 <div class="w-14 h-14 rounded-full bg-rose-500/10 flex items-center justify-center mb-5">
                     <svg class="w-7 h-7 text-rose-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/>
@@ -129,7 +137,7 @@
                     @enderror
                 </div>
 
-                <div class="flex gap-3">
+                <div class="flex flex-col sm:flex-row gap-3">
                     <button wire:click="cancelDelete"
                             class="flex-1 py-3 text-[#8B8175] font-bold text-xs uppercase tracking-widest hover:text-[#2C241B] hover:bg-[#E6E2DB] rounded-xl transition-all">
                         Cancelar

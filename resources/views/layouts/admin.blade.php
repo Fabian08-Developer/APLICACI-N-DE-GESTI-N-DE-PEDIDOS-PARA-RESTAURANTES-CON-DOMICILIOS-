@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
-    <title>{{ $title ?? 'Admin' }}</title>
+    <title>{{ $title ?? 'Admin' }} — SGPD Suite</title>
     {{-- Meta tags de contexto de autenticación para Echo y PWA --}}
     @auth
     <meta name="auth-user-id"      content="{{ auth()->id() }}">
@@ -15,23 +15,24 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default">
     <meta name="apple-mobile-web-app-title" content="SGPD">
     <link rel="manifest" href="/manifest.json">
-    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,600;0,700;1,600&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     @vite(['resources/css/admin.css', 'resources/js/admin.js', 'resources/js/echo-setup.js'])
     @livewireStyles
     <style>
         .livewire-progress-bar {
-            background-color: var(--primary, #A85507) !important;
+            background-color: var(--primary, #E07A5F) !important;
+            height: 3px !important;
         }
     </style>
 </head>
-<body x-data="{ sidebarOpen: false }">
+<body x-data="{ sidebarOpen: false }" :class="{ 'sidebar-open': sidebarOpen }">
     @php
         $globalSettings = @json_decode(@file_get_contents(storage_path('app/global_settings.json')), true) ?: [];
         $hasActiveNotice = ($globalSettings['aviso_activo'] ?? false) && ($globalSettings['aviso_mostrar_banner'] ?? false) && !empty($globalSettings['aviso_titulo']);
     @endphp
 
     @if($hasActiveNotice)
-        <div id="system-notice-banner" style="background: linear-gradient(135deg, #7f1d1d, #78350f); border-bottom: 1px solid rgba(244, 63, 94, 0.3); color: #FFFFFF; padding: 12px 24px; font-family: 'DM Sans', sans-serif; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: all 0.3s ease;">
+        <div id="system-notice-banner" style="background: linear-gradient(135deg, #7f1d1d, #78350f); border-bottom: 1px solid rgba(244, 63, 94, 0.3); color: #FFFFFF; padding: 12px 24px; font-family: 'Plus Jakarta Sans', sans-serif; font-size: 13px; display: flex; align-items: center; justify-content: space-between; gap: 16px; position: sticky; top: 0; z-index: 9999; box-shadow: 0 4px 20px rgba(0,0,0,0.3); transition: all 0.3s ease;">
             <div style="display: flex; align-items: center; gap: 12px; margin: 0 auto; text-align: center;">
                 <span style="display: inline-flex; position: relative; width: 10px; height: 10px; flex-shrink: 0;">
                     <span style="position: absolute; width: 100%; height: 100%; border-radius: 50%; background-color: #fb7185; opacity: 0.75; animation: notice-ping 1s cubic-bezier(0, 0, 0.2, 1) infinite;"></span>
@@ -56,14 +57,14 @@
 
     {{-- TOPBAR --}}
     <header class="topbar">
-        <button class="btn-hamburger" onclick="toggleSidebar()" id="btnHamburger">
+        <button class="btn-hamburger" @click="sidebarOpen = !sidebarOpen" id="btnHamburger">
             <span></span>
             <span></span>
             <span></span>
         </button>
         <div class="topbar-logo">
-            Mi Restaurante
-            <small>Panel administrador</small>
+            <span>SG<span>PD</span></span>
+            <small>Panel de Administración</small>
         </div>
         <div class="topbar-spacer"></div>
         {{-- Campanilla de notificaciones en tiempo real --}}
@@ -74,10 +75,10 @@
         @endauth
         <div class="topbar-usuario">
             <strong>{{ auth()->user()->nombre }}</strong>
-            {{ auth()->user()->rol->nombre }} @if(auth()->user()->sucursal_id) (Sucursal: {{ auth()->user()->sucursal->nombre }}) @endif
+            <span>{{ auth()->user()->rol->nombre }}</span> @if(auth()->user()->sucursal_id) <span class="sucursal-badge">Sucursal: {{ auth()->user()->sucursal->nombre }}</span> @endif
             <br>
             @if(auth()->user()->hasRole('gerente'))
-            <a href="{{ route('sucursales') }}" style="color:var(--primary); font-size:0.7rem; text-decoration:underline;">Cambiar sucursal</a>
+            <a href="{{ route('sucursales') }}" class="link-sucursal">Cambiar sucursal</a>
             @endif
         </div>
         <form method="POST" action="{{ route('logout') }}" class="topbar-logout-form" style="margin-left: 0.5rem; display: flex; align-items: center;">
@@ -91,71 +92,85 @@
     </header>
 
     {{-- OVERLAY --}}
-    <div class="overlay" onclick="toggleSidebar()"></div>
+    <div class="overlay" @click="sidebarOpen = false"></div>
 
     {{-- DRAWER SIDEBAR --}}
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="sidebar-marca">
-                Mi Restaurante
-                <small>Panel administrador</small>
+                <div class="sidebar-logo-caja">
+                    <svg class="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16m14 0h2m-2 0h-5m-9 0H3m2 0h5M9 7h1m-1 4h1m4-4h1m-1 4h1m-5 10v-5a1 1 0 011-1h2a1 1 0 011 1v5m-4 0h4" />
+                    </svg>
+                </div>
+                <div>
+                    <span>SG<span>PD</span></span>
+                    <small>Gestión Gastronómica</small>
+                </div>
             </div>
-            <button class="btn-cerrar" onclick="toggleSidebar()">✕</button>
+            <button class="btn-cerrar" @click="sidebarOpen = false">✕</button>
         </div>
 
         <nav class="sidebar-nav">
             <div class="nav-label">General</div>
-            <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span> Dashboard
+            <a href="{{ route('admin.dashboard') }}" class="nav-item {{ request()->routeIs('admin.dashboard') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z"/></svg></span> <span>Dashboard</span>
             </a>
 
-            <div class="nav-label">Gestión</div>
-            <a href="{{ route('admin.categorias') }}" class="nav-item {{ request()->routeIs('admin.categorias') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></span> Categorías
+            <div class="nav-label">Gestión de Menú</div>
+            <a href="{{ route('admin.categorias') }}" class="nav-item {{ request()->routeIs('admin.categorias') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M7 7h.01M7 3h5c.512 0 1.024.195 1.414.586l7 7a2 2 0 010 2.828l-7 7a2 2 0 01-2.828 0l-7-7A1.994 1.994 0 013 12V7a4 4 0 014-4z"/></svg></span> <span>Categorías</span>
             </a>
-            <a href="{{ route('admin.productos') }}" class="nav-item {{ request()->routeIs('admin.productos') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></span> Productos
-            </a>
-            <a href="{{ route('admin.mesas') }}" class="nav-item {{ request()->routeIs('admin.mesas') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 14a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"/></svg></span> Mesas
-            </a>
-            <a href="{{ route('admin.reservas.index') }}" class="nav-item {{ request()->routeIs('admin.reservas.*') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></span> Reservas
-            </a>
-            <a href="{{ route('admin.pedidos') }}" class="nav-item {{ request()->routeIs('admin.pedidos') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span> Pedidos
-            </a>
-            <a href="{{ route('admin.domiciliarios.index') }}" class="nav-item {{ request()->routeIs('admin.domiciliarios.*') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10M13 16h3.25L19 13.5V16h1a1 1 0 001-1v-4.5l-2.5-3H13"/></svg></span> Domiciliarios
-            </a>
-            <a href="{{ route('admin.zonas.index') }}" class="nav-item {{ request()->routeIs('admin.zonas.*') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span> Zonas
-            </a>
-            <a href="{{ route('admin.mapa') }}" class="nav-item {{ request()->routeIs('admin.mapa') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></span> Mapa
+            <a href="{{ route('admin.productos') }}" class="nav-item {{ request()->routeIs('admin.productos') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 8v13m0-13V6a2 2 0 112 2h-2zm0 0V5.5A2.5 2.5 0 109.5 8H12zm-7 4h14M5 12a2 2 0 110-4h14a2 2 0 110 4M5 12v7a2 2 0 002 2h10a2 2 0 002-2v-7"/></svg></span> <span>Productos</span>
             </a>
 
-            <a href="{{ route('admin.reportes') }}" class="nav-item {{ request()->routeIs('admin.reportes') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span> Reportes
+            <div class="nav-label">Operación y Sala</div>
+            <a href="{{ route('admin.mesas') }}" class="nav-item {{ request()->routeIs('admin.mesas') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM4 14a2 2 0 012-2h12a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2z"/></svg></span> <span>Mesas</span>
             </a>
-            <a href="{{ route('admin.usuarios.index') }}" class="nav-item {{ request()->routeIs('admin.usuarios.*') ? 'activo' : '' }}" onclick="toggleSidebar()" wire:navigate>
-                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span> Usuarios
+            <a href="{{ route('admin.reservas.index') }}" class="nav-item {{ request()->routeIs('admin.reservas.*') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/></svg></span> <span>Reservas</span>
+            </a>
+            <a href="{{ route('admin.pedidos') }}" class="nav-item {{ request()->routeIs('admin.pedidos') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"/></svg></span> <span>Pedidos</span>
+            </a>
+
+            <div class="nav-label">Domicilios y Rutas</div>
+            <a href="{{ route('admin.domiciliarios.index') }}" class="nav-item {{ request()->routeIs('admin.domiciliarios.*') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17a2 2 0 11-4 0 2 2 0 014 0zM19 17a2 2 0 11-4 0 2 2 0 014 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M13 16V6a1 1 0 00-1-1H4a1 1 0 00-1 1v10M13 16h3.25L19 13.5V16h1a1 1 0 001-1v-4.5l-2.5-3H13"/></svg></span> <span>Domiciliarios</span>
+            </a>
+            <a href="{{ route('admin.zonas.index') }}" class="nav-item {{ request()->routeIs('admin.zonas.*') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"/></svg></span> <span>Zonas</span>
+            </a>
+            <a href="{{ route('admin.mapa') }}" class="nav-item {{ request()->routeIs('admin.mapa') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 20l-5.447-2.724A1 1 0 013 16.382V5.618a1 1 0 011.447-.894L9 7m0 13l6-3m-6 3V7m6 10l4.553 2.276A1 1 0 0021 18.382V7.618a1 1 0 00-.553-.894L15 4m0 13V4m0 0L9 7"/></svg></span> <span>Mapa en Vivo</span>
+            </a>
+
+            <div class="nav-label">Analítica y Personal</div>
+            <a href="{{ route('admin.reportes') }}" class="nav-item {{ request()->routeIs('admin.reportes') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg></span> <span>Reportes Financieros</span>
+            </a>
+            <a href="{{ route('admin.usuarios.index') }}" class="nav-item {{ request()->routeIs('admin.usuarios.*') ? 'activo' : '' }}" @click="if(window.innerWidth < 1024) sidebarOpen = false" wire:navigate>
+                <span class="icono"><svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z"/></svg></span> <span>Usuarios y Staff</span>
             </a>
         </nav>
 
         <div class="sidebar-footer">
-            <strong>{{ auth()->user()->nombre }}</strong>
-            {{ auth()->user()->rol->nombre }}
-            <form method="POST" action="{{ route('logout') }}">
+            <div class="user-info-caja">
+                <strong>{{ auth()->user()->nombre }}</strong>
+                <span>{{ auth()->user()->rol->nombre }}</span>
+            </div>
+            <form method="POST" action="{{ route('logout') }}" style="margin: 0;">
                 @csrf
-                <button type="submit" class="btn-logout">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <button type="submit" class="btn-logout-icon" title="Cerrar sesión">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                         <path stroke-linecap="round" stroke-linejoin="round" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
                     </svg>
-                    Cerrar sesión
                 </button>
             </form>
         </div>
+
     </aside>
 
     {{-- CONTENIDO --}}

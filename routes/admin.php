@@ -12,6 +12,7 @@ use App\Livewire\Admin\Reportes\ManageReportes;
 use App\Livewire\Admin\Usuarios\ManageUsuarios;
 use App\Livewire\Admin\MapaSede;
 use App\Livewire\Admin\Reservas\ManageReservas;
+use App\Http\Controllers\Admin\ProgramacionReporteController;
 
 Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:administrador|gerente'])->group(function() {
     
@@ -51,6 +52,13 @@ Route::prefix('admin')->name('admin.')->middleware(['auth.custom', 'role:adminis
 
     Route::get('/reportes/exportar', [\App\Http\Controllers\Admin\ReporteExportController::class, 'exportar'])->name('reportes.exportar');
     Route::get('/reportes', ManageReportes::class)->name('reportes');
+
+    Route::prefix('reportes/programacion')->name('reportes.programacion.')->group(function () {
+        Route::get('/',               [ProgramacionReporteController::class, 'index'])  ->name('index');
+        Route::post('/',              [ProgramacionReporteController::class, 'store'])  ->name('store');
+        Route::post('/test',          [ProgramacionReporteController::class, 'test'])   ->name('test');
+        Route::post('/{id}/eliminar', [ProgramacionReporteController::class, 'destroy'])->name('destroy');
+    });
 
     Route::prefix('usuarios')->name('usuarios.')->group(function () {
         Route::get('/', ManageUsuarios::class)->name('index');

@@ -394,8 +394,7 @@ class ManageReportes extends Component
     public function exportPdf()
     {
         $data = $this->obtenerDatosReporte();
-        $sections = request('sections', ['kpis', 'chart', 'categories']);
-        $data['sections'] = $sections;
+        $data['sections'] = ['kpis', 'chart', 'categories', 'products'];
 
         $pdf = Pdf::loadView('admin.reportes.pdf', $data);
         return $pdf->download('Reporte_Ventas_' . \Carbon\Carbon::parse($data['start'])->format('Ymd') . '_' . \Carbon\Carbon::parse($data['end'])->format('Ymd') . '.pdf');
@@ -407,8 +406,7 @@ class ManageReportes extends Component
     public function exportExcel($format)
     {
         $data = $this->obtenerDatosReporte();
-        $sections = request('sections', ['kpis', 'chart', 'categories']);
-        $data['sections'] = $sections;
+        $data['sections'] = ['kpis', 'chart', 'categories', 'products'];
 
         $export = new ReporteVentasExport($data);
         $fileName = 'Reporte_Ventas_' . \Carbon\Carbon::parse($data['start'])->format('Ymd') . '_' . \Carbon\Carbon::parse($data['end'])->format('Ymd');

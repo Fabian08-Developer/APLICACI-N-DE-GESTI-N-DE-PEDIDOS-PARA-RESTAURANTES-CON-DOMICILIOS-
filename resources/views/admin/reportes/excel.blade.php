@@ -7,7 +7,7 @@
             <th colspan="3" style="font-size: 12px; text-align: center;">Sucursal: {{ $sucursal->nombre }}</th>
         </tr>
         <tr>
-            <th colspan="3" style="font-size: 11px; text-align: center;">Período: {{ ucfirst($period) }} ({{ $start->format('d/m/Y') }} - {{ $end->format('d/m/Y') }})</th>
+            <th colspan="3" style="font-size: 11px; text-align: center;">Período: {{ ucfirst($period) }} ({{ \Carbon\Carbon::parse($start)->format('d/m/Y') }} - {{ \Carbon\Carbon::parse($end)->format('d/m/Y') }})</th>
         </tr>
         @if(!empty($selectedCategorias) || !empty($selectedMetodosPago) || !empty($selectedProductosTop))
         <tr>

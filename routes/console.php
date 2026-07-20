@@ -53,3 +53,20 @@ Schedule::command('accounts:cleanup-trash')->daily();
 
 // Limpiar sesiones de usuario (tabla `sesiones`) expiradas o antiguas
 Schedule::command('sessions:cleanup')->daily()->at('03:00');
+
+// ─── REPORTES PROGRAMADOS ─────────────────────────────────────────────────────
+
+// Revisar cada minuto si hay programaciones de reportes que deban enviarse.
+// El Job se encarga de generar el PDF y enviarlo por correo.
+Schedule::call(function () {
+    \App\Models\ProgramacionReporte::where('activo', true)
+        ->whereNotNull('proximo_envio_en')
+        ->where('proximo_envio_en', '<=', now())
+        ->each(function ($programacion) {
+            \App\Jobs\EnviarReporteProgramadoJob::dispatch($programacion);
+        });
+})
+->everyMinute()
+->name('enviar-reportes-programados')
+->withoutOverlapping();
+

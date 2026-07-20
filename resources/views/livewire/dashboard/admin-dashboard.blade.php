@@ -47,7 +47,7 @@
                 <tbody>
                     @foreach($ultimosPedidos as $pedido)
                     <tr>
-                        <td style="font-weight: 500;">#{{ $pedido->id }}</td>
+                        <td style="font-weight: 500;" title="{{ $pedido->id }}">#{{ substr($pedido->id, 0, 8) }}</td>
                         <td>{{ $pedido->mesero?->nombre ?? '—' }}</td>
                         <td>
                             @php

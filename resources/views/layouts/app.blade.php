@@ -78,11 +78,10 @@
     $platformName = $isSuperAdmin ? 'BUILDER PLATFORM' : 'Mi Restaurante';
     $platformSub = $isSuperAdmin ? 'Centro de Control Global' : 'Panel Administrador';
     @endphp
-
     {{-- TOPBAR --}}
-    <header class="h-20 bg-[#FFFFFF]/98 backdrop-blur-xl border-b border-[#2C241B]/10 sticky top-0 z-30 px-4 sm:px-6 flex items-center justify-between shadow-sm">
-        <div class="flex items-center gap-3">
-            <button @click="sidebarOpen = true" class="p-2 rounded-xl text-[#5C5246] hover:text-[#D97706] hover:bg-[#E2DDD5]/50 transition-all">
+    <header class="h-20 bg-[#FFFFFF]/98 backdrop-blur-xl border-b border-[#2C241B]/[0.05] sticky top-0 z-30 px-4 sm:px-6 lg:pl-[18rem] lg:pr-8 flex items-center justify-between shadow-[0_4px_25px_rgba(44,36,27,0.02)] transition-all duration-300">
+        <div class="flex items-center gap-3 lg:hidden">
+            <button @click="sidebarOpen = !sidebarOpen" class="p-2.5 rounded-xl text-[#5C5246] hover:text-[#2C241B] hover:bg-[#E2DDD5]/60 transition-all flex items-center justify-center focus:outline-none focus:ring-2 focus:ring-[#E07A5F]/50" title="Abrir menú">
                 <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M4 6h16M4 12h16M4 18h16" />
                 </svg>
@@ -93,7 +92,10 @@
             </div>
         </div>
 
-        <div class="flex items-center gap-4">
+        <div class="hidden lg:flex items-center text-[11px] font-extrabold text-[#8B8175] tracking-wider uppercase">
+        </div>
+
+        <div class="flex items-center gap-4 ml-auto">
             <div class="hidden md:flex flex-col items-end">
                 <strong class="text-[12px] text-[#2C241B] uppercase tracking-tighter">{{ $userName }}</strong>
                 <span class="text-[10px] text-[#5C5246] uppercase tracking-wider">{{ $userRole }}</span>
@@ -120,21 +122,21 @@
     {{-- OVERLAY --}}
     <div x-show="sidebarOpen"
         x-transition.opacity.duration.300ms
-        class="fixed inset-0 bg-[#2C241B]/40 backdrop-blur-sm z-40"
+        class="fixed inset-0 bg-[#2C241B]/40 backdrop-blur-sm z-40 lg:hidden"
         @click="sidebarOpen = false"
         x-cloak></div>
 
     {{-- DRAWER SIDEBAR --}}
-    <aside class="fixed inset-y-0 left-0 bg-[#FFFFFF]/98 backdrop-blur-3xl text-[#2C241B] w-64 z-50 border-r border-[#2C241B]/10 shadow-[20px_0_50px_rgba(44,36,27,0.05)] flex flex-col transform transition-transform duration-300 ease-out"
+    <aside class="fixed inset-y-0 left-0 bg-[#FFFFFF]/98 backdrop-blur-3xl text-[#2C241B] w-64 z-50 border-r border-[#2C241B]/[0.05] shadow-[12px_0_40px_rgba(44,36,27,0.035)] flex flex-col transform transition-transform duration-300 ease-out lg:translate-x-0"
         :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'">
 
         {{-- Sidebar Header --}}
-        <div class="h-20 flex items-center justify-between px-6 border-b border-[#2C241B]/10 bg-[#FFFFFF] shrink-0">
+        <div class="h-20 flex items-center justify-between px-6 border-b border-[#2C241B]/[0.05] bg-[#FFFFFF] shrink-0">
             <div class="flex flex-col">
                 <span class="text-[14px] font-black text-[#2C241B] uppercase tracking-widest leading-tight">{{ $platformName }}</span>
                 <span class="text-[10px] font-bold text-[#E07A5F] uppercase tracking-wider">{{ $platformSub }}</span>
             </div>
-            <button @click="sidebarOpen = false" class="p-2 rounded-lg text-[#5C5246] hover:text-[#2C241B] hover:bg-[#E2DDD5]/50 transition-colors">
+            <button @click="sidebarOpen = false" class="p-2 rounded-lg text-[#5C5246] hover:text-[#2C241B] hover:bg-[#E2DDD5]/50 transition-colors lg:hidden" title="Cerrar menú">
                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M6 18L18 6M6 6l12 12" />
                 </svg>
@@ -245,7 +247,7 @@
 
     {{-- CONTENIDO MAIN --}}
     <main class="w-full min-h-[calc(100vh-80px)]">
-        <div class="p-2 sm:p-4 lg:p-6 w-full md:pl-64 transition-all duration-300">
+        <div class="p-4 sm:p-6 lg:py-8 lg:pr-8 lg:pl-[18rem] w-full transition-all duration-300">
             {{ $slot }}
         </div>
     </main>
@@ -269,7 +271,7 @@
     </script>
     
     @auth
-        @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocinero') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
+        @if(auth()->user()->hasRole('administrador') || auth()->user()->hasRole('cocina') || auth()->user()->hasRole('mesero') || auth()->user()->hasRole('domiciliario'))
             @include('partials.staff-token')
         @endif
     @endauth

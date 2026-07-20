@@ -136,9 +136,10 @@ return new class extends Migration
         });
 
         DB::table('roles')->insert([
+            ['nombre' => 'super-admin', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
             ['nombre' => 'gerente', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
             ['nombre' => 'administrador', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
-            ['nombre' => 'cocinero', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
+            ['nombre' => 'cocina', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
             ['nombre' => 'mesero', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
             ['nombre' => 'domiciliario', 'guard_nombre' => 'web', 'creado_en' => now(), 'actualizado_en' => now()],
         ]);

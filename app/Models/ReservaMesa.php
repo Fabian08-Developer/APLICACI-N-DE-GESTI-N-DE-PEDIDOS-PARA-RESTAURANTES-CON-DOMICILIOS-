@@ -13,8 +13,7 @@ use Illuminate\Support\Str;
 class ReservaMesa extends Model
 {
     use HasUuid, BelongsToSucursal;
-
-    protected $table = 'reservas_mesa';
+    protected $table = 'reservas';
 
     const CREATED_AT = 'creado_en';
     const UPDATED_AT = 'actualizado_en';
@@ -81,15 +80,15 @@ class ReservaMesa extends Model
         return $this->belongsTo(SesionCliente::class, 'sesion_cliente_id');
     }
 
-    public function pagosDeposito(): \Illuminate\Database\Eloquent\Relations\HasMany
+    public function pagosDeposito()
     {
-        return $this->hasMany(PagoReserva::class, 'reserva_id');
+        return $this->morphMany(Pago::class, 'payable');
     }
 
-    public function pagoAprobado(): \Illuminate\Database\Eloquent\Relations\HasOne
+    public function pagoAprobado()
     {
-        return $this->hasOne(PagoReserva::class, 'reserva_id')
-                    ->where('estado', PagoReserva::ESTADO_APROBADO)
+        return $this->morphOne(Pago::class, 'payable')
+                    ->where('estado', Pago::ESTADO_APROBADO)
                     ->latestOfMany('aprobado_en');
     }
 

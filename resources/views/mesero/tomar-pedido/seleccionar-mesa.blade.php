@@ -78,15 +78,15 @@
 
     .mesas-grid-pos {
         display: grid;
-        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-        gap: 1.5rem;
+        grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+        gap: 1rem;
     }
 
     .mesa-card-pos {
         background: linear-gradient(145deg, var(--surface), rgba(255,255,255,0.02));
         border: 1px solid var(--border);
         border-radius: 16px;
-        padding: 2rem 1.5rem;
+        padding: 1.25rem 1rem;
         display: flex;
         flex-direction: column;
         align-items: center;

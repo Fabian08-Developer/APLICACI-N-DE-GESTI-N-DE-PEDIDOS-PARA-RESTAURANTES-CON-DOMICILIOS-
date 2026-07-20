@@ -125,7 +125,7 @@
                             <div>
                                 <span class="pedido-total" style="font-weight: 800; font-size: 0.95rem;">${{ number_format($pedido->total, 0, ',', '.') }}</span>
                                 <span style="font-size: 0.75rem; font-weight: 700; color: {{ $pedido->estado_pago === 'PENDIENTE' ? '#F59E0B' : '#10B981' }}; margin-left: 0.5rem;">
-                                    {{ $pedido->estado_pago === 'PENDIENTE' ? '⏳ Por cobrar' : '✓ Pagado' }}
+                                    {{ $pedido->estado_pago === 'PENDIENTE' ? 'Por cobrar' : 'Pagado' }}
                                 </span>
                             </div>
                             <div style="display: flex; gap: 0.5rem; align-items: center;">
@@ -133,7 +133,7 @@
                                 <form method="POST" action="{{ route('mesero.pedidos.registrar-cobro', $pedido->id) }}" style="margin: 0;">
                                     @csrf
                                     <button type="submit" style="background: linear-gradient(135deg, #3B82F6, #2563EB); color: white; border: none; padding: 0.4rem 0.8rem; border-radius: 6px; font-size: 0.75rem; font-weight: 700; cursor: pointer; box-shadow: 0 4px 10px rgba(59,130,246,0.3); transition: all 0.2s;">
-                                        💲 Cobrar
+                                        Cobrar
                                     </button>
                                 </form>
                                 @endif

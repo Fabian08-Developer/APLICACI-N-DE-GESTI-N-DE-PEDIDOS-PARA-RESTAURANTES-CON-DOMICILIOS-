@@ -41,6 +41,25 @@ export function initCocina(config) {
     setInterval(sincronizarEstadosExistentes, 5000);
 }
 
+// Global logic for UI (Navigation / Hamburguer)
+// Toggle de la Sidebar Móvil en Cocina
+const btnToggleSidebar = document.getElementById('btn-toggle-sidebar');
+const sidebar = document.getElementById('cocina-sidebar');
+const sidebarOverlay = document.getElementById('cocina-sidebar-overlay');
+
+if (btnToggleSidebar && sidebar && sidebarOverlay) {
+    btnToggleSidebar.addEventListener('click', () => {
+        sidebar.classList.add('abierto');
+        sidebarOverlay.classList.add('visible');
+    });
+
+    // Cerrar al tocar el fondo
+    sidebarOverlay.addEventListener('click', () => {
+        sidebar.classList.remove('abierto');
+        sidebarOverlay.classList.remove('visible');
+    });
+}
+
 /**
  * Cambia el estado de un pedido vía AJAX
  */
@@ -403,3 +422,19 @@ window.cambiarEstado = cambiarEstado;
 window.initCocina = initCocina;
 window.actualizarContadores = actualizarContadores;
 window.mostrarToast = mostrarToast;
+
+/* ── Preservación de Scroll del Sidebar (Cocina) ── */
+document.addEventListener('DOMContentLoaded', () => {
+    const sidebarNav = document.querySelector('.sidebar-nav');
+    if (!sidebarNav) return;
+
+    const savedScroll = sessionStorage.getItem('sgpd_cocina_sidebar_scroll');
+    if (savedScroll !== null) {
+        sidebarNav.scrollTop = parseInt(savedScroll, 10);
+    }
+
+    sidebarNav.addEventListener('scroll', () => {
+        sessionStorage.setItem('sgpd_cocina_sidebar_scroll', sidebarNav.scrollTop);
+    }, { passive: true });
+});
+

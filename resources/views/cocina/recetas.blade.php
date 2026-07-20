@@ -3,12 +3,12 @@
 @section('titulo', 'Recetario')
 
 @section('contenido')
-<div class="page-header" style="margin-bottom: 1.5rem;">
+<header class="page-header" style="margin-bottom: 1.5rem;">
     <div>
-        <h1 style="color: var(--text-main); font-family: 'DM Serif Display', serif; font-size: 1.6rem;">Recetario de Cocina</h1>
+        <h1>Recetario <span>de Cocina</span></h1>
         <p style="color: var(--text-muted); font-size: 0.85rem; margin-top: 0.25rem;">Consulta y edita los ingredientes y pasos de preparación de los productos del menú.</p>
     </div>
-</div>
+</header>
 
 <div class="filters-bar" style="flex-direction: column; align-items: stretch; gap: 1rem;">
     <input type="text" class="search-input" id="searchInput" placeholder="Buscar por producto o categoría..." style="width: 100%;">
@@ -90,9 +90,9 @@
         </div>
         
         <div class="receta-modal-body">
-            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); padding-bottom: 0.5rem;">
-                <h4 style="color: #c9a84c; font-family: 'DM Serif Display', serif; font-size: 1.25rem; margin: 0;">Preparación</h4>
-                <button class="btn-editar-receta" id="btnEditReceta" onclick="toggleEditMode()" style="background: transparent; border: 1px solid var(--border); color: var(--text-muted); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; cursor: pointer;">Editar</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem; border-bottom: 1px solid var(--border-light); padding-bottom: 0.5rem;">
+                <h4 style="color: var(--primary); font-family: 'Playfair Display', serif; font-size: 1.25rem; margin: 0; font-weight: 700;">Preparación</h4>
+                <button class="btn-editar-receta" id="btnEditReceta" onclick="toggleEditMode()" style="background: transparent; border: 1px solid var(--border-light); color: var(--text-muted); padding: 0.3rem 0.6rem; border-radius: var(--radius-sm); font-size: 0.75rem; cursor: pointer; font-weight: 500;">Editar</button>
             </div>
             
             <!-- Vista de Lectura -->
@@ -106,27 +106,27 @@
                 
                 <!-- Ingredientes -->
                 <div>
-                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem;">Ingredientes</h5>
+                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 600;">Ingredientes</h5>
                     <div id="editIngredientesList" class="edit-list"></div>
                     <button type="button" class="btn-add-row" onclick="addEditRow('ingredientes')">+ Agregar ingrediente</button>
                 </div>
 
                 <!-- Pasos -->
                 <div>
-                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem;">Pasos de Preparación</h5>
+                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 600;">Pasos de Preparación</h5>
                     <div id="editPasosList" class="edit-list"></div>
                     <button type="button" class="btn-add-row" onclick="addEditRow('pasos')">+ Agregar paso</button>
                 </div>
 
                 <!-- Generic/Legacy text -->
                 <div id="editGenericDiv" style="display:none;">
-                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem;">Texto adicional</h5>
+                    <h5 style="color: var(--text-main); font-size: 1rem; margin-bottom: 0.5rem; font-weight: 600;">Texto adicional</h5>
                     <textarea id="editGenericInput" class="edit-textarea"></textarea>
                 </div>
 
                 <div style="display: flex; gap: 0.5rem; justify-content: flex-end; margin-top: 1rem;">
-                    <button onclick="toggleEditMode()" style="background: transparent; border: 1px solid var(--border); color: #fff; padding: 0.6rem 1rem; border-radius: var(--radius-sm); cursor: pointer;">Cancelar</button>
-                    <button id="btnSaveReceta" onclick="saveReceta()" style="background: #34D399; border: none; color: #0F172A; padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">Guardar Receta</button>
+                    <button onclick="toggleEditMode()" style="background: transparent; border: 1px solid var(--border-light); color: var(--text-main); padding: 0.6rem 1rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 500;">Cancelar</button>
+                    <button id="btnSaveReceta" onclick="saveReceta()" style="background: var(--status-ready); border: none; color: white; padding: 0.6rem 1.2rem; border-radius: var(--radius-sm); cursor: pointer; font-weight: 600;">Guardar Receta</button>
                 </div>
             </div>
         </div>
