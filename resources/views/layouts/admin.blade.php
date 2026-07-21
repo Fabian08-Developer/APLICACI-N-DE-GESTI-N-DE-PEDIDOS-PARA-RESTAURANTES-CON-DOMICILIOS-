@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="csrf-token" content="{{ csrf_token() }}">
     <title>{{ $title ?? 'Admin' }} — SGPD Suite</title>
+    <link rel="icon" type="image/png" href="{{ asset('icons/icon-72.png') }}">
     {{-- Meta tags de contexto de autenticación para Echo y PWA --}}
     @auth
     <meta name="auth-user-id"      content="{{ auth()->id() }}">
