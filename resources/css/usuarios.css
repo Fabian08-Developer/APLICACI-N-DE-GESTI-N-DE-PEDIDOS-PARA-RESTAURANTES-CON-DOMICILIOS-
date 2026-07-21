@@ -1,3 +1,5 @@
+@import 'tailwindcss';
+
 .pagina-header {
     margin-bottom: 1.4rem;
     display: flex;

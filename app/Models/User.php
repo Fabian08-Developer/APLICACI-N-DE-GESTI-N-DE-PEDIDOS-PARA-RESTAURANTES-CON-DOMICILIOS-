@@ -86,7 +86,8 @@ class User extends Authenticatable implements MustVerifyEmail
     public function getRolAttribute()
     {
         $role = $this->roles->first();
-        $roleName = $role ? $role->name : 'mesero';
+        // Priority: Spatie relation -> DB column -> 'mesero'
+        $roleName = $role ? $role->name : ($this->attributes['rol'] ?? 'mesero');
         $nombre = $roleName === 'cocina' ? 'Cocina' : ($roleName === 'mesero' ? 'Mesero' : ($roleName === 'administrador' ? 'Administrador' : ucfirst(str_replace('-', ' ', $roleName))));
 
         return (object)[

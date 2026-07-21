@@ -3,7 +3,11 @@
         isOpen: {{ ($errors->any() || $editar) ? 'true' : 'false' }},
         showModalEliminar: false,
         deleteUrl: '',
-        deleteName: ''
+        deleteName: '',
+        showModalToggle: false,
+        toggleUserId: '',
+        toggleName: '',
+        toggleEstado: false
      }"
      @open-sidebar.window="isOpen = true"
      @close-sidebar.window="isOpen = false">
@@ -107,22 +111,25 @@
             <p>Administra los usuarios del sistema</p>
         </div>
         <button class="btn-nuevo" @click="isOpen = true; abrirDrawerCrear()">
-            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                fill="none" stroke="currentColor" stroke-width="2.5"
-                stroke-linecap="round" stroke-linejoin="round">
-                <line x1="12" y1="5" x2="12" y2="19" />
-                <line x1="5" y1="12" x2="19" y2="12" />
+            <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M12 4v16m8-8H4" />
             </svg>
-            Nuevo usuario
+            Nuevo Usuario
         </button>
     </div>
 
-    {{-- TABLA --}}
     <div class="tarjeta">
-        <div class="tarjeta-header">{{ $usuarios->count() }} usuarios registrados</div>
+        <div class="tarjeta-header">
+            Listado de Usuarios ({{ method_exists($usuarios, 'total') ? $usuarios->total() : $usuarios->count() }})
+        </div>
 
         @if($usuarios->isEmpty())
-        <div class="vacio">No hay usuarios todavía</div>
+            <div class="vacio">
+                <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5" style="margin: 0 auto 1rem; color: #EAE5DD;">
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
+                </svg>
+                <p>No se encontraron usuarios que coincidan con la búsqueda.</p>
+            </div>
         @else
         <table>
             <thead>
@@ -130,73 +137,70 @@
                     <th>Usuario</th>
                     <th>Rol</th>
                     <th>Estado</th>
-                    <th>Último login</th>
-                    <th>Acciones</th>
+                    <th>Fecha de Registro</th>
+                    <th style="text-align: right;">Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                @foreach($usuarios as $usuario)
+                @foreach($usuarios as $user)
                 <tr>
                     <td>
                         <div class="usuario-info">
-                            <div class="avatar">{{ substr($usuario->nombre, 0, 1) }}</div>
+                            <div class="avatar">{{ substr($user->nombre, 0, 1) }}</div>
                             <div>
-                                <div>{{ $usuario->nombre }}</div>
-                                <div class="texto-gris">{{ $usuario->email }}</div>
+                                <div style="font-weight: 700;">{{ $user->nombre }}</div>
+                                <div class="texto-gris">{{ $user->email }}</div>
                             </div>
                         </div>
                     </td>
                     <td>
-                        <span class="badge-rol">{{ $usuario->rol?->nombre ?? '—' }}</span>
+                        <span class="badge-rol">{{ $user->rol->nombre ?? 'Sin rol' }}</span>
                     </td>
                     <td>
-                        @if($usuario->estado)
-                        <span class="badge-activo">Activo</span>
+                        @if($user->estado)
+                            <span class="badge-activo">Activo</span>
                         @else
-                        <span class="badge-inactivo">Inactivo</span>
+                            <span class="badge-inactivo">Inactivo</span>
                         @endif
                     </td>
-                    <td class="texto-gris">
-                        {{ $usuario->ultimo_login ? \Carbon\Carbon::parse($usuario->ultimo_login)->format('d/m H:i') : 'Nunca' }}
+                    <td>
+                        <div style="font-weight: 600;">{{ $user->created_at ? $user->created_at->format('d M, Y') : '' }}</div>
+                        <div class="texto-gris">{{ $user->created_at ? $user->created_at->format('h:i A') : '' }}</div>
                     </td>
                     <td>
-                        @if(auth()->user()->canManage($usuario))
-                        <div class="acciones">
-                            <button type="button" class="btn-editar"
-                                onclick="isOpen = true; abrirDrawerEditar(
-                                    '{{ $usuario->id }}',
-                                    {{ json_encode($usuario->nombre) }},
-                                    {{ json_encode($usuario->email) }},
-                                    {{ json_encode($usuario->rol_id ?? ($usuario->roles->first()?->name ?? '')) }},
-                                    {{ $usuario->estado ? 'true' : 'false' }},
-                                    '{{ route('admin.usuarios.store') }}'
-                                )">Editar</button>
-
-                            <form method="POST" action="{{ route('admin.usuarios.store') }}"><input type="hidden" name="toggle_user_id" value="{{ $usuario->id }}">
-                                @csrf
-                                @if($usuario->estado)
-                                <button type="submit" class="btn-toggle-on"
-                                    onclick="return confirm('¿Desactivar a {{ $usuario->nombre }}?')">
-                                    Desactivar
-                                </button>
+                        <div class="acciones" style="justify-content: flex-end;">
+                            <button type="button" class="btn-editar" onclick="isOpen = true; abrirDrawerEditar('{{ $user->id }}', '{{ addslashes($user->nombre) }}', '{{ addslashes($user->email) }}', '{{ $user->rol_id ?? ($user->roles->first()?->name ?? '') }}', {{ $user->estado ? 'true' : 'false' }}, '{{ route('admin.usuarios.store') }}')" title="Editar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                            </button>
+                            <button type="button" class="{{ $user->estado ? 'btn-toggle-on' : 'btn-toggle-off' }}" @click.prevent.stop="toggleUserId = '{{ $user->id }}'; toggleName = '{{ addslashes($user->nombre) }}'; toggleEstado = {{ $user->estado ? 'true' : 'false' }}; showModalToggle = true;" title="{{ $user->estado ? 'Desactivar' : 'Activar' }}">
+                                @if($user->estado)
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 @else
-                                <button type="submit" class="btn-toggle-off">Activar</button>
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                                </svg>
                                 @endif
-                            </form>
-
-                            <button type="button" class="btn-eliminar"
-                                @click.prevent.stop="deleteUrl = '{{ route('admin.usuarios.destroy', $usuario->id) }}'; deleteName = {{ json_encode($usuario->nombre) }}; showModalEliminar = true;">
-                                Eliminar
+                            </button>
+                            <button type="button" class="btn-eliminar" @click.prevent.stop="deleteUrl = '{{ route('admin.usuarios.destroy', $user->id) }}'; deleteName = '{{ addslashes($user->nombre) }}'; showModalEliminar = true;" title="Eliminar">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                </svg>
                             </button>
                         </div>
-                        @else
-                        <span class="texto-gris" style="font-size: 0.85rem; font-style: italic; opacity: 0.7;">Solo lectura</span>
-                        @endif
                     </td>
                 </tr>
                 @endforeach
             </tbody>
         </table>
+        @if(method_exists($usuarios, 'links'))
+            <div style="padding: 1rem 1.5rem; border-top: 1px solid var(--border);">
+                {{ $usuarios->links() }}
+            </div>
+        @endif
         @endif
     </div>
 
@@ -224,6 +228,40 @@
         @csrf
         @method('DELETE')
     </form>
+
+    {{-- FORMULARIO DE TOGGLE GLOBAL --}}
+    <form method="POST" action="{{ route('admin.usuarios.store') }}" style="display: none;" id="formToggleUsuario">
+        @csrf
+        <input type="hidden" name="toggle_user_id" :value="toggleUserId">
+    </form>
+
+    {{-- MODAL DE CONFIRMACIÓN DE TOGGLE --}}
+    <div class="modal-eliminar-overlay" x-cloak x-show="showModalToggle">
+        <div class="modal-eliminar-caja" @click.away="showModalToggle = false">
+            <div class="modal-eliminar-icono" :style="toggleEstado ? 'background: rgba(245, 158, 11, 0.1); color: #f59e0b;' : 'background: rgba(16, 185, 129, 0.1); color: #10b981;'">
+                <template x-if="toggleEstado">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                </template>
+                <template x-if="!toggleEstado">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                </template>
+            </div>
+            <h3 class="modal-eliminar-titulo" x-text="toggleEstado ? '¿Desactivar usuario?' : '¿Activar usuario?'"></h3>
+            <p class="modal-eliminar-mensaje">
+                Estás a punto de <span x-text="toggleEstado ? 'desactivar' : 'activar'"></span> a <strong x-text="toggleName"></strong>.<br>
+                <span x-text="toggleEstado ? 'No podrá iniciar sesión en el sistema.' : 'Podrá acceder al sistema nuevamente.'"></span>
+            </p>
+            
+            <div class="modal-eliminar-acciones">
+                <button type="button" class="btn-modal-cancelar" @click="showModalToggle = false">Cancelar</button>
+                <button type="button" class="btn-modal-eliminar" :style="toggleEstado ? 'background: #f59e0b;' : 'background: #10b981;'" @click="document.getElementById('formToggleUsuario').submit()" x-text="toggleEstado ? 'Sí, desactivar' : 'Sí, activar'"></button>
+            </div>
+        </div>
+    </div>
 
     {{-- MODAL DE CONFIRMACIÓN DE ELIMINACIÓN --}}
     <div class="modal-eliminar-overlay" x-cloak x-show="showModalEliminar">

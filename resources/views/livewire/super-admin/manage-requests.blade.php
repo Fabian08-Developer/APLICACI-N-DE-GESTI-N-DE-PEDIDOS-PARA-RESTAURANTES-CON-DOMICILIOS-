@@ -43,16 +43,48 @@
                             <td class="px-6 py-4 text-right">
                                 <div class="flex items-center justify-end gap-2">
                                     <button 
-                                        wire:click="approve('{{ $request->id }}')"
-                                        wire:confirm="¿Estás seguro de aprobar esta cuenta?"
-                                        class="px-4 py-1.5 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[#2C241B] text-[10px] font-black uppercase tracking-widest transition-all"
+                                        type="button"
+                                        @click="Swal.fire({
+                                            title: 'Aprobar Cuenta',
+                                            text: '¿Estás seguro de que deseas aprobar esta cuenta y habilitarla?',
+                                            icon: 'question',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#10b981',
+                                            cancelButtonColor: '#8B8175',
+                                            confirmButtonText: 'Sí, aprobar',
+                                            cancelButtonText: 'Cancelar',
+                                            background: '#FFFFFF',
+                                            color: '#2C241B',
+                                            customClass: { popup: 'rounded-[24px] border border-[#2C241B]/10 shadow-2xl' }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                $wire.approve('{{ $request->id }}');
+                                            }
+                                        })"
+                                        class="px-4 py-1.5 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
                                     >
                                         Aprobar
                                     </button>
                                     <button 
-                                        wire:click="reject('{{ $request->id }}')"
-                                        wire:confirm="¿Estás seguro de rechazar y eliminar esta solicitud?"
-                                        class="px-4 py-1.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-[#2C241B] text-[10px] font-black uppercase tracking-widest transition-all"
+                                        type="button"
+                                        @click="Swal.fire({
+                                            title: 'Rechazar Solicitud',
+                                            text: '¿Estás seguro de que deseas rechazar y eliminar esta solicitud de forma permanente?',
+                                            icon: 'warning',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#f43f5e',
+                                            cancelButtonColor: '#8B8175',
+                                            confirmButtonText: 'Sí, rechazar',
+                                            cancelButtonText: 'Cancelar',
+                                            background: '#FFFFFF',
+                                            color: '#2C241B',
+                                            customClass: { popup: 'rounded-[24px] border border-[#2C241B]/10 shadow-2xl' }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                $wire.reject('{{ $request->id }}');
+                                            }
+                                        })"
+                                        class="px-4 py-1.5 rounded-xl bg-rose-500/10 text-rose-500 hover:bg-rose-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
                                     >
                                         Rechazar
                                     </button>
@@ -140,9 +172,24 @@
                                 <div class="flex items-center justify-end gap-2">
                                     <button 
                                         type="button"
-                                        wire:click="approveNitUpdate('{{ $nitRequest->id }}')"
-                                        wire:confirm="¿Estás seguro de aprobar esta actualización de NIT?"
-                                        class="px-4 py-1.5 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-[#2C241B] text-[10px] font-black uppercase tracking-widest transition-all"
+                                        @click="Swal.fire({
+                                            title: 'Aprobar NIT',
+                                            text: '¿Estás seguro de aprobar esta actualización de NIT?',
+                                            icon: 'question',
+                                            showCancelButton: true,
+                                            confirmButtonColor: '#10b981',
+                                            cancelButtonColor: '#8B8175',
+                                            confirmButtonText: 'Sí, aprobar',
+                                            cancelButtonText: 'Cancelar',
+                                            background: '#FFFFFF',
+                                            color: '#2C241B',
+                                            customClass: { popup: 'rounded-[24px] border border-[#2C241B]/10 shadow-2xl' }
+                                        }).then((result) => {
+                                            if (result.isConfirmed) {
+                                                $wire.approveNitUpdate('{{ $nitRequest->id }}');
+                                            }
+                                        })"
+                                        class="px-4 py-1.5 rounded-xl bg-green-500/10 text-green-500 hover:bg-green-500 hover:text-white text-[10px] font-black uppercase tracking-widest transition-all"
                                     >
                                         Aprobar
                                     </button>

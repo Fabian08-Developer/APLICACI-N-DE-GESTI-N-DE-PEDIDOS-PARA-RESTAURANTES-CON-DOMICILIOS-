@@ -133,7 +133,7 @@ class ManageGlobalUsers extends Component
                 'activa'           => true,
             ]);
 
-            $roleName = $userToImpersonate->roles->first()->name ?? '';
+            $roleName = $userToImpersonate->rol->name;
             $redirectUrl = match ($roleName) {
                 'administrador' => '/admin/dashboard',
                 'cocina'        => '/cocina/dashboard',

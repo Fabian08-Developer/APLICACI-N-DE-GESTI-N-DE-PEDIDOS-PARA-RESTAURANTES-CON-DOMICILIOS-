@@ -43,6 +43,8 @@ class DomiciliarioController extends Controller
             'activo' => true,
             'rol' => 'domiciliario',
         ]);
+        
+        $user->assignRole('domiciliario');
 
         $dom = PerfilDomiciliario::create([
             'usuario_id' => $user->id,

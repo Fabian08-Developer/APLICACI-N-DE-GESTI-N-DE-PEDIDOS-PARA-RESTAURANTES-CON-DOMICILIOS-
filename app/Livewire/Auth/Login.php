@@ -94,7 +94,8 @@ class Login extends Component
 
     private function redirigirSegunRol($user, $token): string
     {
-        $redirectUrl = match ($user->roles->first()->name ?? '') {
+        $roleName = $user->rol->name;
+        $redirectUrl = match ($roleName) {
             RolUsuario::ADMINISTRADOR->value => '/admin/dashboard',
             RolUsuario::COCINA->value        => '/cocina/dashboard',
             RolUsuario::MESERO->value        => '/mesero/dashboard',

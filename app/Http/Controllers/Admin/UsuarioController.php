@@ -91,6 +91,7 @@ class UsuarioController extends Controller
             }
 
             $userToEdit->update($updateData);
+            $userToEdit->syncRoles([$rol]);
 
             // Handle PerfilDomiciliario assignment logic
             if ($oldRol !== 'domiciliario' && $rol === 'domiciliario') {
@@ -142,6 +143,8 @@ class UsuarioController extends Controller
             'activo' => $request->has('estado'),
             'rol' => $rol,
         ]);
+
+        $newUser->assignRole($rol);
 
         if ($rol === 'domiciliario') {
             PerfilDomiciliario::create([
