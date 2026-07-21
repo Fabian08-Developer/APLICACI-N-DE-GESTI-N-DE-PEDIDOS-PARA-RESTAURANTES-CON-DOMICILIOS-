@@ -675,8 +675,22 @@
 
                         @if($selectedReserva->estado->value === 'pendiente_pago')
                         <button type="button"
-                                wire:click="cambiarEstado('{{ $selectedReserva->id }}', 'confirmada')"
-                                wire:confirm="¿Confirmar reserva manualmente sin depósito vía sistema?"
+                                @click="Swal.fire({
+                                    title: '¿Confirmar reserva manualmente?',
+                                    text: 'Estás a punto de confirmar esta reserva sin un pago de depósito por el sistema. ¿Estás seguro?',
+                                    icon: 'warning',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#10b981',
+                                    cancelButtonColor: '#ef4444',
+                                    confirmButtonText: 'Sí, aprobar',
+                                    cancelButtonText: 'Cancelar',
+                                    background: '#FDFBF7',
+                                    color: '#2C241B'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $wire.cambiarEstado('{{ $selectedReserva->id }}', 'confirmada');
+                                    }
+                                })"
                                 style="background:#10b981;color:#fff;border:none;padding:1rem;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:.9rem;transition:background .2s;">
                             <svg xmlns="http://www.w3.org/2000/svg" width="17" height="17" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
                             Aprobar Manualmente
@@ -704,8 +718,22 @@
 
                         @if($selectedReserva->estado->value === 'cliente_llego')
                         <button type="button"
-                                wire:click="cambiarEstado('{{ $selectedReserva->id }}', 'completada')"
-                                wire:confirm="¿Marcar esta reserva como completada?"
+                                @click="Swal.fire({
+                                    title: '¿Completar reserva?',
+                                    text: '¿Confirmas que el cliente ya finalizó su servicio y la mesa está libre?',
+                                    icon: 'question',
+                                    showCancelButton: true,
+                                    confirmButtonColor: '#6366f1',
+                                    cancelButtonColor: '#94a3b8',
+                                    confirmButtonText: 'Sí, completada',
+                                    cancelButtonText: 'Cancelar',
+                                    background: '#FDFBF7',
+                                    color: '#2C241B'
+                                }).then((result) => {
+                                    if (result.isConfirmed) {
+                                        $wire.cambiarEstado('{{ $selectedReserva->id }}', 'completada');
+                                    }
+                                })"
                                 style="background:#6366f1;color:#fff;border:none;padding:1rem;border-radius:8px;font-weight:600;display:flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;font-size:.9rem;">
                             Marcar como Completada
                         </button>

@@ -208,12 +208,18 @@
             
             <form wire:submit.prevent="publicarAviso" class="p-6 sm:p-10 space-y-6">
                 @if($aviso_activo)
-                <div class="bg-[#7f1d1d]/30 border border-[#b91c1c]/40 p-4 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+                <div class="bg-rose-500/5 border border-rose-500/20 p-4 sm:p-5 rounded-2xl flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <div class="text-[10px] font-black text-[#fca5a5] uppercase tracking-wider">Aviso Activo Actual</div>
-                        <div class="text-xs text-[#fecdd3] mt-1 font-bold">{{ $aviso_titulo }}</div>
+                        <div class="text-[9px] font-black text-rose-500 uppercase tracking-widest flex items-center gap-2">
+                            <span class="relative flex h-2 w-2">
+                              <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                              <span class="relative inline-flex rounded-full h-2 w-2 bg-rose-500"></span>
+                            </span>
+                            Aviso Activo Actual
+                        </div>
+                        <div class="text-sm text-[#2C241B] mt-1.5 font-bold">{{ $aviso_titulo }}</div>
                     </div>
-                    <button type="button" wire:click="desactivarAviso" class="w-full sm:w-auto px-4 py-2 bg-[#b91c1c] text-[#2C241B] text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-red-700 transition-colors">
+                    <button type="button" wire:click="desactivarAviso" class="w-full sm:w-auto px-5 py-2.5 bg-rose-500 text-white text-[9px] font-black uppercase tracking-widest rounded-xl hover:bg-rose-600 transition-all shadow-lg shadow-rose-500/30">
                         Desactivar
                     </button>
                 </div>
@@ -237,7 +243,7 @@
                             <div class="text-[10px] font-black text-[#2C241B] uppercase tracking-widest">Mostrar Banner Superior</div>
                             <div class="text-[9px] text-[#5C5246] font-bold uppercase mt-0.5">Se dibujará en la parte superior de las pantallas</div>
                         </div>
-                        <button type="button" wire:click="$set('aviso_mostrar_banner', {{ !$aviso_mostrar_banner ? 'true' : 'false' }})" 
+                        <button type="button" wire:click="$toggle('aviso_mostrar_banner')" 
                             class="relative inline-flex h-6 w-11 rounded-full border-2 border-[#2C241B]/10 transition-colors duration-300 {{ $aviso_mostrar_banner ? 'bg-[#E07A5F]' : 'bg-[#E6E2DB]' }}">
                             <span class="inline-block h-5 w-5 transform rounded-full bg-white transition duration-300 shadow-xl {{ $aviso_mostrar_banner ? 'translate-x-5' : 'translate-x-0' }}"></span>
                         </button>
@@ -248,7 +254,7 @@
                             <div class="text-[10px] font-black text-[#2C241B] uppercase tracking-widest">Enviar a Bandeja Histórica</div>
                             <div class="text-[9px] text-[#5C5246] font-bold uppercase mt-0.5">Crea una notificación en el buzón de cada usuario</div>
                         </div>
-                        <button type="button" wire:click="$set('aviso_guardar_historial', {{ !$aviso_guardar_historial ? 'true' : 'false' }})" 
+                        <button type="button" wire:click="$toggle('aviso_guardar_historial')" 
                             class="relative inline-flex h-6 w-11 rounded-full border-2 border-[#2C241B]/10 transition-colors duration-300 {{ $aviso_guardar_historial ? 'bg-[#E07A5F]' : 'bg-[#E6E2DB]' }}">
                             <span class="inline-block h-5 w-5 transform rounded-full bg-white transition duration-300 shadow-xl {{ $aviso_guardar_historial ? 'translate-x-5' : 'translate-x-0' }}"></span>
                         </button>
@@ -315,7 +321,7 @@
                                 @error('version_nueva_notas') <span class="text-xs text-rose-500 font-bold mt-1 block">{{ $message }}</span> @enderror
                             </div>
 
-                            <button type="submit" class="w-full px-4 py-3 bg-[#FDFBF7] border border-[#2C241B]/10 text-[#2C241B] rounded-xl text-[9px] font-black uppercase tracking-widest hover:bg-[#E07A5F] hover:border-[#E07A5F] transition-all">
+                            <button type="submit" class="w-full px-4 py-3 bg-[#E07A5F] text-white rounded-xl text-[9px] font-black uppercase tracking-widest shadow-xl hover:bg-amber-700 transition-all">
                                 Guardar e Implementar
                             </button>
                         </form>

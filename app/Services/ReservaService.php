@@ -12,7 +12,7 @@ use App\Mail\ComprobantePagoReservaMail;
 use App\Models\Mesa;
 use App\Services\WebPushService;
 use App\Models\Notificacion;
-use App\Models\PagoReserva;
+use App\Models\Pago;
 use App\Models\ReservaMesa;
 use App\Models\SesionCliente;
 use App\Models\Sucursal;
@@ -191,12 +191,12 @@ class ReservaService
         string $horaFin
     ): array {
         return DB::table('reserva_mesas')
-            ->join('reservas_mesa', 'reserva_mesas.reserva_id', '=', 'reservas_mesa.id')
-            ->where('reservas_mesa.sucursal_id', $sucursal->id)
-            ->where('reservas_mesa.fecha_reserva', $fecha)
-            ->whereIn('reservas_mesa.estado', [EstadoReserva::PENDIENTE->value, EstadoReserva::CONFIRMADA->value, EstadoReserva::CLIENTE_LLEGO->value])
-            ->where('reservas_mesa.hora_inicio', '<', $horaFin)
-            ->where('reservas_mesa.hora_fin', '>', $horaInicio)
+            ->join('reservas', 'reserva_mesas.reserva_id', '=', 'reservas.id')
+            ->where('reservas.sucursal_id', $sucursal->id)
+            ->where('reservas.fecha_reserva', $fecha)
+            ->whereIn('reservas.estado', [EstadoReserva::PENDIENTE->value, EstadoReserva::CONFIRMADA->value, EstadoReserva::CLIENTE_LLEGO->value])
+            ->where('reservas.hora_inicio', '<', $horaFin)
+            ->where('reservas.hora_fin', '>', $horaInicio)
             ->pluck('reserva_mesas.mesa_id')
             ->unique()
             ->values()
@@ -214,12 +214,12 @@ class ReservaService
         int $personas = 1
     ): \Illuminate\Database\Eloquent\Collection {
         $mesasOcupadas = DB::table('reserva_mesas')
-            ->join('reservas_mesa', 'reserva_mesas.reserva_id', '=', 'reservas_mesa.id')
-            ->where('reservas_mesa.sucursal_id', $sucursal->id)
-            ->where('reservas_mesa.fecha_reserva', $fecha)
-            ->whereIn('reservas_mesa.estado', [EstadoReserva::PENDIENTE->value, EstadoReserva::CONFIRMADA->value, EstadoReserva::CLIENTE_LLEGO->value])
-            ->where('reservas_mesa.hora_inicio', '<', $horaFin)
-            ->where('reservas_mesa.hora_fin', '>', $horaInicio)
+            ->join('reservas', 'reserva_mesas.reserva_id', '=', 'reservas.id')
+            ->where('reservas.sucursal_id', $sucursal->id)
+            ->where('reservas.fecha_reserva', $fecha)
+            ->whereIn('reservas.estado', [EstadoReserva::PENDIENTE->value, EstadoReserva::CONFIRMADA->value, EstadoReserva::CLIENTE_LLEGO->value])
+            ->where('reservas.hora_inicio', '<', $horaFin)
+            ->where('reservas.hora_fin', '>', $horaInicio)
             ->pluck('reserva_mesas.mesa_id');
 
         return Mesa::where('sucursal_id', $sucursal->id)
@@ -750,7 +750,7 @@ class ReservaService
      *
      * @param  array $datos {metodo, referencia, nequi_telefono?, nequi_correo?}
      */
-    public function procesarPagoDeposito(ReservaMesa $reserva, array $datos, Sucursal $sucursal): PagoReserva
+    public function procesarPagoDeposito(ReservaMesa $reserva, array $datos, Sucursal $sucursal): Pago
     {
         if ($reserva->estado !== \App\Enums\EstadoReserva::PENDIENTE_PAGO) {
             throw ValidationException::withMessages([
@@ -760,12 +760,13 @@ class ReservaService
 
         return DB::transaction(function () use ($reserva, $datos, $sucursal) {
             // Crear registro de pago
-            $pago = PagoReserva::create([
-                'reserva_id'     => $reserva->id,
+            $pago = Pago::create([
+                'payable_type'   => get_class($reserva),
+                'payable_id'     => $reserva->id,
                 'sucursal_id'    => $reserva->sucursal_id,
                 'monto'          => $reserva->monto_deposito,
                 'metodo'         => $datos['metodo'],
-                'estado'         => PagoReserva::ESTADO_PENDIENTE,
+                'estado'         => Pago::ESTADO_PENDIENTE,
                 'nequi_telefono' => $datos['nequi_telefono'] ?? null,
                 'nequi_correo'   => $datos['nequi_correo']   ?? null,
                 'referencia'     => $datos['referencia']     ?? null,

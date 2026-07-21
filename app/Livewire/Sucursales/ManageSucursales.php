@@ -23,48 +23,43 @@ class ManageSucursales extends Component
     public $activo = true;
     public $latitud;
     public $longitud;
-    
+
     public $isEditing = false;
     public $showModal = false;
+
+    // Delete modal fields
+    public $deleteModal = false;
+    public $deleteSucursalId = null;
+    public $passwordVerification = '';
 
     protected function rules()
     {
         $empresaId = auth()->user()->empresa_id;
-        $ignoreId  = $this->sucursalId ?? 'NULL';
+        $ignoreId  = $this->sucursalId;
 
-        return [
-            // Nombre único dentro de la misma empresa
-            'nombre'   => [
-                'required', 'string', 'max:150',
-                \Illuminate\Validation\Rule::unique('sucursales')
-                    ->where('empresa_id', $empresaId)
-                    ->ignore($ignoreId),
-            ],
-            // Slug único global (ya es UNIQUE en la BD)
-            'slug'     => [
-                'required', 'string', 'max:100',
-                \Illuminate\Validation\Rule::unique('sucursales', 'slug')
-                    ->ignore($ignoreId),
-            ],
+        $rules = [
+            'nombre'    => ['required', 'string', 'max:150'],
+            'slug'      => ['required', 'string', 'max:100'],
             'direccion' => 'nullable|string',
             'ciudad'    => 'required|string|max:100',
-            // Teléfono único dentro de la misma empresa (si se proporciona)
-            'telefono'  => [
-                'nullable', 'string', 'max:30',
-                \Illuminate\Validation\Rule::unique('sucursales')
-                    ->where('empresa_id', $empresaId)
-                    ->ignore($ignoreId),
-            ],
+            'telefono'  => 'nullable|string|max:30',
             'activo'    => 'boolean',
             'latitud'   => 'nullable|numeric',
             'longitud'  => 'nullable|numeric',
         ];
+
+        return $rules;
     }
+
+    protected $messages = [
+        'nombre.required'  => 'El nombre es obligatorio.',
+        'ciudad.required'  => 'Debes seleccionar una ciudad.',
+    ];
 
     public function getStatsProperty()
     {
         $all = Sucursal::where('empresa_id', auth()->user()->empresa_id)->get();
-        
+
         $startOfMonth = \Carbon\Carbon::now()->startOfMonth();
         $ventasMes = \App\Models\Pedido::whereHas('sucursal', function ($query) {
                 $query->where('empresa_id', auth()->user()->empresa_id);
@@ -74,9 +69,9 @@ class ManageSucursales extends Component
             ->sum('total');
 
         return [
-            'total' => $all->count(),
-            'activas' => $all->where('activo', true)->count(),
-            'inactivas' => $all->where('activo', false)->count(),
+            'total'      => $all->count(),
+            'activas'    => $all->where('activo', true)->count(),
+            'inactivas'  => $all->where('activo', false)->count(),
             'ventas_mes' => $ventasMes,
         ];
     }
@@ -84,14 +79,14 @@ class ManageSucursales extends Component
     public function getSucursalesProperty()
     {
         return Sucursal::where('empresa_id', auth()->user()->empresa_id)
-            ->when($this->search, function($q) {
-                $q->where(function($sub) {
+            ->when($this->search, function ($q) {
+                $q->where(function ($sub) {
                     $sub->where('nombre', 'ilike', '%' . $this->search . '%')
                         ->orWhere('ciudad', 'ilike', '%' . $this->search . '%')
                         ->orWhere('slug', 'ilike', '%' . $this->search . '%');
                 });
             })
-            ->when($this->filterStatus !== 'todas', function($q) {
+            ->when($this->filterStatus !== 'todas', function ($q) {
                 $q->where('activo', $this->filterStatus === 'activas');
             })
             ->withCount('usuarios')
@@ -102,7 +97,6 @@ class ManageSucursales extends Component
             ->get();
     }
 
-    // Auto-slug generation - Mejorado para evitar latencia innecesaria
     public function updatedNombre($value)
     {
         if (!$this->isEditing) {
@@ -112,16 +106,10 @@ class ManageSucursales extends Component
 
     public function openCreateModal()
     {
-        // Permitir a gerentes, administradores y super-admins abrir el modal
         if (!auth()->user()->hasAnyRole(['gerente', 'administrador', 'super-admin'])) {
-            $this->dispatch('swal', ['title' => 'Sin permiso', 'text' => 'No tienes permisos para crear sucursales.', 'icon' => 'error']);
+            $this->dispatch('swal', ['title' => 'Sin permiso', 'text' => 'No tienes permisos.', 'icon' => 'error']);
             return;
         }
-        if (!auth()->user()->empresa || !auth()->user()->empresa->activo) {
-            $this->dispatch('swal', ['title' => 'Empresa inactiva', 'text' => 'Tu empresa está suspendida. No puedes crear sucursales.', 'icon' => 'warning']);
-            return;
-        }
-
         $this->resetForm();
         $this->showModal = true;
     }
@@ -129,119 +117,105 @@ class ManageSucursales extends Component
     public function resetForm()
     {
         $this->sucursalId = null;
-        $this->nombre = '';
-        $this->slug = '';
-        $this->direccion = '';
-        $this->ciudad = '';
-        $this->telefono = '';
-        $this->activo = true;
-        $this->latitud = null;
-        $this->longitud = null;
-        $this->isEditing = false;
+        $this->nombre     = '';
+        $this->slug       = '';
+        $this->direccion  = '';
+        $this->ciudad     = '';
+        $this->telefono   = '';
+        $this->activo     = true;
+        $this->latitud    = null;
+        $this->longitud   = null;
+        $this->isEditing  = false;
         $this->resetErrorBag();
     }
 
     public function save()
     {
-        // ─── GUARDIA DE SEGURIDAD (segunda capa) ─────────────────────────────
-        if (!$this->isEditing) {
-            if (!auth()->user()->hasAnyRole(['gerente', 'administrador', 'super-admin'])) {
-                return;
+        // Generar slug único automáticamente
+        $baseSlug = Str::slug($this->nombre ?: 'sucursal');
+        $slug = $baseSlug;
+        $count = 1;
+        while (true) {
+            $query = Sucursal::where('slug', $slug);
+            if ($this->sucursalId) {
+                $query->where('id', '!=', $this->sucursalId);
             }
-            if (!auth()->user()->empresa || !auth()->user()->empresa->activo) {
-                $this->dispatch('swal', ['title' => 'Empresa inactiva', 'text' => 'No puedes crear sucursales mientras tu empresa esté suspendida.', 'icon' => 'warning']);
-                return;
+            if (!$query->exists()) {
+                break;
             }
+            $slug = $baseSlug . '-' . $count;
+            $count++;
         }
-        // ────────────────────────────────────────────────────────────────────
+        $this->slug = $slug;
 
-        // Asegurar que el slug sea único
-        if (!$this->isEditing || empty($this->slug)) {
-            $baseSlug = Str::slug($this->nombre);
-            $slug = $baseSlug;
-            $count = 1;
-            while (Sucursal::where('slug', $slug)->where('id', '!=', $this->sucursalId ?? 0)->exists()) {
-                $slug = $baseSlug . '-' . $count;
-                $count++;
-            }
-            $this->slug = $slug;
+        // Validar — si falla, muestra alerta con campos faltantes
+        try {
+            $this->validate();
+        } catch (\Illuminate\Validation\ValidationException $e) {
+            $errores = collect($e->errors())->flatten()->implode(', ');
+            $this->dispatch('swal', [
+                'title' => 'Campos incompletos',
+                'text'  => $errores,
+                'icon'  => 'warning',
+            ]);
+            throw $e;
         }
-
-        $this->validate();
-
-        // ─── LÍMITE DE SUCURSALES POR EMPRESA ───────────────────────────────
-        // Un gerente solo puede crear hasta 3 sucursales por empresa.
-        // El Super Admin puede modificar este límite en el futuro.
-        if (!$this->isEditing) {
-            $limite = 3;
-            $totalActual = Sucursal::where('empresa_id', auth()->user()->empresa_id)->count();
-
-            if ($totalActual >= $limite) {
-                $this->dispatch('swal', [
-                    'title' => 'Límite alcanzado',
-                    'text'  => "Tu empresa ya tiene {$totalActual} sucursales registradas. El límite máximo es {$limite}. Contacta al administrador para ampliar tu plan.",
-                    'icon'  => 'warning'
-                ]);
-                return;
-            }
-        }
-        // ────────────────────────────────────────────────────────────────────
 
         try {
             DB::beginTransaction();
 
             $data = [
                 'empresa_id' => auth()->user()->empresa_id,
-                'nombre' => $this->nombre,
-                'slug' => $this->slug,
-                'direccion' => $this->direccion,
-                'ciudad' => $this->ciudad,
-                'telefono' => $this->telefono,
-                'activo' => $this->activo,
-                'latitud' => $this->latitud,
-                'longitud' => $this->longitud,
+                'nombre'     => $this->nombre,
+                'slug'       => $this->slug,
+                'direccion'  => $this->direccion ?: null,
+                'ciudad'     => $this->ciudad,
+                'telefono'   => $this->telefono ?: null,
+                'activo'     => (bool) $this->activo,
+                'latitud'    => $this->latitud ?: null,
+                'longitud'   => $this->longitud ?: null,
             ];
 
             if ($this->isEditing) {
                 Sucursal::find($this->sucursalId)->update($data);
                 $message = 'Sede actualizada correctamente.';
             } else {
+                $data['empresa_id'] = auth()->user()->empresa_id;
                 Sucursal::create($data);
                 $message = 'Sede creada correctamente.';
             }
 
             DB::commit();
-
             $this->showModal = false;
-            $this->dispatch('swal', [
-                'title' => '¡Éxito!',
-                'text' => $message,
-                'icon' => 'success'
-            ]);
+            $this->resetForm();
+            $this->dispatch('swal', ['title' => '¡Listo!', 'text' => $message, 'icon' => 'success']);
 
         } catch (\Exception $e) {
             DB::rollBack();
-            session()->flash('error', 'Error al guardar la sede: ' . $e->getMessage());
+            $this->dispatch('swal', [
+                'title' => 'Error al guardar',
+                'text'  => $e->getMessage(),
+                'icon'  => 'error',
+            ]);
         }
     }
 
     public function edit($id)
     {
-        $this->resetForm();
         $sucursal = Sucursal::findOrFail($id);
-        
+
         $this->sucursalId = $sucursal->id;
-        $this->nombre = $sucursal->nombre;
-        $this->slug = $sucursal->slug;
-        $this->direccion = $sucursal->direccion;
-        $this->ciudad = $sucursal->ciudad;
-        $this->telefono = $sucursal->telefono;
-        $this->activo = $sucursal->activo;
-        $this->latitud = $sucursal->latitud;
-        $this->longitud = $sucursal->longitud;
-        
-        $this->isEditing = true;
-        $this->showModal = true;
+        $this->nombre     = $sucursal->nombre;
+        $this->slug       = $sucursal->slug;
+        $this->direccion  = $sucursal->direccion;
+        $this->ciudad     = $sucursal->ciudad;
+        $this->telefono   = $sucursal->telefono;
+        $this->activo     = $sucursal->activo;
+        $this->latitud    = $sucursal->latitud;
+        $this->longitud   = $sucursal->longitud;
+        $this->isEditing  = true;
+        $this->showModal  = true;
+        $this->resetErrorBag();
         $this->dispatch('data-loaded');
     }
 
@@ -254,19 +228,59 @@ class ManageSucursales extends Component
 
     public function gestionar($id)
     {
-        $sucursal = Sucursal::where('empresa_id', auth()->user()->empresa_id)->findOrFail($id);
-        
-        $user = auth()->user();
-        $user->update(['sucursal_id' => $sucursal->id]);
+        try {
+            $sucursal = Sucursal::where('empresa_id', auth()->user()->empresa_id)->findOrFail($id);
+            $user = auth()->user();
+            $user->sucursal_id = $sucursal->id;
+            $user->save();
+            return $this->redirectRoute('admin.dashboard');
+        } catch (\Exception $e) {
+            $this->dispatch('swal', ['title' => 'Error', 'text' => $e->getMessage(), 'icon' => 'error']);
+        }
+    }
 
-        return redirect()->route('admin.dashboard');
+    public function confirmDelete($id)
+    {
+        $this->deleteSucursalId = $id;
+        $this->passwordVerification = '';
+        $this->deleteModal = true;
+    }
+
+    public function deleteSucursal()
+    {
+        $this->validate([
+            'passwordVerification' => 'required',
+        ], [
+            'passwordVerification.required' => 'Debes ingresar tu contraseña para confirmar.',
+        ]);
+
+        if (!\Illuminate\Support\Facades\Hash::check($this->passwordVerification, auth()->user()->getAuthPassword())) {
+            $this->addError('passwordVerification', 'La contraseña ingresada es incorrecta.');
+            return;
+        }
+
+        try {
+            DB::beginTransaction();
+            $sucursal = Sucursal::findOrFail($this->deleteSucursalId);
+            $sucursal->delete();
+            DB::commit();
+
+            $this->deleteModal = false;
+            $this->deleteSucursalId = null;
+            $this->passwordVerification = '';
+
+            $this->dispatch('swal', ['title' => 'Eliminada', 'text' => 'La sucursal ha sido eliminada exitosamente.', 'icon' => 'success']);
+        } catch (\Exception $e) {
+            DB::rollBack();
+            $this->dispatch('swal', ['title' => 'Error', 'text' => 'Ocurrió un error al intentar eliminar la sucursal.', 'icon' => 'error']);
+        }
     }
 
     public function render()
     {
         return view('livewire.sucursales.manage-sucursales', [
-            'stats' => $this->stats,
-            'sucursales' => $this->sucursales
+            'stats'      => $this->stats,
+            'sucursales' => $this->sucursales,
         ])->layout('layouts.app');
     }
 }

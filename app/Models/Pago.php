@@ -54,4 +54,31 @@ class Pago extends Model
     {
         return $this->belongsTo(Sucursal::class);
     }
+
+    public function aprobar(?string $referencia = null)
+    {
+        $this->estado = self::ESTADO_APROBADO;
+        $this->aprobado_en = now();
+        
+        if ($referencia) {
+            $this->referencia = $referencia;
+        }
+
+        $this->save();
+        
+        return $this;
+    }
+
+    public function rechazar(?string $notas = null)
+    {
+        $this->estado = self::ESTADO_RECHAZADO;
+        
+        if ($notas) {
+            $this->notas = $notas;
+        }
+
+        $this->save();
+
+        return $this;
+    }
 }

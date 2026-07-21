@@ -63,7 +63,7 @@
                                 </span>
                             </td>
                             <td class="px-6 py-4">
-                                @if($user->empresa && $user->empresa->activo)
+                                @if($user->activo)
                                     <span class="px-3 py-1 rounded-full bg-green-500/10 text-green-500 text-[10px] font-black uppercase tracking-widest">Activo</span>
                                 @else
                                     <span class="px-3 py-1 rounded-full bg-rose-500/10 text-rose-500 text-[10px] font-black uppercase tracking-widest">Inactivo</span>
@@ -80,9 +80,9 @@
                                     @endif
 
                                     <button wire:click="toggleStatus('{{ $user->id }}')" 
-                                            class="p-2 rounded-xl {{ ($user->empresa && $user->empresa->activo) ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B]' : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-[#2C241B]' }} transition-all"
-                                            title="Cambiar estado del negocio">
-                                        @if($user->empresa && $user->empresa->activo)
+                                            class="p-2 rounded-xl {{ $user->activo ? 'text-amber-500 bg-amber-500/10 hover:bg-amber-500 hover:text-[#2C241B]' : 'text-green-500 bg-green-500/10 hover:bg-green-500 hover:text-[#2C241B]' }} transition-all"
+                                            title="Cambiar estado del usuario">
+                                        @if($user->activo)
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728L5.636 5.636"/></svg>
                                         @else
                                             <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>

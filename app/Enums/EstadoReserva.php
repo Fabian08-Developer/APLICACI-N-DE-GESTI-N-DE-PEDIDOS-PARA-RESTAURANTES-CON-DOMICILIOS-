@@ -83,7 +83,7 @@ enum EstadoReserva: string
     public function transicionesValidas(): array
     {
         return match ($this) {
-            self::PENDIENTE_PAGO => [self::PENDIENTE, self::CANCELADA],
+            self::PENDIENTE_PAGO => [self::PENDIENTE, self::CONFIRMADA, self::CANCELADA],
             self::PENDIENTE     => [self::CONFIRMADA, self::CANCELADA],
             self::CONFIRMADA    => [self::CLIENTE_LLEGO, self::CANCELADA, self::NO_SHOW],
             self::CLIENTE_LLEGO => [self::COMPLETADA, self::CANCELADA],

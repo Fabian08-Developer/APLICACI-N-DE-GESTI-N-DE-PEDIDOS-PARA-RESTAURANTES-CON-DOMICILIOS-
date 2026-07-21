@@ -256,10 +256,11 @@
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
         window.addEventListener('swal', event => {
+            const data = Array.isArray(event.detail) ? event.detail[0] : event.detail;
             Swal.fire({
-                title: event.detail[0].title,
-                text: event.detail[0].text,
-                icon: event.detail[0].icon,
+                title: data.title,
+                text: data.text,
+                icon: data.icon,
                 background: '#FFFFFF',
                 color: '#2C241B',
                 confirmButtonColor: '#E07A5F',

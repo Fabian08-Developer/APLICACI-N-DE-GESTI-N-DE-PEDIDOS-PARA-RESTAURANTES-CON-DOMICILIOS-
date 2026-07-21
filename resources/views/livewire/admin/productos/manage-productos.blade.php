@@ -297,14 +297,18 @@
                             <div x-show="openDropdown" x-transition.opacity x-transition:enter.duration.150ms x-transition:leave.duration.100ms class="dropdown-menu-flotante" style="display: none;" x-cloak>
                                 <!-- Variantes -->
                                 <button type="button" class="dropdown-item" wire:click="openVariantesModal('{{ $producto->id }}')" @click="openDropdown = false">
-                                    <span class="dropdown-icon" style="background: rgba(79, 142, 247, 0.1); color: #4F8EF7;">🎨</span>
+                                    <span class="dropdown-icon" style="background: rgba(79, 142, 247, 0.1); color: #4F8EF7;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M7 21a4 4 0 01-4-4V5a2 2 0 012-2h4a2 2 0 012 2v12a4 4 0 01-4 4zm0 0h12a2 2 0 002-2v-4a2 2 0 00-2-2h-2.343M11 7.343l1.657-1.657a2 2 0 012.828 0l2.829 2.829a2 2 0 010 2.828l-8.486 8.485M7 17h.01" /></svg>
+                                    </span>
                                     <span style="flex:1; text-align:left;">Variantes</span>
                                     <span style="font-weight:700; color:var(--text-main);">{{ $producto->variantes->count() }}</span>
                                 </button>
 
                                 <!-- Adiciones -->
                                 <button type="button" class="dropdown-item" wire:click="openAdicionesModalForProducto('{{ $producto->id }}')" @click="openDropdown = false">
-                                    <span class="dropdown-icon" style="background: rgba(201, 168, 76, 0.15); color: #C9A84C;">➕</span>
+                                    <span class="dropdown-icon" style="background: rgba(201, 168, 76, 0.15); color: #C9A84C;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15" /></svg>
+                                    </span>
                                     <span style="flex:1; text-align:left;">Adiciones</span>
                                     <span style="font-weight:700; color:var(--text-main);">{{ $producto->adiciones->count() }}</span>
                                 </button>
@@ -314,12 +318,16 @@
                                 <!-- Mostrar / Ocultar -->
                                 @if($producto->activo)
                                     <button type="button" class="dropdown-item" wire:click="toggleActivo('{{ $producto->id }}')" @click="openDropdown = false">
-                                        <span class="dropdown-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">👁️</span>
+                                        <span class="dropdown-icon" style="background: rgba(245, 158, 11, 0.1); color: #F59E0B;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 001.934 12C3.226 16.338 7.244 19.5 12 19.5c.993 0 1.953-.138 2.863-.395M6.228 6.228A10.45 10.45 0 0112 4.5c4.756 0 8.773 3.162 10.065 7.498a10.523 10.523 0 01-4.293 5.774M6.228 6.228L3 3m3.228 3.228l3.65 3.65m7.894 7.894L21 21m-3.228-3.228l-3.65-3.65m0 0a3 3 0 10-4.243-4.243m4.242 4.242L9.88 9.88" /></svg>
+                                        </span>
                                         <span style="flex:1; text-align:left;">Ocultar del menú</span>
                                     </button>
                                 @else
                                     <button type="button" class="dropdown-item" wire:click="toggleActivo('{{ $producto->id }}')" @click="openDropdown = false">
-                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">👁️</span>
+                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M2.036 12.322a1.012 1.012 0 010-.639C3.423 7.51 7.36 4.5 12 4.5c4.638 0 8.573 3.007 9.963 7.178.07.207.07.431 0 .639C20.577 16.49 16.64 19.5 12 19.5c-4.638 0-8.573-3.007-9.964-7.178z" /><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" /></svg>
+                                        </span>
                                         <span style="flex:1; text-align:left; color:#4CAF7D; font-weight:600;">Mostrar en menú</span>
                                     </button>
                                 @endif
@@ -327,12 +335,16 @@
                                 <!-- Disponible / Agotado -->
                                 @if($producto->disponible)
                                     <button type="button" class="dropdown-item" wire:click="toggleDisponible('{{ $producto->id }}')" @click="openDropdown = false">
-                                        <span class="dropdown-icon" style="background: rgba(220, 38, 38, 0.1); color: #DC2626;">❌</span>
+                                        <span class="dropdown-icon" style="background: rgba(220, 38, 38, 0.1); color: #DC2626;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M18.364 18.364A9 9 0 005.636 5.636m12.728 12.728A9 9 0 015.636 5.636m12.728 12.728L5.636 5.636" /></svg>
+                                        </span>
                                         <span style="flex:1; text-align:left;">Marcar Agotado</span>
                                     </button>
                                 @else
                                     <button type="button" class="dropdown-item" wire:click="toggleDisponible('{{ $producto->id }}')" @click="openDropdown = false">
-                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">✅</span>
+                                        <span class="dropdown-icon" style="background: rgba(76, 175, 125, 0.1); color: #4CAF7D;">
+                                            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                        </span>
                                         <span style="flex:1; text-align:left; color:#4CAF7D; font-weight:600;">Marcar Disponible</span>
                                     </button>
                                 @endif
@@ -342,7 +354,9 @@
                                 <!-- Eliminar -->
                                 <button type="button" class="dropdown-item dropdown-item-danger"
                                         @click.prevent.stop="deleteId = '{{ $producto->id }}'; deleteName = {{ json_encode($producto->nombre) }}; showModalEliminar = true; openDropdown = false;">
-                                    <span class="dropdown-icon" style="background: transparent;">🗑️</span>
+                                    <span class="dropdown-icon" style="background: rgba(220, 38, 38, 0.1); color: #DC2626;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" style="width:16px;height:16px;"><path stroke-linecap="round" stroke-linejoin="round" d="M14.74 9l-.346 9m-4.788 0L9.26 9m9.968-3.21c.342.052.682.107 1.022.166m-1.022-.165L18.16 19.673a2.25 2.25 0 01-2.244 2.077H8.084a2.25 2.25 0 01-2.244-2.077L4.772 5.79m14.456 0a48.108 48.108 0 00-3.478-.397m-12 .562c.34-.059.68-.114 1.022-.165m0 0a48.11 48.11 0 013.478-.397m7.5 0v-.916c0-1.18-.91-2.164-2.09-2.201a51.964 51.964 0 00-3.32 0c-1.18.037-2.09 1.022-2.09 2.201v.916m7.5 0a48.667 48.667 0 00-7.5 0" /></svg>
+                                    </span>
                                     <span style="flex:1; text-align:left; font-weight:600;">Eliminar Producto</span>
                                 </button>
                             </div>

@@ -2,7 +2,7 @@
 
 namespace App\Mail;
 
-use App\Models\PagoReserva;
+use App\Models\Pago;
 use Illuminate\Bus\Queueable;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
@@ -13,12 +13,12 @@ class ComprobantePagoReservaMail extends Mailable
 {
     use Queueable, SerializesModels;
 
-    public PagoReserva $pago;
+    public Pago $pago;
 
     /**
      * Create a new message instance.
      */
-    public function __construct(PagoReserva $pago)
+    public function __construct(Pago $pago)
     {
         $this->pago = $pago;
     }
