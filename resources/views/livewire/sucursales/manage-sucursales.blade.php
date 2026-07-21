@@ -282,7 +282,7 @@
                         {{-- Teléfono --}}
                         <div>
                             <label class="block text-[10px] font-black text-[#2C241B] uppercase tracking-widest mb-2 pl-1">Teléfono</label>
-                            <input wire:model.defer="telefono" type="text" placeholder="Ej. 300 123 4567" class="w-full px-5 py-3.5 bg-white border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-[#8B8175]/50 focus:border-[#E07A5F] focus:ring-4 focus:ring-[#E07A5F]/10 transition-all font-bold text-sm shadow-sm hover:border-[#2C241B]/20 outline-none">
+                            <input wire:model="telefono" type="text" placeholder="Ej. 300 123 4567" class="w-full px-5 py-3.5 bg-white border border-[#2C241B]/10 rounded-2xl text-[#2C241B] placeholder-[#8B8175]/50 focus:border-[#E07A5F] focus:ring-4 focus:ring-[#E07A5F]/10 transition-all font-bold text-sm shadow-sm hover:border-[#2C241B]/20 outline-none">
                             @error('telefono') <span class="text-rose-500 text-[9px] font-black uppercase mt-1.5 block tracking-widest pl-1">{{ $message }}</span> @enderror
                         </div>
                     </div>

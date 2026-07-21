@@ -112,9 +112,9 @@ class ManageSucursales extends Component
 
     public function openCreateModal()
     {
-        // Solo gerentes con empresa activa pueden abrir el modal de creación
-        if (!auth()->user()->hasRole('gerente')) {
-            $this->dispatch('swal', ['title' => 'Sin permiso', 'text' => 'Solo el gerente puede crear sucursales.', 'icon' => 'error']);
+        // Permitir a gerentes, administradores y super-admins abrir el modal
+        if (!auth()->user()->hasAnyRole(['gerente', 'administrador', 'super-admin'])) {
+            $this->dispatch('swal', ['title' => 'Sin permiso', 'text' => 'No tienes permisos para crear sucursales.', 'icon' => 'error']);
             return;
         }
         if (!auth()->user()->empresa || !auth()->user()->empresa->activo) {
@@ -145,7 +145,7 @@ class ManageSucursales extends Component
     {
         // ─── GUARDIA DE SEGURIDAD (segunda capa) ─────────────────────────────
         if (!$this->isEditing) {
-            if (!auth()->user()->hasRole('gerente')) {
+            if (!auth()->user()->hasAnyRole(['gerente', 'administrador', 'super-admin'])) {
                 return;
             }
             if (!auth()->user()->empresa || !auth()->user()->empresa->activo) {
@@ -154,6 +154,18 @@ class ManageSucursales extends Component
             }
         }
         // ────────────────────────────────────────────────────────────────────
+
+        // Asegurar que el slug sea único
+        if (!$this->isEditing || empty($this->slug)) {
+            $baseSlug = Str::slug($this->nombre);
+            $slug = $baseSlug;
+            $count = 1;
+            while (Sucursal::where('slug', $slug)->where('id', '!=', $this->sucursalId ?? 0)->exists()) {
+                $slug = $baseSlug . '-' . $count;
+                $count++;
+            }
+            $this->slug = $slug;
+        }
 
         $this->validate();
 
