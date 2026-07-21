@@ -21,21 +21,31 @@ class ReservaController extends Controller
     {
         $sucursal = auth()->user()->sucursal;
         $fecha    = $request->fecha ?? today()->toDateString();
+        
+        $reservas = collect();
+        $resumen  = ['total' => 0, 'confirmadas' => 0, 'pendientes' => 0, 'llegaron' => 0];
+        $alertaSucursal = null;
 
-        $reservas = ReservaMesa::where('sucursal_id', $sucursal->id)
-            ->where('fecha_reserva', $fecha)
-            ->with(['mesas'])
-            ->orderBy('hora_inicio')
-            ->get();
+        if (!$sucursal) {
+            $alertaSucursal = auth()->user()->sucursal_id 
+                ? 'Tu usuario está asignado a una sucursal que ha sido desactivada o eliminada. Contacta al administrador para que te asigne una sucursal activa.' 
+                : 'Tu usuario no tiene ninguna sucursal asignada. Contacta al administrador.';
+        } else {
+            $reservas = ReservaMesa::where('sucursal_id', $sucursal->id)
+                ->where('fecha_reserva', $fecha)
+                ->with(['mesas'])
+                ->orderBy('hora_inicio')
+                ->get();
 
-        $resumen = [
-            'total'       => $reservas->count(),
-            'confirmadas' => $reservas->where('estado.value', 'confirmada')->count(),
-            'pendientes'  => $reservas->whereIn('estado.value', ['pendiente_pago', 'pendiente'])->count(),
-            'llegaron'    => $reservas->where('estado.value', 'cliente_llego')->count(),
-        ];
+            $resumen = [
+                'total'       => $reservas->count(),
+                'confirmadas' => $reservas->where('estado.value', 'confirmada')->count(),
+                'pendientes'  => $reservas->whereIn('estado.value', ['pendiente_pago', 'pendiente'])->count(),
+                'llegaron'    => $reservas->where('estado.value', 'cliente_llego')->count(),
+            ];
+        }
 
-        return view('mesero.reservas.index', compact('reservas', 'resumen', 'fecha', 'sucursal'));
+        return view('mesero.reservas.index', compact('reservas', 'resumen', 'fecha', 'sucursal', 'alertaSucursal'));
     }
 
     /**
@@ -134,14 +144,25 @@ class ReservaController extends Controller
     public function crear()
     {
         $sucursal = auth()->user()->sucursal;
-        $mesas    = \App\Models\Mesa::where('sucursal_id', $sucursal->id)->orderBy('numero')->get();
+        $alertaSucursal = null;
+        $mesas = collect();
+        $montoDeposito = 0;
+        $requiereDeposito = false;
+        $duracionTurno = 0;
 
-        $montoDeposito    = $this->reservaService->montoDeposito($sucursal);
-        $requiereDeposito = $this->reservaService->requiereDeposito($sucursal);
-        $duracionTurno    = $this->reservaService->duracionTurno($sucursal);
+        if (!$sucursal) {
+            $alertaSucursal = auth()->user()->sucursal_id 
+                ? 'Tu usuario está asignado a una sucursal que ha sido desactivada o eliminada. Contacta al administrador para que te asigne una sucursal activa.' 
+                : 'Tu usuario no tiene ninguna sucursal asignada. Contacta al administrador.';
+        } else {
+            $mesas    = \App\Models\Mesa::where('sucursal_id', $sucursal->id)->orderBy('numero')->get();
+            $montoDeposito    = $this->reservaService->montoDeposito($sucursal);
+            $requiereDeposito = $this->reservaService->requiereDeposito($sucursal);
+            $duracionTurno    = $this->reservaService->duracionTurno($sucursal);
+        }
 
         return view('mesero.reservas.crear', compact(
-            'sucursal', 'mesas', 'montoDeposito', 'requiereDeposito', 'duracionTurno'
+            'sucursal', 'mesas', 'montoDeposito', 'requiereDeposito', 'duracionTurno', 'alertaSucursal'
         ));
     }
 

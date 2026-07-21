@@ -38,16 +38,6 @@ class VerificarAutenticacion
               ?? session('staff_token');
 
         if (!$token) {
-            $route = $request->route();
-            $requiresCustomAuth = $route && (
-                in_array('auth.custom', $route->gatherMiddleware()) || 
-                in_array(self::class, $route->gatherMiddleware())
-            );
-
-            if (!$requiresCustomAuth) {
-                return $next($request);
-            }
-
             if ($request->expectsJson() || $request->is('livewire/*')) {
                 return response()->json(['error' => 'No autenticado.'], 401);
             }

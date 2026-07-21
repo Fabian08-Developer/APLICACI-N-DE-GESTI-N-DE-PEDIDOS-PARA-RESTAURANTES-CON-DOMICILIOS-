@@ -15,7 +15,6 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->web(append: [
             \App\Http\Middleware\SetActiveTenant::class,
-            \App\Http\Middleware\VerificarAutenticacion::class,
         ]);
         $middleware->alias([
             'auth.custom' => \App\Http\Middleware\VerificarAutenticacion::class,

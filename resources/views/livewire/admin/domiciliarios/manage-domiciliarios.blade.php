@@ -1214,7 +1214,7 @@
     <div class="sidebar-form-overlay" id="formOverlay" :class="{ 'show': isOpen }" @click="isOpen = false" wire:ignore></div>
     <div class="sidebar-form" id="sidebarForm" :class="{ 'open': isOpen }" wire:ignore>
         <div class="sidebar-form-header">
-            <h2 id="formTitle" style="color: var(--text-main); font-family: 'DM Serif Display', serif;">Nuevo Domiciliario</h2>
+            <h2 id="formTitle" style="color: var(--text-main); font-family: 'DM Serif Display', serif;">{{ old('_method') == 'PUT' ? 'Editar Domiciliario' : 'Nuevo Domiciliario' }}</h2>
         </div>
         <div class="sidebar-form-content" style="position: relative;">
             <div id="formLoadingOverlay" style="display: none; position: absolute; inset: 0; background: rgba(253, 251, 247, 0.7); backdrop-filter: blur(2px); z-index: 10; flex-direction: column; align-items: center; justify-content: center;">
@@ -1222,9 +1222,14 @@
                 <div style="width: 30px; height: 30px; border: 3px solid rgba(224, 122, 95, 0.2); border-top-color: #E07A5F; border-radius: 50%; animation: spin 1s linear infinite;"></div>
                 <span style="margin-top: 0.8rem; font-size: 0.85rem; color: #2C241B; font-weight: 500;">Cargando información...</span>
             </div>
-            <form id="mainForm" method="POST">
+            <form id="mainForm" method="POST" action="{{ old('form_action', route('admin.domiciliarios.store')) }}">
                 @csrf
-                <div id="methodField"></div>
+                <div id="methodField">
+                    @if(old('_method') == 'PUT')
+                        <input type="hidden" name="_method" value="PUT">
+                    @endif
+                </div>
+                <input type="hidden" name="form_action" id="formActionField" value="{{ old('form_action', route('admin.domiciliarios.store')) }}">
                 
                 @if($errors->any())
                     <div style="background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2); padding: 1rem; border-radius: 0.75rem; margin-bottom: 1.5rem; color: #f87171; font-size: 0.85rem;">
@@ -1238,32 +1243,33 @@
                 <div class="form-group">
                     <label class="form-label">Nombre Completo</label>
                     <input type="text" name="nombre" id="inName" class="form-input" required placeholder="Ej: Juan Pérez"
+                           value="{{ old('nombre') }}"
                            oninput="this.value = this.value.replace(/[\u{1F300}-\u{1FAFF}]|[\u{2600}-\u{27BF}]/gu, '')">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Teléfono</label>
-                    <input type="text" name="telefono" id="inPhone" class="form-input" required placeholder="300 000 0000">
+                    <input type="text" name="telefono" id="inPhone" class="form-input" required placeholder="300 000 0000" value="{{ old('telefono') }}">
                 </div>
                 <div class="form-group">
                     <label class="form-label">Zona de Trabajo</label>
                     <select name="zona_id" id="inZoneId" class="select-d" style="width:100%">
                         <option value="">Seleccione una zona</option>
                         @foreach($zonas as $zona)
-                        <option value="{{ $zona->id }}">{{ $zona->nombre }}</option>
+                        <option value="{{ $zona->id }}" {{ old('zona_id') == $zona->id ? 'selected' : '' }}>{{ $zona->nombre }}</option>
                         @endforeach
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Tipo de Vehículo</label>
                     <select name="vehiculo_tipo" id="inVehicleType" class="select-d" style="width:100%">
-                        <option value="moto">Moto</option>
-                        <option value="bicicleta">Bicicleta</option>
-                        <option value="carro">Carro</option>
+                        <option value="moto" {{ old('vehiculo_tipo') == 'moto' ? 'selected' : '' }}>Moto</option>
+                        <option value="bicicleta" {{ old('vehiculo_tipo') == 'bicicleta' ? 'selected' : '' }}>Bicicleta</option>
+                        <option value="carro" {{ old('vehiculo_tipo') == 'carro' ? 'selected' : '' }}>Carro</option>
                     </select>
                 </div>
                 <div class="form-group">
                     <label class="form-label">Placa (Opcional)</label>
-                    <input type="text" name="placa" id="inPlate" class="form-input" placeholder="ABC-123">
+                    <input type="text" name="placa" id="inPlate" class="form-input" placeholder="ABC-123" value="{{ old('placa') }}">
                 </div>
             </form>
         </div>
@@ -1375,9 +1381,15 @@
 
         function openCreateForm() {
             document.getElementById('formTitle').innerText = "Nuevo Domiciliario";
-            document.getElementById('mainForm').action = "{{ '#' }}";
+            document.getElementById('mainForm').action = "{{ route('admin.domiciliarios.store') }}";
+            document.getElementById('formActionField').value = "{{ route('admin.domiciliarios.store') }}";
             document.getElementById('methodField').innerHTML = '';
             document.getElementById('mainForm').reset();
+            document.getElementById('inName').value = '';
+            document.getElementById('inPhone').value = '';
+            document.getElementById('inZoneId').value = '';
+            document.getElementById('inVehicleType').value = 'moto';
+            document.getElementById('inPlate').value = '';
             if(document.getElementById('formLoadingOverlay')) document.getElementById('formLoadingOverlay').style.display = 'none';
             window.dispatchEvent(new CustomEvent('open-sidebar'));
         }
@@ -1396,6 +1408,7 @@
                         const dom = res.data;
                         document.getElementById('formTitle').innerText = "Editar Domiciliario";
                         document.getElementById('mainForm').action = `/admin/domiciliarios/${id}`;
+                        document.getElementById('formActionField').value = `/admin/domiciliarios/${id}`;
                         document.getElementById('methodField').innerHTML = '<input type="hidden" name="_method" value="PUT">';
                         document.getElementById('inName').value = dom.nombre;
                         document.getElementById('inPhone').value = dom.telefono;

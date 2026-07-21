@@ -6,6 +6,10 @@ use Livewire\Component;
 use App\Models\Sucursal;
 use Illuminate\Support\Str;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Hash;
+use App\Mail\DeleteSucursalVerificationCodeMail;
+use App\Mail\SucursalDeletedNotificationMail;
 
 class ManageSucursales extends Component
 {
@@ -31,6 +35,11 @@ class ManageSucursales extends Component
     public $deleteModal = false;
     public $deleteSucursalId = null;
     public $passwordVerification = '';
+    
+    // 2FA deletion fields
+    public $deleteStep = 1; // 1: warning, 2: verify
+    public $generatedCode = null;
+    public $inputVerificationCode = '';
 
     protected function rules()
     {
@@ -243,31 +252,63 @@ class ManageSucursales extends Component
     {
         $this->deleteSucursalId = $id;
         $this->passwordVerification = '';
+        $this->inputVerificationCode = '';
+        $this->generatedCode = null;
+        $this->deleteStep = 1;
         $this->deleteModal = true;
+    }
+
+    public function sendVerificationCode()
+    {
+        try {
+            $sucursal = Sucursal::findOrFail($this->deleteSucursalId);
+            $this->generatedCode = str_pad(random_int(0, 999999), 6, '0', STR_PAD_LEFT);
+            
+            Mail::to(auth()->user()->correo)->send(new DeleteSucursalVerificationCodeMail($this->generatedCode, $sucursal));
+            
+            $this->deleteStep = 2;
+        } catch (\Exception $e) {
+            $this->dispatch('swal', ['title' => 'Error', 'text' => 'No se pudo enviar el correo de verificación.', 'icon' => 'error']);
+        }
     }
 
     public function deleteSucursal()
     {
         $this->validate([
             'passwordVerification' => 'required',
+            'inputVerificationCode' => 'required|size:6',
         ], [
             'passwordVerification.required' => 'Debes ingresar tu contraseña para confirmar.',
+            'inputVerificationCode.required' => 'El código de verificación es obligatorio.',
+            'inputVerificationCode.size' => 'El código debe tener 6 dígitos.',
         ]);
 
-        if (!\Illuminate\Support\Facades\Hash::check($this->passwordVerification, auth()->user()->getAuthPassword())) {
+        if (!Hash::check($this->passwordVerification, auth()->user()->getAuthPassword())) {
             $this->addError('passwordVerification', 'La contraseña ingresada es incorrecta.');
+            return;
+        }
+
+        if ($this->inputVerificationCode !== $this->generatedCode) {
+            $this->addError('inputVerificationCode', 'El código de verificación es incorrecto.');
             return;
         }
 
         try {
             DB::beginTransaction();
             $sucursal = Sucursal::findOrFail($this->deleteSucursalId);
+            $nombreSucursal = $sucursal->nombre;
             $sucursal->delete();
             DB::commit();
+
+            // Send confirmation email
+            Mail::to(auth()->user()->correo)->send(new SucursalDeletedNotificationMail($nombreSucursal));
 
             $this->deleteModal = false;
             $this->deleteSucursalId = null;
             $this->passwordVerification = '';
+            $this->inputVerificationCode = '';
+            $this->generatedCode = null;
+            $this->deleteStep = 1;
 
             $this->dispatch('swal', ['title' => 'Eliminada', 'text' => 'La sucursal ha sido eliminada exitosamente.', 'icon' => 'success']);
         } catch (\Exception $e) {

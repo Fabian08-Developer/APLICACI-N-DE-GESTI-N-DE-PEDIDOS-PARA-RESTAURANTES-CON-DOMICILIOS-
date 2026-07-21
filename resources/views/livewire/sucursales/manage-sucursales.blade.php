@@ -302,9 +302,9 @@
          x-transition:leave-start="opacity-100"
          x-transition:leave-end="opacity-0">
 
-        <div class="fixed inset-0 bg-[#2C241B]/60 backdrop-blur-sm" @click="deleteModal = false"></div>
+        <div class="fixed inset-0 bg-[#2C241B]/60 backdrop-blur-sm"></div>
 
-        <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-sm border border-[#2C241B]/5 overflow-hidden relative z-10"
+        <div class="bg-white rounded-[32px] shadow-2xl w-full max-w-md border border-[#2C241B]/5 overflow-hidden relative z-10"
              x-transition:enter="transition ease-out duration-300"
              x-transition:enter-start="opacity-0 translate-y-8 scale-95"
              x-transition:enter-end="opacity-100 translate-y-0 scale-100"
@@ -312,6 +312,8 @@
              x-transition:leave-start="opacity-100 translate-y-0 scale-100"
              x-transition:leave-end="opacity-0 translate-y-8 scale-95">
 
+            <!-- Step 1: Warning and Send Code -->
+            @if($deleteStep === 1)
             <div class="px-8 py-8 flex flex-col items-center text-center">
                 <div class="w-16 h-16 rounded-full bg-rose-500/10 flex items-center justify-center text-rose-500 mb-6">
                     <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -319,27 +321,74 @@
                     </svg>
                 </div>
                 <h3 class="text-xl font-black text-[#2C241B] uppercase tracking-tight mb-2">Eliminar Sucursal</h3>
-                <p class="text-[#8B8175] text-xs font-medium mb-6">Esta acción no se puede deshacer. Por favor ingresa tu contraseña para confirmar la eliminación.</p>
+                
+                <div class="bg-rose-50 border border-rose-100 text-rose-800 p-4 rounded-xl text-xs font-medium text-left mb-6 w-full shadow-inner">
+                    <p class="font-bold mb-1">Esta acción es irreversible.</p>
+                    <p>Al eliminar esta sucursal:</p>
+                    <ul class="list-disc pl-4 mt-2 space-y-1">
+                        <li>El personal asignado perderá su acceso.</li>
+                        <li>El menú específico dejará de estar disponible.</li>
+                        <li>Las reservas y los reportes locales se archivarán.</li>
+                    </ul>
+                </div>
 
-                <form wire:submit.prevent="deleteSucursal" class="w-full">
+                <div class="flex items-center gap-3 w-full">
+                    <button type="button" @click="deleteModal = false"
+                            class="flex-1 px-4 py-3.5 bg-white text-[#5C5246] hover:text-[#2C241B] hover:bg-[#FDFBF7] font-black rounded-xl transition-all uppercase text-[10px] tracking-widest border border-[#2C241B]/10">
+                        Cancelar
+                    </button>
+                    <button type="button" wire:click="sendVerificationCode" wire:loading.attr="disabled"
+                            class="flex-1 px-4 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition-all shadow-[0_8px_20px_rgba(244,63,94,0.25)] uppercase text-[10px] tracking-widest relative overflow-hidden group disabled:opacity-70">
+                        <span wire:loading.remove wire:target="sendVerificationCode">Enviar código</span>
+                        <span wire:loading.flex wire:target="sendVerificationCode" class="items-center justify-center gap-2">
+                            <svg class="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                            Enviando...
+                        </span>
+                    </button>
+                </div>
+            </div>
+            @endif
+
+            <!-- Step 2: Verification Inputs -->
+            @if($deleteStep === 2)
+            <div class="px-8 py-8 flex flex-col items-center text-center">
+                <div class="w-16 h-16 rounded-full bg-emerald-500/10 flex items-center justify-center text-emerald-500 mb-6">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 19v-8.93a2 2 0 01.89-1.664l7-4.666a2 2 0 012.22 0l7 4.666A2 2 0 0121 10.07V19M3 19a2 2 0 002 2h14a2 2 0 002-2M3 19l6.75-4.5M21 19l-6.75-4.5M3 10l6.75 4.5M21 10l-6.75 4.5m0 0l-1.14.76a2 2 0 01-2.22 0l-1.14-.76" />
+                    </svg>
+                </div>
+                <h3 class="text-xl font-black text-[#2C241B] uppercase tracking-tight mb-2">Doble Verificación</h3>
+                <p class="text-[#8B8175] text-xs font-medium mb-6">Hemos enviado un código a tu correo. Ingrésalo junto a tu contraseña para confirmar la eliminación.</p>
+
+                <form wire:submit.prevent="deleteSucursal" class="w-full text-left">
+                    <div class="mb-4">
+                        <label class="block text-[10px] font-black text-[#2C241B] uppercase tracking-widest mb-2 pl-1">Código de 6 dígitos</label>
+                        <input wire:model="inputVerificationCode" type="text" maxlength="6" placeholder="000000"
+                               class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-xl text-[#2C241B] placeholder-[#8B8175]/50 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all font-bold text-center text-2xl tracking-[0.5em] outline-none">
+                        @error('inputVerificationCode') <span class="text-rose-500 text-[9px] font-black uppercase mt-1 block pl-1">{{ $message }}</span> @enderror
+                    </div>
+
                     <div class="mb-6">
-                        <input wire:model="passwordVerification" type="password" placeholder="Tu contraseña..."
+                        <label class="block text-[10px] font-black text-[#2C241B] uppercase tracking-widest mb-2 pl-1">Tu contraseña</label>
+                        <input wire:model="passwordVerification" type="password" placeholder="Ingresa tu contraseña"
                                class="w-full px-5 py-3.5 bg-[#FDFBF7] border border-[#2C241B]/10 rounded-xl text-[#2C241B] placeholder-[#8B8175]/50 focus:border-rose-500 focus:ring-4 focus:ring-rose-500/10 transition-all font-bold text-sm text-center outline-none">
-                        @error('passwordVerification') <span class="text-rose-500 text-[10px] font-black uppercase mt-2 block">{{ $message }}</span> @enderror
+                        @error('passwordVerification') <span class="text-rose-500 text-[9px] font-black uppercase mt-1 block pl-1">{{ $message }}</span> @enderror
                     </div>
 
                     <div class="flex items-center gap-3 w-full">
-                        <button type="button" @click="deleteModal = false"
+                        <button type="button" wire:click="$set('deleteStep', 1)"
                                 class="flex-1 px-4 py-3.5 bg-white text-[#5C5246] hover:text-[#2C241B] hover:bg-[#FDFBF7] font-black rounded-xl transition-all uppercase text-[10px] tracking-widest border border-[#2C241B]/10">
-                            Cancelar
+                            Atrás
                         </button>
-                        <button type="submit"
-                                class="flex-1 px-4 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition-all shadow-[0_8px_20px_rgba(244,63,94,0.25)] uppercase text-[10px] tracking-widest">
-                            Eliminar
+                        <button type="submit" wire:loading.attr="disabled"
+                                class="flex-1 px-4 py-3.5 bg-rose-500 hover:bg-rose-600 text-white font-black rounded-xl transition-all shadow-[0_8px_20px_rgba(244,63,94,0.25)] uppercase text-[10px] tracking-widest relative">
+                            <span wire:loading.remove wire:target="deleteSucursal">Eliminar</span>
+                            <span wire:loading wire:target="deleteSucursal">Procesando...</span>
                         </button>
                     </div>
                 </form>
             </div>
+            @endif
         </div>
     </div>
 </div>

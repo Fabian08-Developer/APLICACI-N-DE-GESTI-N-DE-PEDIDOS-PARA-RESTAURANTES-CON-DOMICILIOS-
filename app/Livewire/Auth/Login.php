@@ -47,7 +47,19 @@ class Login extends Component
             ]);
         }
 
-        // 4. Case A: Super Admin or Gerente -> Traditional PHP Session login
+        // 4. Verify sucursal is active for branch-level staff
+        if (!$user->hasRole(RolUsuario::SUPER_ADMIN->value) && !$user->hasRole(RolUsuario::GERENTE->value)) {
+            $sucursal = \App\Models\Sucursal::withoutGlobalScope(\App\Scopes\TenantScope::class)
+                ->find($user->sucursal_id);
+                
+            if (!$sucursal || !$sucursal->activo) {
+                throw ValidationException::withMessages([
+                    'correo' => 'Tu sucursal asignada está inactiva o ha sido eliminada. Contacta al administrador.',
+                ]);
+            }
+        }
+
+        // 5. Case A: Super Admin or Gerente -> Traditional PHP Session login
         if ($user->hasRole(RolUsuario::SUPER_ADMIN->value) || $user->hasRole(RolUsuario::GERENTE->value)) {
             Auth::login($user, $this->remember);
             // DO NOT regenerate session in Livewire, it breaks the session cookie

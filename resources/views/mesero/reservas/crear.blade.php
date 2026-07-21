@@ -209,6 +209,18 @@
         box-shadow: 0 1px 2px rgba(0,0,0,0.03);
     }
     .wizard-theme .checkbox-label input[type="checkbox"] { margin-top: 0.2rem; width: 1.2rem; height: 1.2rem; accent-color: var(--gold); cursor: pointer; }
+
+    /* Modern Alerts */
+    .modern-alert { display: flex; align-items: flex-start; gap: 1rem; padding: 1rem 1.25rem; border-radius: var(--radius, 12px); margin-bottom: 1.5rem; border-left: 4px solid transparent; box-shadow: 0 2px 10px rgba(0,0,0,0.02); animation: fadeIn 0.3s ease-out forwards; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(-5px); } to { opacity: 1; transform: translateY(0); } }
+    .modern-alert-icon { flex-shrink: 0; margin-top: 2px; }
+    .modern-alert-content { flex-grow: 1; }
+    .modern-alert-title { margin: 0 0 0.35rem 0; font-size: 1rem; font-weight: 700; }
+    .modern-alert-message { margin: 0; font-size: 0.9rem; line-height: 1.5; }
+    .modern-alert-warning { background-color: rgba(245, 158, 11, 0.05); border: 1px solid rgba(245, 158, 11, 0.2); border-left: 4px solid #f59e0b; }
+    .modern-alert-warning .modern-alert-icon { color: #f59e0b; }
+    .modern-alert-warning .modern-alert-title { color: #b45309; font-family: 'DM Sans', sans-serif; }
+    .modern-alert-warning .modern-alert-message { color: #d97706; }
 </style>
 
 <div class="wizard-theme-wrapper wizard-theme">
@@ -222,6 +234,15 @@
                 <p>Creación de reserva desde el panel del restaurante</p>
             </div>
 
+            @if(isset($alertaSucursal) && $alertaSucursal)
+            <div style="text-align: center; padding: 4rem 2rem; background: rgba(245, 158, 11, 0.02); border-radius: var(--radius, 16px); border: 1px dashed rgba(245, 158, 11, 0.3); margin-top: 2rem; margin-bottom: 2rem;">
+                <div style="margin-bottom: 1.5rem; color: #f59e0b;">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path><path d="M12 9v4"></path><path d="M12 17h.01"></path></svg>
+                </div>
+                <h3 style="margin-bottom: 0.75rem; font-size: 1.5rem; font-family: 'DM Serif Display', serif; color: var(--text);">Acceso Restringido</h3>
+                <p style="font-size: 1rem; max-width: 500px; margin: 0 auto; line-height: 1.5; color: var(--text-dim);">{{ $alertaSucursal }}</p>
+            </div>
+            @else
             <div class="steps">
                 <div class="step" :class="{'active': step === 1, 'done': step > 1}">
                     <div class="step-num">1</div><div class="step-label">Horario</div>
@@ -324,10 +345,14 @@
                         <div class="mesa-btn" 
                              :class="{'active': mesasSeleccionadas.includes('{{ $mesa->id }}'), 'disabled': mesasOcupadas.includes('{{ $mesa->id }}')}" 
                              @click="if(!mesasOcupadas.includes('{{ $mesa->id }}')) { toggleMesa('{{ $mesa->id }}') }">
-                            <div class="check">✓</div>
+                            <div class="check">
+                                <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"></path></svg>
+                            </div>
                             <span class="icon">
                                 <template x-if="mesasOcupadas.includes('{{ $mesa->id }}')">
-                                    <span>🚫</span>
+                                    <span style="color: #ef4444; display: inline-flex; align-items: center; justify-content: center; width: 24px; height: 24px;">
+                                        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><line x1="4.93" y1="4.93" x2="19.07" y2="19.07"></line></svg>
+                                    </span>
                                 </template>
                                 <template x-if="!mesasOcupadas.includes('{{ $mesa->id }}')">
                                     <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/></svg>
@@ -390,9 +415,11 @@
                 </div>
 
             </form>
+            @endif
         </div>
 
         <!-- Right: Summary Panel -->
+        @if(!isset($alertaSucursal) || !$alertaSucursal)
         <div class="glass-panel summary-panel">
             <h3 class="summary-title">Resumen</h3>
             
@@ -433,6 +460,7 @@
                 </div>
             </div>
         </div>
+        @endif
 
     </div>
 </div>
@@ -492,8 +520,9 @@ document.addEventListener('alpine:init', () => {
             
             // Usamos la ruta pública del cliente para obtener las franjas.
             // Para eso, el controlador envía el $sucursal en la vista.
-            let url = `{{ route('cliente.reservas.slots', $sucursal->slug) }}?fecha=${this.fecha}&numero_personas=${this.personas}`;
+            let url = `{{ $sucursal ? route('cliente.reservas.slots', $sucursal->slug) : '' }}?fecha=${this.fecha}&numero_personas=${this.personas}`;
             
+            if (!url.startsWith('http')) return; // Abort if no sucursal url
             if (this.mesasSeleccionadas.length > 0) {
                 this.mesasSeleccionadas.forEach(id => {
                     url += `&mesas_ids[]=${id}`;
@@ -518,7 +547,8 @@ document.addEventListener('alpine:init', () => {
                 this.mesasOcupadas = [];
                 return;
             }
-            let url = `{{ route('cliente.reservas.mesas-ocupadas', $sucursal->slug) }}?fecha=${this.fecha}&hora_inicio=${this.horaSeleccionada}`;
+            let url = `{{ $sucursal ? route('cliente.reservas.mesas-ocupadas', $sucursal->slug) : '' }}?fecha=${this.fecha}&hora_inicio=${this.horaSeleccionada}`;
+            if (!url.startsWith('http')) return; // Abort if no sucursal url
             fetch(url, {
                 headers: { 'X-CSRF-TOKEN': '{{ csrf_token() }}', 'Accept': 'application/json' }
             })

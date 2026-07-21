@@ -10,6 +10,15 @@
     </div>
 </div>
 
+@if($mesas->isEmpty())
+    <div class="empty-state">
+        <div class="empty-icon">
+            <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><line x1="3" y1="9" x2="21" y2="9"></line><line x1="9" y1="21" x2="9" y2="9"></line></svg>
+        </div>
+        <h3 style="margin-bottom: 0.5rem; font-size: 1.25rem; font-family: 'Playfair Display', serif; color: var(--text-main);">No hay mesas disponibles</h3>
+        <p>Tu sucursal no tiene mesas configuradas o no estás asignado a una sucursal activa. Contacta al administrador.</p>
+    </div>
+@else
 <div class="mesas-grid-pos">
     @foreach($mesas as $mesa)
         <a href="{{ route('mesero.tomar-pedido.menu', $mesa->id) }}" 
@@ -45,6 +54,7 @@
         </a>
     @endforeach
 </div>
+@endif
 
 <style>
     .page-header { 
@@ -74,6 +84,21 @@
         font-size: 0.95rem; 
         color: var(--text-muted); 
         margin: 0.3rem 0 0 0; 
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 4rem 2rem;
+        color: var(--text-muted);
+        background: var(--surface);
+        border-radius: var(--radius, 16px);
+        border: 1px dashed var(--border);
+        margin-top: 1rem;
+    }
+    
+    .empty-icon {
+        margin-bottom: 1.5rem;
+        color: var(--border);
     }
 
     .mesas-grid-pos {

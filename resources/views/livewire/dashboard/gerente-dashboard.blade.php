@@ -11,9 +11,9 @@
     </style>
 
     {{-- Hero Section Executive --}}
-    <div class="relative h-80 rounded-[32px] overflow-hidden mb-10 shadow-sm border border-[#2C241B]/10">
-        <img src="{{ asset('images/gerente_hero_espresso.png') }}" class="w-full h-full object-cover opacity-60 mix-blend-overlay" alt="Executive Coffee Hero" onerror="this.src='{{ asset('images/cafeteria_branding_hero_1778531783781.png') }}'">
-        <div class="absolute inset-0 bg-gradient-to-r from-[#FDFBF7] via-[#FDFBF7]/80 to-transparent"></div>
+    <div class="relative h-80 rounded-[32px] overflow-hidden mb-10 shadow-sm border border-[#2C241B]/10 bg-[#2C241B]">
+        <img src="{{ asset('images/gerente_hero_espresso.png') }}" class="absolute inset-0 w-full h-full object-cover opacity-120" alt="Executive Coffee Hero">
+        <div class="absolute inset-0 bg-gradient-to-r from-[#FDFBF7] via-[#FDFBF7]/90 to-transparent"></div>
         <div class="absolute inset-0 flex flex-col justify-center px-12 items-start">
             <div class="inline-flex items-center gap-3 px-4 py-1.5 rounded-full bg-[#FFFFFF]/90 border border-[#E07A5F]/30 text-[#E07A5F] text-[10px] font-black uppercase tracking-widest mb-6 shadow-sm">
                 <div class="w-1.5 h-1.5 rounded-full bg-[#E07A5F] animate-pulse shadow-[0_0_8px_#E07A5F]"></div>
