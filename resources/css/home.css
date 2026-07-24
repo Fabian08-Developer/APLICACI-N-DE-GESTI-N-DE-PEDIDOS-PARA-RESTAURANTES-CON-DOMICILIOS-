@@ -362,6 +362,58 @@ body {
     box-shadow: 0 0 8px #34D399;
 }
 
+/* SCROLL INDICATOR */
+.scroll-indicator {
+    display: inline-flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.6rem;
+    text-decoration: none;
+    color: var(--text-main);
+    font-size: 0.88rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    margin-top: 2rem;
+    padding: 0.5rem;
+    transition: all 0.3s ease;
+    animation: fadeUp 0.8s ease forwards 0.8s;
+    opacity: 0;
+    text-shadow: 0 1px 8px rgba(255, 255, 255, 0.8);
+}
+
+.scroll-indicator:hover {
+    color: var(--primary);
+    transform: translateY(-2px);
+}
+
+.scroll-line {
+    width: 2px;
+    height: 44px;
+    background: rgba(45, 49, 66, 0.2);
+    position: relative;
+    overflow: hidden;
+    border-radius: 2px;
+}
+
+.scroll-line::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    left: 0;
+    width: 100%;
+    height: 50%;
+    background: var(--primary);
+    animation: scrollDown 2s cubic-bezier(0.77, 0, 0.18, 1) infinite;
+    box-shadow: 0 0 6px var(--primary);
+}
+
+@keyframes scrollDown {
+    0% { transform: translateY(-100%); }
+    50% { transform: translateY(200%); }
+    100% { transform: translateY(300%); }
+}
+
 /* ══════════════════════════════
    INFO SECTION (Características)
    ══════════════════════════════ */

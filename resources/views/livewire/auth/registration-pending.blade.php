@@ -34,7 +34,7 @@
     </div>
 
     {{-- FORM SECTION (Reusing same side container for text) --}}
-    <div class="form-section flex items-center justify-center p-8">
+    <div class="form-section form-login-section flex items-center justify-center p-8">
         <div class="form-inner max-w-sm text-center">
             <div class="flex justify-center mb-6">
                 <div style="width: 64px; height: 64px; border-radius: 16px; background: rgba(224, 122, 95, 0.1); color: #E07A5F; display: flex; align-items: center; justify-content: center; margin: 0 auto;">
