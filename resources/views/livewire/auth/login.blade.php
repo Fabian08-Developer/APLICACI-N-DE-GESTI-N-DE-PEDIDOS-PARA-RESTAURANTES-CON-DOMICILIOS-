@@ -42,7 +42,7 @@
     {{-- FORM LOGIN --}}
     <div class="form-section form-login-section">
         <div class="form-inner">
-            <a href="{{ route('home') }}" wire:navigate class="inline-flex items-center gap-2 text-[12px] font-bold text-[#6C757D] hover:text-[#E07A5F] transition-colors mb-6 uppercase tracking-wider">
+            <a href="{{ route('home') }}" class="inline-flex items-center gap-2 text-[12px] font-bold text-[#6C757D] hover:text-[#E07A5F] transition-colors mb-6 uppercase tracking-wider">
                 <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18" />
                 </svg>
